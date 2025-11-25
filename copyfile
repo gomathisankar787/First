@@ -58,6 +58,14 @@
                         method_list : document.getElementsByName('method[]'),
                         is_nesting_needed_list : document.getElementsByName('is_nesting_needed[]')
                     }
+ fetch('createcsc', {
+                method: 'POST',
+                headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'  // Important for Django
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
                 }
 def bom(request):
     if request.method == "POST":
