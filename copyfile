@@ -1,0 +1,118 @@
+</div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-primary" style="margin-left: 90px;" onclick="savebomdata()">Save BOM Data</button>
+                        </div>
+                    </div>
+                    <!-- <form class="bom-form" method="post" action=""> -->
+                    {% csrf_token %}
+                    <div class="table-container">
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                            <th style="background-color: #24948f;">S.No</th>
+                            <th style="background-color: #24968f;">Level</th>
+                            <th style="background-color: #24968f;">Part No.</th>
+                            <th style="background-color: #24968f;">Rev</th>
+                            <th style="background-color: #24968f;">Parts Description</th>
+                            <th style="background-color: #24968f;">Qty</th>
+                            <th style="background-color: #24968f;">Process Type</th>
+                            <th style="background-color: #24968f;">Scope</th>
+                            <th style="background-color: #24968f;">Method</th>
+                            <th style="background-color: #24968f;">Is Nesting Needed</th>
+                            <th style="background-color: #24968f;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bom-table-body">
+                            <tr>
+                            <td class="sno">1</td>
+                            <td><input type="number" name="level[]" class="form-control" style="width: 50px;height:35px;"></td>
+                            <td><input type="text" name="part_num[]" class="form-control" value="{{csc_values.part_num}}" style="width: 100px; height:35px;"></td>
+                            <td><input type="text" name="rev[]" class="form-control" value="{{csc_values.rev}}" style="width: 50px; height:35px;"></td>
+                            <td><input type="text" name="desc[]" class="form-control" value="{{csc_values.desc}}" style="width: 200px; height:35px;"></td>
+                            <td><input type="number" name="qty[]" class="form-control" style="width: 50px; height:35px;"></td>
+                            <td>
+                                <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)"> 
+                                <option value="" disabled selected>Select Process Type</option>
+                                {% for process in process_types %}
+                                    <option value="{{ process }}">{{ process }}</option>
+                                {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <select name="scope[]" class="form-control">
+                                <option value="" disabled selected>Select Scope</option>
+                                <option value="InHouse">InHouse</option>
+                                <option value="BOSF">BOSF</option>
+                                <option value="BOF">BOF</option>
+                                </select>
+                            </td>
+ function savebomdata(){
+                    const payload={
+                        part_no_list : document.getElementsByName('part_num[]'),
+                        level_list : document.getElementsByName('level[]'),
+                        revision_list : document.getElementsByName('rev[]'),
+                        part_description_list : document.getElementsByName('desc[]'),
+                        qty_list : document.getElementsByName('qty[]'),
+                        process_type_list : document.getElementsByName('process_type[]'),
+                        scope_list : document.getElementsByName('scope[]'),
+                        method_list : document.getElementsByName('method[]'),
+                        is_nesting_needed_list : document.getElementsByName('is_nesting_needed[]')
+                    }
+                }
+def bom(request):
+    if request.method == "POST":
+        part_no_list = request.POST.getlist('part_num[]')
+        level_list = request.POST.getlist('level[]')
+        revision_list = request.POST.getlist('rev[]')
+        part_description_list = request.POST.getlist('desc[]')
+        qty_list = request.POST.getlist('qty[]')
+        process_type_list = request.POST.getlist('process_type[]')
+        scope_list = request.POST.getlist('scope[]')
+        method_list = request.POST.getlist('method[]')
+        is_nesting_needed_list = request.POST.getlist('is_nesting_needed[]')
+
+        # Ensure all lists have the same length
+        if not (len(part_no_list) == len(level_list) == len(revision_list) == len(part_description_list) == len(qty_list) == len(process_type_list) == len(scope_list) == len(method_list) == len(is_nesting_needed_list)):
+            messages.error(request, "Please fill out all fields.")
+            return redirect('bom')
+
+        # Check for empty fields in any row
+        for i in range(len(part_no_list)):
+            if not all([
+                part_no_list[i], level_list[i], revision_list[i],
+                part_description_list[i], qty_list[i], process_type_list[i],
+                scope_list[i], method_list[i], is_nesting_needed_list[i]
+            ]):
+                messages.error(request, f"All fields must be filled in row {i+1}.")
+                # return redirect('bom')
+
+        # Process and save data for each row
+        for i in range(len(part_no_list)):
+            part_no = part_no_list[i]
+            level = level_list[i]
+            revision = revision_list[i]
+            part_description = part_description_list[i]
+            qty = qty_list[i]
+            process_type = process_type_list[i]
+            scope = scope_list[i]
+            method = method_list[i]
+            is_nesting_needed = is_nesting_needed_list[i]
+
+            # Check if a BOM entry with the same part_no and revision exists
+            existing_bom = BOMSheet.objects.filter(part_no=part_no, revision=revision).first()
+            unique_csc_id = existing_bom.unique_csc_id if existing_bom else None
+
+            # Create and save new BOM entry
+            new_bom = BOMSheet(
+                part_no=part_no,
+                level=level,
+                revision=revision,
+                part_description=part_description,
+                qty=qty,
+                process_type=process_type,
+                scope=scope,
+                method=method,
+                is_nesting_needed=is_nesting_needed,
+                unique_csc_id=unique_csc_id
+            )
+            new_bom.save()
