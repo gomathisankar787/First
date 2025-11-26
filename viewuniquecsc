@@ -1,0 +1,723 @@
+<html>
+<head>
+    <!-- import bootstrap cdn-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" 
+        crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" 
+        crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" 
+        crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" 
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    
+    <!-- CSS stylesheet -->
+    <!-- <style type="text/css">
+        html,
+        body {
+            height: 100%;
+        }
+        #green {
+            height: 100%;
+            background: #ebebeb;
+            text-align: center;
+            color: black;
+        }
+        #nav{
+            background: #cac6c6;
+        }
+    </style> -->
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #f4f6f7, #e9ecef);
+    }
+
+    /* Navbar */
+    /* #nav {
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 10px 20px;
+    } */
+    
+#nav {
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+    .navbar-brand {
+        font-weight: 700;
+        color: #24968f !important;
+        font-size: 24px;
+    }
+    .navbar-nav .nav-link {
+        font-size: 16px;
+        color: #333 !important;
+        margin-right: 15px;
+        transition: color 0.3s ease;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #24968f !important;
+    }
+
+    /* Sidebar */
+    /* #green {
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+    } */
+
+    
+    #green {
+        position: fixed;
+        top: 60px; /* Adjust based on nav height */
+        left: 0;
+        width: 265px; /* Sidebar width */
+        height: calc(100vh - 60px); /* Full height minus nav */
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+        overflow-y: auto; /* Sidebar scroll if needed */
+    }
+
+    #green a {
+        display: block;
+        padding: 12px 10px;
+        color: #333;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    #green a:hover {
+        background-color: #24968f;
+        color: #fff;
+    }
+
+    /* Main Content */
+    /* .col-10 {
+        position: relative;
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    } */
+
+    
+    .col-10 {
+        position: absolute;
+        top: 72px; /* Below nav */
+        left: 275px; /* Next to sidebar */
+        /* width: calc(100% - 160px);
+        height: calc(100vh - 60px);  */
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        overflow-y: hidden; /* Scroll only main content */
+    }
+
+    h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0969ca;
+        margin-bottom: 20px;
+    }
+    button {
+        background-color: #24968f;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    button:hover {
+        background-color: #006955;
+        transform: translateY(-2px);
+    }
+
+    /* Table Styling */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table thead th {
+        background: linear-gradient(90deg, #24968f, #1abc9c);
+        color: #fff;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    th, td {
+        padding: 12px;
+        text-align: center;
+        font-size: 14px;
+    }
+    tr:nth-child(even) {
+        background-color: #f8f8f8;
+    }
+    tr:hover {
+        background-color: #eafaf9;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Buttons inside table */
+    .btn-primary, .btn-secondary {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .btn-primary {
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+    }
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: #fff;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-2px);
+    }
+
+    
+.modal-content {
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        background-color: #ffffff;
+        padding: 20px;
+    }
+
+    .modal-header {
+        background: linear-gradient(90deg, #24968f, #1abc9c);
+        color: #fff;
+        border-bottom: none;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 0 0 12px 12px;
+    }
+
+    /* Form Styling */
+    .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 6px;
+    }
+
+    #parttype,#project,#editproject,#editparttype{
+        height: 80%;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #24968f;
+        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
+        outline: none;
+    }
+
+    /* Buttons */
+    .create-btn {
+        background: linear-gradient(135deg, #24968f, #006955);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+
+    .create-btn:hover {
+        background: linear-gradient(135deg, #006955, #004d40);
+        transform: translateY(-2px);
+    }
+
+    #Editcsc:hover{
+        background: linear-gradient(135deg, #c2e5df, #8cdbcd);
+        transform: translateY(-2px);
+    }
+
+    #deletecsc:hover{
+        background: linear-gradient(135deg, #f7bebe, #eb9fa5);
+        transform: translateY(-2px);
+    }
+
+    #showcsc:hover{
+        background: linear-gradient(135deg, #b1e7f5, #9fe6eb);
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        background-color: #e4e4e4;
+        color: #333;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+        background-color: #cfcfcf;
+        transform: translateY(-2px);
+    }
+
+    .modal-footer .btn-primary {
+        background-color: #24968f;
+        border: none;
+    }
+
+    .modal-footer .btn-primary:hover {
+        background-color: #006955;
+    }
+
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        #green {
+            display: none; /* Hide sidebar on small screens */
+        }
+        .col-10 {
+            width: 100%;
+            margin: 10px;
+            padding: 15px;
+        }
+        table {
+            font-size: 12px;
+        }
+    }
+</style>
+</head>
+  
+<body>
+    <!-- top navbar -->
+    <nav class="navbar navbar-expand-lg
+            navbar-light" id="nav">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <!-- hamburger button that toggles the navbar-->
+        <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" 
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon">
+            </span>
+        </button>
+        <!-- navbar links -->
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link
+                    active" href="#">
+                  Home
+                  </a>
+                <a class="nav-item nav-link" href="#">Features</a>
+                <a class="nav-item nav-link" href="#">Price</a>
+                <a class="nav-item nav-link" href="#">About</a>
+            </div>
+        </div>
+    </nav>
+    <!-- This container contains the sidebar
+            and main content of the page -->
+    <!-- h-100 takes the full height of the body-->
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-2" id="green">
+                <!-- <h4>Sidebar</h4> -->
+                <!-- Navigation links in sidebar-->
+                <a href="#">Home</a>
+                <br/>
+                <br/>
+                <a href="mycsc">CSC</a>
+                <br/>
+                <br/>
+                <a href="#">BOM</a>
+                <br/>
+                <br/>
+                <a href="#">SM MATERIAL</a>
+                <br/>
+                <br/>
+            </div>
+            <div class="col-10" style="text-align: justify;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
+                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
+                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
+                            <div class="col-2">RM BASE <span style="margin-left: 55px;">:</span> <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">DESCRIPTION <span style="margin-left: 13px;">:</span> <b>{{csc_values.desc}}</b></div>
+                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
+                            <div class="col-2">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="form-container"> --><br>
+                    <div class="row">
+                        <div class="col-8">
+                            <h2>Create New BOM</h2>
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-primary" style="margin-left:110px;" onclick="nextprocess({{csc_values.id}})">Process Data</button>
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
+                        </div>
+                    </div>
+                    <!-- <form class="bom-form" method="post" action=""> -->
+                    {% csrf_token %}
+                    <div class="table-container">
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                            <th style="background-color: #24948f;">S.No</th>
+                            <th style="background-color: #24968f;">Level</th>
+                            <th style="background-color: #24968f;">Part No.</th>
+                            <th style="background-color: #24968f;">Rev</th>
+                            <th style="background-color: #24968f;">Parts Description</th>
+                            <th style="background-color: #24968f;">Qty</th>
+                            <th style="background-color: #24968f;">Process Type</th>
+                            <th style="background-color: #24968f;">Scope</th>
+                            <th style="background-color: #24968f;">Method</th>
+                            <th style="background-color: #24968f;">Is Nesting Needed</th>
+                            <th style="background-color: #24968f;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bom-table-body">
+                            <tr>
+                            <td class="sno">1</td>
+                            <td><input type="number" name="level[]" class="form-control" style="width: 50px;height:35px;"></td>
+                            <td><input type="text" name="part_num[]" class="form-control" style="width: 100px; height:35px;"></td>
+                            <!-- value="{{csc_values.part_num}}" -->
+                            <td><input type="text" name="rev[]" class="form-control"  style="width: 50px; height:35px;"></td>
+                            <!-- value="{{csc_values.rev}}" -->
+                            <td><input type="text" name="desc[]" class="form-control"  style="width: 200px; height:35px;"></td>
+                            <!-- value="{{csc_values.desc}}" -->
+                            <td><input type="number" name="qty[]" class="form-control" style="width: 50px; height:35px;"></td>
+                            <td>
+                                <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)"> 
+                                <option value="" disabled selected>Select Process Type</option>
+                                {% for process in process_types %}
+                                    <option value="{{ process }}">{{ process }}</option>
+                                {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <select name="scope[]" class="form-control">
+                                <option value="" disabled selected>Select Scope</option>
+                                <option value="InHouse">InHouse</option>
+                                <option value="BOSF">BOSF</option>
+                                <option value="BOF">BOF</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="method[]" class="form-control"  onchange="toggleMethod(this)">
+                                <option value="" disabled selected>Select Method</option>
+                                <option value="CSC">CSC</option>
+                                <option value="Import">Import</option>
+                                <option value="Quote">Quote</option>
+                                <option value="Reference">Reference</option>
+                                <option value="Consumables">Consumables</option>
+                                <option value="LPP-Regression">LPP-Regression</option>
+                                <option value="LPP-Thumbrule">LPP-Thumbrule</option>
+                                <option value="KMC">KMC</option>
+                                <option value="ME2M">ME2M</option>
+                                <option value="MM03">MM03</option>
+                                <option value="ZS08">ZS08</option>
+                                <option value="ZS12">ZS12</option>
+                                <option value="CS03">CS03</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="is_nesting_needed[]" class="form-control" onchange="toggleNoOfBlanks(this)">
+                                <option value="" disabled selected>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                </select>
+                            </td>
+                            <td>
+                                <!-- <button type="button" class="btn small-btn"  style="background-color: green;" onclick="addRow()">Add Row</button> -->
+                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="addRow()"></i>
+                                <!-- <i class="bi bi-pencil-square btn" id="Editcsc"></i> -->
+                                <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
+                                <!-- <button type="button" class="btn small-btn"  style="background-color: rgba(255, 0, 0, 0.712);" onclick="">Delete</button> -->
+                            </td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <h2>Bill of Materials (BOM)</h2>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table table-bordered">
+                        <thead>
+                            {% csrf_token %}
+                            <tr>
+                            <th style="background-color: #24948f;">S.No</th>
+                            <th style="background-color: #24968f;">Level</th>
+                            <th style="background-color: #24968f;">Part No.</th>
+                            <th style="background-color: #24968f;">Rev</th>
+                            <th style="background-color: #24968f;">Parts Description</th>
+                            <th style="background-color: #24968f;">Qty</th>
+                            <th style="background-color: #24968f;">Process Type</th>
+                            <th style="background-color: #24968f;">Scope</th>
+                            <th style="background-color: #24968f;">Method</th>
+                            <th style="background-color: #24968f;">Is Nesting Needed</th>
+                            <th style="background-color: #24968f;">Unique ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bom-table-body">
+                            {% for values in bom_list %}
+                                <tr>
+                                    <td class="sno">{{forloop.counter}}</td>
+                                    <td>{{values.level}}</td>
+                                    <td>{{values.part_no}}</td>
+                                    <td>{{values.revision}}</td>
+                                    <td>{{values.part_description}}</td>
+                                    <td>{{values.qty}}</td>
+                                    <td>{{values.process_type}}</td>
+                                    <td>{{values.scope}}</td>
+                                    <td>{{values.method}}</td>
+                                    <td>{{values.is_nesting_needed}}</td>
+                                    <td>{{values.unique_csc_id}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                    <!-- <div class="form-group">
+                        <label for="rowCount" style="margin-left: 60px;">Enter number of rows to add:</label>
+                        <input type="number" id="rowCount" class="form-control" min="1" max="150" style="margin-left: 60px; width:80px;height: 35px;">
+                        <button type="button" class="btn small-btn"  style="margin-left: 60px; margin-top: 10px; background-color: green;">Add Rows</button>
+                        onclick="addMultipleRows()"
+                    </div> -->
+                    <!-- <div class="button-group">
+                        <button type="submit" class="btn" style="margin-left: 60px;">Save BOM Data</button>
+                        <button type="button" class="btn" >Save All & Show Summary</button>
+                        onclick="saveAllAndShowSummary()"
+                    </div> -->
+                    <!-- </form> -->
+                <!-- </div> -->
+            </div>
+            <script>
+                // console.log(bom_list)
+                function nextprocess(id){
+                    window.location.href = `bom_details/${id}/`
+                }
+
+
+                function savebomdata(id){
+                    const part_no_list = [...document.getElementsByName('part_num[]')].map(e => e.value);
+                    const level_list = [...document.getElementsByName('level[]')].map(e => e.value);
+                    const revision_list = [...document.getElementsByName('rev[]')].map(e => e.value);
+                    const desc_list = [...document.getElementsByName('desc[]')].map(e => e.value);
+                    const qty_list = [...document.getElementsByName('qty[]')].map(e => e.value);
+                    const process_type_list = [...document.getElementsByName('process_type[]')].map(e => e.value);
+                    const scope_list = [...document.getElementsByName('scope[]')].map(e => e.value);
+                    const method_list = [...document.getElementsByName('method[]')].map(e => e.value);
+                    const nesting_list = [...document.getElementsByName('is_nesting_needed[]')].map(e => e.value);
+                    const cscid = id;
+
+                    const payload = {
+                        cscid,
+                        part_no_list,
+                        level_list,
+                        revision_list,
+                        desc_list,
+                        qty_list,
+                        process_type_list,
+                        scope_list,
+                        method_list,
+                        nesting_list
+                    };
+
+                    fetch("bom", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            toastr.success("Bom data save successfully")
+                            setTimeout(() => {
+                                window.location.href=`/viewcsc?id=${encodeURIComponent(id)}`
+                            }, 1000);
+                        } else {
+                            alert("Error: " + data.message);
+                        }
+                    });
+                }
+
+                toastr.options = {
+                    "closeButton": true,
+                    "progressBar": true,
+                    "timeOut":"2000"
+                }
+
+                function toggleMethod(select) {
+                    const row = select.closest("tr");
+                    const processTypeSelect = row.querySelector('select[name="process_type[]"]');
+                    const isNestingNeededSelect = row.querySelector('select[name="is_nesting_needed[]"]');
+                    if (processTypeSelect.value === "Assembly" || select.value !== "CSC") {
+                        isNestingNeededSelect.value = "No";
+                        isNestingNeededSelect.disabled = true;
+                    } else {
+                        isNestingNeededSelect.disabled = false;
+                    }
+                }
+
+                function toggleProcessType(select) {
+                    const row = select.closest("tr");
+                    const isNestingNeededSelect = row.querySelector('select[name="is_nesting_needed[]"]');
+                    const methodSelect = row.querySelector('select[name="method[]"]');
+                    if (select.value === "Assembly") {
+                        isNestingNeededSelect.value = "No";
+                        isNestingNeededSelect.disabled = true;
+                    } else {
+                        isNestingNeededSelect.disabled = false;
+                    }
+                }
+
+                function addRow() {
+                    const tableBody = document.getElementById("bom-table-body");
+                    if (tableBody.rows.length >= 150) {
+                        alert("Maximum of 150 rows allowed.");
+                        return;
+                    }
+                    const newRow = tableBody.insertRow();
+                    const sno = tableBody.rows.length; // Corrected serial number
+                    newRow.innerHTML = `
+                        <td class="sno">${sno}</td>
+                        <td><input type="number" name="level[]" class="form-control" style="width: 50px; height:35px;"></td>
+                        <td><input type="text" name="part_num[]" class="form-control"  style="width: 100px; height:35px;"></td>
+                        <td><input type="text" name="rev[]" class="form-control" style="width: 50px; height:35px;"></td>
+                        <td><input type="text" name="desc[]" class="form-control" style="width: 200px; height:35px;"></td>
+                        <td><input type="number" name="qty[]" class="form-control" style="width: 50px; height:35px;"></td>
+                        <td>
+                            <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
+                                <option value="" disabled selected>Select Process Type</option>
+                                {% for process in process_types %}
+                                    <option value="{{ process }}">{{ process }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="scope[]" class="form-control" >
+                                <option value="" disabled selected>Select Scope</option>
+                                <option value="InHouse">InHouse</option>
+                                <option value="BOSF">BOSF</option>
+                                <option value="BOF">BOF</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="method[]" class="form-control" onchange="toggleMethod(this)">
+                                <option value="" disabled selected>Select Method</option>
+                                <option value="CSC">CSC</option>
+                                <option value="Standard">Standard</option>
+                                <option value="Import">Import</option>
+                                <option value="Quote">Quote</option>
+                                <option value="Reference">Reference</option>
+                                <option value="Consumables">Consumables</option>
+                                <option value="LPP-Regression">LPP-Regression</option>
+                                <option value="LPP-Thumbrule">LPP-Thumbrule</option>
+                                <option value="KMC">KMC</option>
+                                <option value="ME2M">ME2M</option>
+                                <option value="MM03">MM03</option>
+                                <option value="ZS08">ZS08</option>
+                                <option value="ZS12">ZS12</option>
+                                <option value="CS03">CS03</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="is_nesting_needed[]" class="form-control">
+                                <option value="" disabled selected>Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </td>
+                        <td>
+                            <i class="bi bi-plus-circle btn" id="Editcsc" onclick="addRow()"></i>
+                            <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
+                        </td>`;
+                    
+                }
+
+                function deleteRow(button) {
+                    const row = button.closest("tr");
+                    row.remove();
+                    updateSerialNumbers();
+                }
+            </script>
+</body>
+  
+</html>
