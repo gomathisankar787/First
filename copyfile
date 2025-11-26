@@ -1,106 +1,83 @@
-<script>
-function savebomdata() {
-
-    // Collect values properly
-    const part_no_list = [...document.getElementsByName('part_num[]')].map(e => e.value);
-    const level_list = [...document.getElementsByName('level[]')].map(e => e.value);
-    const revision_list = [...document.getElementsByName('rev[]')].map(e => e.value);
-    const desc_list = [...document.getElementsByName('desc[]')].map(e => e.value);
-    const qty_list = [...document.getElementsByName('qty[]')].map(e => e.value);
-    const process_type_list = [...document.getElementsByName('process_type[]')].map(e => e.value);
-    const scope_list = [...document.getElementsByName('scope[]')].map(e => e.value);
-    const method_list = [...document.getElementsByName('method[]')].map(e => e.value);
-    const nesting_list = [...document.getElementsByName('is_nesting_needed[]')].map(e => e.value);
-
-    const payload = {
-        part_no_list,
-        level_list,
-        revision_list,
-        desc_list,
-        qty_list,
-        process_type_list,
-        scope_list,
-        method_list,
-        nesting_list
-    };
-
-    fetch("/createcsc", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "success") {
-            alert("BOM saved!");
-        } else {
-            alert("Error: " + data.message);
-        }
-    });
-}
-</script>
-import json
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
-
-@csrf_exempt
-def bom(request):
-
-    if request.method == "GET":
-        return render(request, "bom.html")
-
-    if request.method == "POST":
-
-        data = json.loads(request.body.decode("utf-8"))
-
-        part_no_list = data.get("part_no_list", [])
-        level_list = data.get("level_list", [])
-        revision_list = data.get("revision_list", [])
-        desc_list = data.get("desc_list", [])
-        qty_list = data.get("qty_list", [])
-        process_type_list = data.get("process_type_list", [])
-        scope_list = data.get("scope_list", [])
-        method_list = data.get("method_list", [])
-        nesting_list = data.get("nesting_list", [])
-
-        row_count = len(part_no_list)
-
-        # Validate equal lengths
-        if not (row_count == len(level_list) == len(revision_list) == len(desc_list) ==
-                len(qty_list) == len(process_type_list) == len(scope_list) ==
-                len(method_list) == len(nesting_list)):
-            return JsonResponse({"status": "error", "message": "Incomplete rows"})
-
-        # Save each row
-        for i in range(row_count):
-
-            # Skip empty rows
-            if not part_no_list[i]:
-                continue
-
-            existing_bom = BOMSheet.objects.filter(
-                part_no=part_no_list[i],
-                revision=revision_list[i]
-            ).first()
-
-            unique_csc_id = existing_bom.unique_csc_id if existing_bom else None
-
-            BOMSheet.objects.create(
-                part_no=part_no_list[i],
-                level=level_list[i],
-                revision=revision_list[i],
-                part_description=desc_list[i],
-                qty=qty_list[i],
-                process_type=process_type_list[i],
-                scope=scope_list[i],
-                method=method_list[i],
-                is_nesting_needed=nesting_list[i],
-                unique_csc_id=unique_csc_id
-            )
-
-        return JsonResponse({"status": "success"})
+<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                            <div class="card-body">
+                                <form method="post" action="{% url 'sm_material' %}">
+                                    {% csrf_token %}
+                                    <table style="margin-right: 300px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Part No</th>
+                                                <th>Description</th>
+                                                <th>Estimation Method</th>
+                                                <th>Material Grade</th>
+                                                <th>RM Price / Kg (INR)</th>
+                                                <th>Length (mm)</th>
+                                                <th>Width (mm)</th>
+                                                <th>Thick (mm)</th>
+                                                <th>Sheet Length (mm)</th>
+                                                <th>Sheet Width (mm)</th>
+                                                <th>Shearing/ Blanking/ Laser cutting</th>
+                                                <th>Sheet Weight (kg)</th>
+                                                <th>No of Blanks per sheet</th>
+                                                <th>Blank weight (Kg)</th>
+                                                <th>Input Weight (Kg)</th>
+                                                <th>Finish weight (Kg)</th>
+                                                <th>Yield (%)</th>
+                                                <th>Surface Area / Part</th>
+                                                <th>Scrap wt (kg)</th>
+                                                <th>Scrap mat.Price</th>
+                                                <th>Recovery (%)</th>
+                                                <th>Price per unit (INR)</th>
+                                                <th>Direct RM Cost</th>
+                                                <th>Allowance cost</th>
+                                                <th>Remarks</th>
+                                            </tr>                   
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><input type="text" name="part_num" value="{{ part_num }}" style="width: 100px;" readonly></td>
+                                                <td><input type="text" name="description" value="{{ description }}" style="width: 80px;" readonly></td>
+                                                <td><input type="text" name="estimation_method" value="{{ estimation_method }}" style="width: 80px;" readonly></td>
+                                                <td>
+                                                    <select id="materialgrades" name="material_grade" style="width: 100px;" onchange="this.form.submit()" required>
+                                                        <option></option> <!-- This empty option is needed for the placeholder to work -->
+                                                        {% for grade in material_grades %}
+                                                        <option value="{{ grade }}" {% if grade == request.POST.material_grade %}selected{% endif %} >{{ grade }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td><input name="rm_price" value="{{ rm_price }}" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="" name="length" value="{{ request.POST.length }}" required min="0"></td>
+                                                <td><input type="" name="width" value="{{ request.POST.width }}" required min="0"></td>
+                                                <td><input type="" name="thickness" value="{{ request.POST.thickness }}" required min="0"></td>
+                                                <td><input name="sheet_length" value="{{ sheet_length }}" ></td>
+                                                <td><input name="sheet_width" value="{{ sheet_width }}" ></td>
+                                                <td>
+                                                    <select name="process" style="width: 100px;" onchange="this.form.submit()" required>
+                                                        <option value="" disabled selected>Select Process</option>
+                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
+                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
+                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
+                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="" name="sheet_weight" value="{{ sheet_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="no_of_blanks" value="{{ no_of_blanks }}" id="no_of_blanks"></td>
+                                                <td><input type="" name="blank_weight" value="{{ blank_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="input_weight" value="{{ input_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="finish_weight" value="{{ request.POST.finish_weight }}" onchange="this.form.submit()" required min="0"></td>
+                                                <td><input type="" name="yield" value="{{ yield_value }}" ></td>
+                                                <td><input type="" name="surface_area" value="{{ surface_area_part }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="scrap_weight" value="{{ scrap_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input name="scrap_price" value="{{ scrap_price }}" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="" name="price_per_unit" value="{{ price_per_unit }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="direct_rm_cost" value="{{ direct_rm_cost }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="allowance_cost" value="{{ allowance_cost }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="text" name="remarks" style="width: 100px;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <button type="submit" name="save_material_data" class="btn">Save Material Data</button>
+                                </form>
+                            </div>
+                        </div>
