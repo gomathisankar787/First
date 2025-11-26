@@ -1,791 +1,244 @@
+{% load static %}
+<!doctype html>
 <html>
 <head>
-    <!-- import bootstrap cdn-->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" 
-        crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" 
-        crossorigin="anonymous">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" 
-        crossorigin="anonymous">
-    </script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
-        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" 
-        crossorigin="anonymous">
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    
-    <!-- CSS stylesheet -->
-    <!-- <style type="text/css">
-        html,
-        body {
-            height: 100%;
-        }
-        #green {
-            height: 100%;
-            background: #ebebeb;
-            text-align: center;
-            color: black;
-        }
-        #nav{
-            background: #cac6c6;
-        }
-    </style> -->
-    <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: linear-gradient(135deg, #f4f6f7, #e9ecef);
-    }
+  <meta charset="utf-8">
+  <title>BOM Details - SM Material</title>
 
-    /* Navbar */
-    /* #nav {
-        background: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 10px 20px;
-    } */
-    
-#nav {
-    background: #ffffff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-}
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
-    .navbar-brand {
-        font-weight: 700;
-        color: #24968f !important;
-        font-size: 24px;
-    }
-    .navbar-nav .nav-link {
-        font-size: 16px;
-        color: #333 !important;
-        margin-right: 15px;
-        transition: color 0.3s ease;
-    }
-    .navbar-nav .nav-link:hover {
-        color: #24968f !important;
-    }
-
-    /* Sidebar */
-    /* #green {
-        background: #f8f9fa;
-        padding: 20px;
-        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
-        font-size: 16px;
-    } */
-
-    
-    #green {
-        position: fixed;
-        top: 60px; /* Adjust based on nav height */
-        left: 0;
-        width: 265px; /* Sidebar width */
-        height: calc(100vh - 60px); /* Full height minus nav */
-        background: #f8f9fa;
-        padding: 20px;
-        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
-        font-size: 16px;
-        overflow-y: auto; /* Sidebar scroll if needed */
-    }
-
-    #green a {
-        display: block;
-        padding: 12px 10px;
-        color: #333;
-        text-decoration: none;
-        border-radius: 6px;
-        transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    #green a:hover {
-        background-color: #24968f;
-        color: #fff;
-    }
-
-    /* Main Content */
-    /* .col-10 {
-        position: relative;
-        background: #fff;
-        padding: 30px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    } */
-
-    
-    .col-10 {
-        position: absolute;
-        top: 72px; /* Below nav */
-        left: 275px; /* Next to sidebar */
-        /* width: calc(100% - 160px);
-        height: calc(100vh - 60px);  */
-        background: #fff;
-        padding: 30px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        border-radius: 5px;
-        overflow-y: hidden; /* Scroll only main content */
-    }
-
-    h1 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #0969ca;
-        margin-bottom: 20px;
-    }
-    button {
-        background-color: #24968f;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-    button:hover {
-        background-color: #006955;
-        transform: translateY(-2px);
-    }
-
-    /* Table Styling */
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .table thead th {
-        background: #24968f;
-        color: #fff;
-        font-size: 16px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    th, td {
-        padding: 12px;
-        text-align: center;
-        font-size: 14px;
-    }
-    tr:nth-child(even) {
-        background-color: #f8f8f8;
-    }
-    tr:hover {
-        background-color: #eafaf9;
-        transition: background-color 0.3s ease;
-    }
-
-    /* Buttons inside table */
-    .btn-primary, .btn-secondary {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-    .btn-primary {
-        background-color: #3498db;
-        color: #fff;
-        border: none;
-    }
-    .btn-primary:hover {
-        background-color: #2980b9;
-        transform: translateY(-2px);
-    }
-    .btn-secondary {
-        background-color: #95a5a6;
-        color: #fff;
-        border: none;
-    }
-    .btn-secondary:hover {
-        background-color: #7f8c8d;
-        transform: translateY(-2px);
-    }
-
-    
-.modal-content {
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        background-color: #ffffff;
-        padding: 20px;
-    }
-
-    .modal-header {
-        background: linear-gradient(90deg, #24968f, #1abc9c);
-        color: #fff;
-        border-bottom: none;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .modal-title {
-        font-size: 20px;
-        font-weight: 600;
-    }
-
-    .modal-body {
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 0 0 12px 12px;
-    }
-
-    /* Form Styling */
-    .form-container {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group label {
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 6px;
-    }
-
-    #parttype,#project,#editproject,#editparttype{
-        height: 80%;
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .rowdata input,
-    .rowdata select{
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .rowdata input:focus,
-    .rowdata select:focus{
-        border-color: #24968f;
-        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
-        outline: none;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-        border-color: #24968f;
-        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
-        outline: none;
-    }
-
-    /* Buttons */
-    .create-btn {
-        background: linear-gradient(135deg, #24968f, #006955);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-right: 10px;
-    }
-
-    .create-btn:hover {
-        background: linear-gradient(135deg, #006955, #004d40);
-        transform: translateY(-2px);
-    }
-
-    #Editcsc:hover{
-        background: linear-gradient(135deg, #c2e5df, #8cdbcd);
-        transform: translateY(-2px);
-    }
-
-    #deletecsc:hover{
-        background: linear-gradient(135deg, #f7bebe, #eb9fa5);
-        transform: translateY(-2px);
-    }
-
-    #showcsc:hover{
-        background: linear-gradient(135deg, #b1e7f5, #9fe6eb);
-        transform: translateY(-2px);
-    }
-
-    .cancel-btn {
-        background-color: #e4e4e4;
-        color: #333;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .cancel-btn:hover {
-        background-color: #cfcfcf;
-        transform: translateY(-2px);
-    }
-
-    .modal-footer .btn-primary {
-        background-color: #24968f;
-        border: none;
-    }
-
-    .modal-footer .btn-primary:hover {
-        background-color: #006955;
-    }
-
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        #green {
-            display: none; /* Hide sidebar on small screens */
-        }
-        .col-10 {
-            width: 100%;
-            margin: 10px;
-            padding: 15px;
-        }
-        table {
-            font-size: 12px;
-        }
-    }
-</style>
+  <style>
+    /* small visual tweaks */
+    .table-responsive-x { overflow-x: auto; white-space: nowrap; }
+    .rowdata input, .rowdata select { width: 110px; }
+    .small-cell { width: 80px; }
+    .readonly { background-color: #e9ecef; }
+    .card { margin-bottom: 20px; }
+    .pagination { margin-top: 12px; display:flex; gap:8px; align-items:center; }
+  </style>
 </head>
-  
 <body>
-    <!-- top navbar -->
-    <nav class="navbar navbar-expand-lg
-            navbar-light" id="nav">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <!-- hamburger button that toggles the navbar-->
-        <button class="navbar-toggler" type="button" 
-            data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" 
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon">
-            </span>
-        </button>
-        <!-- navbar links -->
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link
-                    active" href="#">
-                  Home
-                  </a>
-                <a class="nav-item nav-link" href="#">Features</a>
-                <a class="nav-item nav-link" href="#">Price</a>
-                <a class="nav-item nav-link" href="#">About</a>
+<div class="container-fluid p-3">
+  <!-- Messages -->
+  {% if messages %}
+    <div class="mb-2">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Header card -->
+  <div class="card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">CSC UNIQUE ID : <b>{{ csc_values.unique_csc_id }}</b></div>
+        <div class="col-md-3">PART NUMBER : <b>{{ csc_values.part_num }}</b></div>
+        <div class="col-md-2">REVISION : <b>{{ csc_values.rev }}</b></div>
+        <div class="col-md-3">RM BASE : <b>{{ csc_values.rm_base }}</b></div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-md-4">DESCRIPTION : <b>{{ csc_values.desc }}</b></div>
+        <div class="col-md-3">ESTIMATED BY : <b>{{ csc_values.updated_by }}</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a class="btn btn-outline-primary btn-sm" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% else %}
+      <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
+    {% endif %}
+
+    <!-- show current page number and total -->
+    <div>Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}</div>
+
+    {% if page_obj.has_next %}
+      <a class="btn btn-outline-primary btn-sm" href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% else %}
+      <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
+    {% endif %}
+  </div>
+
+  <!-- Accordion: SM MATERIAL -->
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="card-header" id="headingOne">
+        <h5 class="mb-0">
+          <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne"
+                  aria-expanded="true" aria-controls="collapseOne">
+            SM MATERIAL (BOM Row: {{ row.part_no }})
+          </button>
+        </h5>
+      </div>
+
+      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div class="card-body">
+          <form method="post" action="{% url 'bom_details' csc_values.id %}" id="smmaterial-form">
+            {% csrf_token %}
+
+            <div class="table-responsive-x">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th class="small-cell">Part No</th>
+                    <th class="small-cell">Description</th>
+                    <th class="small-cell">Est. Method</th>
+                    <th class="small-cell">Material Grade</th>
+                    <th class="small-cell">RM Price / Kg</th>
+                    <th class="small-cell">Length (mm)</th>
+                    <th class="small-cell">Width (mm)</th>
+                    <th class="small-cell">Thick (mm)</th>
+                    <th class="small-cell">Sheet Length (mm)</th>
+                    <th class="small-cell">Sheet Width (mm)</th>
+                    <th class="small-cell">Process</th>
+                    <th class="small-cell">Sheet Weight (kg)</th>
+                    <th class="small-cell">No of Blanks</th>
+                    <th class="small-cell">Blank wt (kg)</th>
+                    <th class="small-cell">Input wt (kg)</th>
+                    <th class="small-cell">Finish wt (kg)</th>
+                    <th class="small-cell">Yield (%)</th>
+                    <th class="small-cell">Surface Area</th>
+                    <th class="small-cell">Scrap wt (kg)</th>
+                    <th class="small-cell">Scrap mat.Price</th>
+                    <th class="small-cell">Price per unit</th>
+                    <th class="small-cell">Direct RM Cost</th>
+                    <th class="small-cell">Allowance cost</th>
+                    <th class="small-cell">Remarks</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr class="rowdata">
+                    <!-- Part data comes from BOM row -->
+                    <td><input type="text" name="part_num" value="{{ row.part_no }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="description" value="{{ row.part_description }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="estimation_method" value="{{ row.method }}" readonly class="form-control readonly"></td>
+
+                    <!-- Material grade dropdown (auto-submit on change) -->
+                    <td>
+                      <select name="material_grade" id="material_grade" class="form-control auto-submit">
+                        <option value="">--</option>
+                        {% for grade in material_grades %}
+                          <option value="{{ grade }}" {% if grade == request.POST.material_grade %}selected{% endif %}>{{ grade }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+
+                    <!-- RM price -> from view context (rm_price) -->
+                    <td><input type="text" name="rm_price" id="rm_price" value="{{ rm_price|default:'' }}" readonly class="form-control readonly"></td>
+
+                    <!-- Length / Width / Thickness (user inputs that trigger server calc) -->
+                    <td><input type="number" step="any" name="length" id="length" value="{{ request.POST.length|default:'' }}" class="form-control auto-submit"></td>
+                    <td><input type="number" step="any" name="width" id="width" value="{{ request.POST.width|default:'' }}" class="form-control auto-submit"></td>
+                    <td><input type="number" step="any" name="thickness" id="thickness" value="{{ request.POST.thickness|default:'' }}" class="form-control auto-submit"></td>
+
+                    <!-- Sheet size (calculated by view; user may override if needed) -->
+                    <td><input type="number" step="any" name="sheet_length" id="sheet_length" value="{{ sheet_length|default:'' }}" class="form-control"></td>
+                    <td><input type="number" step="any" name="sheet_width" id="sheet_width" value="{{ sheet_width|default:'' }}" class="form-control"></td>
+
+                    <!-- Process select -->
+                    <td>
+                      <select name="process" id="process" class="form-control auto-submit">
+                        <option value="">Select</option>
+                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
+                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
+                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
+                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
+                      </select>
+                    </td>
+
+                    <!-- Calculated read-only fields from view -->
+                    <td><input type="text" name="sheet_weight" id="sheet_weight" value="{{ sheet_weight|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="no_of_blanks" id="no_of_blanks" value="{{ no_of_blanks|default:'' }}" class="form-control"></td>
+                    <td><input type="text" name="blank_weight" id="blank_weight" value="{{ blank_weight|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="input_weight" id="input_weight" value="{{ input_weight|default:'' }}" readonly class="form-control readonly"></td>
+
+                    <!-- Finish weight triggers recalculation -->
+                    <td><input type="number" step="any" name="finish_weight" id="finish_weight" value="{{ finish_weight|default:'' }}" class="form-control auto-submit"></td>
+
+                    <td><input type="text" name="yield" id="yield" value="{{ yield_value|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="surface_area" id="surface_area" value="{{ surface_area_part|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="scrap_weight" id="scrap_weight" value="{{ scrap_weight|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="scrap_price" id="scrap_price" value="{{ scrap_price|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="price_per_unit" id="price_per_unit" value="{{ price_per_unit|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="direct_rm_cost" id="direct_rm_cost" value="{{ direct_rm_cost|default:'' }}" readonly class="form-control readonly"></td>
+                    <td><input type="text" name="allowance_cost" id="allowance_cost" value="{{ allowance_cost|default:'' }}" readonly class="form-control readonly"></td>
+
+                    <td><input type="text" name="remarks" id="remarks" value="{{ request.POST.remarks|default:'' }}" class="form-control"></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+
+            <div class="d-flex justify-content-between mt-2">
+              <div>
+                <!-- Save button: name is important for view to detect saving -->
+                <button type="submit" name="save_material_data" class="btn btn-success">Save Material Data</button>
+              </div>
+
+              <div>
+                <!-- When saving, we should include the current page in the querystring so redirect returns here.
+                     But we are using redirect in view to f"/bom_details/{id}/?page={page_obj.number}" -->
+                <small class="text-muted">Row ID: {{ row.id }}</small>
+              </div>
+            </div>
+          </form>
         </div>
-    </nav>
-    <!-- This container contains the sidebar
-            and main content of the page -->
-    <!-- h-100 takes the full height of the body-->
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <div class="col-2" id="green">
-                <!-- <h4>Sidebar</h4> -->
-                <!-- Navigation links in sidebar-->
-                <a href="#">Home</a>
-                <br/>
-                <br/>
-                <a href="mycsc">CSC</a>
-                <br/>
-                <br/>
-                <a href="#">BOM</a>
-                <br/>
-                <br/>
-                <a href="#">SM MATERIAL</a>
-                <br/>
-                <br/>
-            </div>
-            <div class="col-10" style="text-align: justify;">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-4">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
-                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
-                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
-                            <div class="col-2">RM BASE <span style="margin-left: 55px;">:</span> <b>{{csc_values.rm_base}}</b></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">DESCRIPTION <span style="margin-left: 13px;">:</span> <b>{{csc_values.desc}}</b></div>
-                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
-                            <div class="col-2">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
-                        </div>
-                    </div>
-                </div>
-            </br>
-                <!-- Pagination Controls -->
-                <div class="pagination" style="display: flex; gap: 10px;">
-                    <!-- previous button -->
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{page_obj.previous_page_number}}">Previous</a>
-                    {% else %}
-                        <span style="opacity: 0.5;">Previous</span>
-                    {% endif %}
-                    <!-- page numbers -->
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <strong>{{ num }}</strong>
-                        {% else %}
-                            <a href="?page={{ num }}">{{num}}</a>
-                        {% endif %}
-                    {% endfor %}
-                    <!-- next button -->
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
-                    {% else %}
-                        <span style="opacity:0.5;">Next</span>
-                    {% endif %}
-                </div>
-            </br>
-                <!-- Bom details -->
-                
-                <div class="accordion" id="accordionExample">
-                    <div class="card">
-                        <div class="card-header" id="headingOne">
-                        <h5 class="mb-0">
-                            <button class="btn" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            SM MATERIAL
-                            </button>
-                        </h5>
-                        </div>
+      </div>
+    </div>
+  </div>
 
-                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <form method="post" action="{% url 'bom_details' csc_values.id %}">
-                                    {% csrf_token %}
-                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Part No</th>
-                                                <th>Description</th>
-                                                <th>Estimation Method</th>
-                                                <th>Material Grade</th>
-                                                <th>RM Price / Kg (INR)</th>
-                                                <th>Length (mm)</th>
-                                                <th>Width (mm)</th>
-                                                <th>Thick (mm)</th>
-                                                <th>Sheet Length (mm)</th>
-                                                <th>Sheet Width (mm)</th>
-                                                <th>Shearing/ Blanking/ Laser cutting</th>
-                                                <th>Sheet Weight (kg)</th>
-                                                <th>No of Blanks per sheet</th>
-                                                <th>Blank weight (Kg)</th>
-                                                <th>Input Weight (Kg)</th>
-                                                <th>Finish weight (Kg)</th>
-                                                <th>Yield (%)</th>
-                                                <th>Surface Area / Part</th>
-                                                <th>Scrap wt (kg)</th>
-                                                <th>Scrap mat.Price</th>
-                                                <th>Recovery (%)</th>
-                                                <th>Price per unit (INR)</th>
-                                                <th>Direct RM Cost</th>
-                                                <th>Allowance cost</th>
-                                                <th>Remarks</th>
-                                            </tr>                   
-                                        </thead>
-                                        <tbody>
-                                            
-                                        {% if page_obj.object_list %}
-                                            {% with row=page_obj.object_list.0 %}
+  <!-- bottom pagination repeat (same links) -->
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a class="btn btn-outline-primary btn-sm" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% else %}
+      <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
+    {% endif %}
+    <div>Page <strong>{{ page_obj.number }}</strong> of {{ page_obj.paginator.num_pages }}</div>
+    {% if page_obj.has_next %}
+      <a class="btn btn-outline-primary btn-sm" href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% else %}
+      <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
+    {% endif %}
+  </div>
 
-                                            <tr class="rowdata">
-                                                <td><input type="text" name="part_num" value="{{ row.part_no }}" style="width: 100px;" readonly></td>
-                                                <td><input type="text" name="description" value="{{ row.part_description }}" style="width: 80px;" readonly></td>
-                                                <td><input type="text" name="estimation_method" value="{{ row.method }}" style="width: 80px;" readonly></td>
-                                                <td>
-                                                    <select id="materialgrades" name="material_grade" style="width: 100px;" onchange="this.form.submit()" required>
-                                                        <option></option> <!-- This empty option is needed for the placeholder to work -->
-                                                        {% for grade in material_grades %}
-                                                        <option value="{{ grade }}" {% if grade == request.POST.material_grade %}selected{% endif %} >{{ grade }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </td>
-                                                <td><input name="rm_price" value="{{ rm_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="" name="length" value="{{ request.POST.length }}" required min="0"></td>
-                                                <td><input type="" name="width" value="{{ request.POST.width }}" required min="0"></td>
-                                                <td><input type="" name="thickness" value="{{ request.POST.thickness }}" required min="0"></td>
-                                                <td><input name="sheet_length" value="{{ sheet_length }}" ></td>
-                                                <td><input name="sheet_width" value="{{ sheet_width }}" ></td>
-                                                <td>
-                                                    <select name="process" style="width: 100px;" onchange="this.form.submit()" required>
-                                                        <option value="" disabled selected>Select Process</option>
-                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
-                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
-                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
-                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
-                                                    </select>
-                                                </td>
-                                                <td><input type="" name="sheet_weight" value="{{ sheet_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="no_of_blanks" value="{{ no_of_blanks }}" id="no_of_blanks"></td>
-                                                <td><input type="" name="blank_weight" value="{{ blank_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="input_weight" value="{{ input_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="finish_weight" value="{{ request.POST.finish_weight }}" onchange="this.form.submit()" required min="0"></td>
-                                                <td><input type="" name="yield" value="{{ yield_value }}" ></td>
-                                                <td><input type="" name="surface_area" value="{{ surface_area_part }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="scrap_weight" value="{{ scrap_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input name="scrap_price" value="{{ scrap_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="" name="price_per_unit" value="{{ price_per_unit }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="direct_rm_cost" value="{{ direct_rm_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="allowance_cost" value="{{ allowance_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="text" name="remarks" style="width: 100px;"></td>
-                                            </tr>
-                                            
-                                        {% endwith %}
-                                        {% else %}
-                                            <td colspan="3">No data on this page.</td>
-                                        {% endif %}
+</div>
 
-                                        </tbody>
-                                    </table></div>
-                                    <button type="submit" name="save_material_data" class="btn">Save Material Data</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header" id="headingTwo">
-                        <h5 class="mb-0">
-                            <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                            SM PROCESS
-                            </button>
-                        </h5>
-                        </div>
-                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-                        <div class="card-body">
-                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-                        </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header" id="headingThree">
-                        <h5 class="mb-0">
-                            <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            OH PROFIT
-                            </button>
-                        </h5>
-                        </div>
-                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-                        <div class="card-body">
-                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-                        </div>
-                        </div>
-                    </div>
-                </div>
+<!-- jQuery + Bootstrap JS (required) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-            </div>   
-            <script>
-                function addRow() {
-                    const tableBody = document.getElementById("bom-table-body");
-                    if (tableBody.rows.length >= 150) {
-                        alert("Maximum of 150 rows allowed.");
-                        return;
-                    }
-                    const newRow = tableBody.insertRow();
-                    const sno = tableBody.rows.length;
-                    newRow.innerHTML = `
-                        <td class="sno">${sno}</td>
-                        <td><input type="text" name="part_no[]" class="form-control"></td>
-                        <td><input type="number" name="level[]" class="form-control"></td>
-                        <td><input type="text" name="revision[]" class="form-control"></td>
-                        <td><input type="text" name="part_description[]" class="form-control"></td>
-                        <td><input type="number" name="qty[]" class="form-control"></td>
-                        <td>
-                        <select name="process_type[]" class="form-control">
-                            <option value="" disabled selected>Select Process Type</option>
-                            {% for process in process_types %}
-                            <option value="{{ process }}">{{ process }}</option>
-                            {% endfor %}
-                        </select>
-                        </td>
-                        <td>
-                        <select name="scope[]" class="form-control">
-                            <option value="" disabled selected>Select Scope</option>
-                            <option value="InHouse">InHouse</option>
-                            <option value="BOSF">BOSF</option>
-                            <option value="BOF">BOF</option>
-                        </select>
-                        </td>
-                        <td>
-                        <select name="method[]" class="form-control">
-                            <option value="" disabled selected>Select Method</option>
-                            <option value="CSC">CSC</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Import">Import</option>
-                            <option value="Quote">Quote</option>
-                        </select>
-                        </td>
-                        <td>
-                        <select name="is_nesting_needed[]" class="form-control">
-                            <option value="" disabled selected>Select</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                        </td>
-                        <td>
-                        <button type="button" class="btn small-btn" onclick="addRow()">Add Row</button>
-                        <button type="button" class="btn small-btn" onclick="deleteRow(this)">Delete</button>
-                        </td>`;
-                    }
-                        document.addEventListener('DOMContentLoaded', function() {
-                        const isNestingNeeded = "{{ is_nesting_needed }}"; // Get the value from the server
-                        const noOfBlanksInput = document.querySelector('input[name="no_of_blanks"]');
+<script>
+  (function () {
+    const form = document.getElementById('smmaterial-form');
 
-                    // nesting yes it should be editable
-                        if (isNestingNeeded === "Yes") {
-                            noOfBlanksInput.removeAttribute('readonly',false);
+    // Auto-submit controls: any change on these elements will submit the form to recalc on server
+    const autoControls = document.querySelectorAll('.auto-submit');
 
+    autoControls.forEach(ctrl => {
+      ctrl.addEventListener('change', function (e) {
+        // Attach a hidden input to indicate this is NOT a save action (just recalc)
+        // We don't need to add anything — view checks absence/presence of save_material_data.
+        form.submit();
+      });
+    });
 
-                        } else {
-                            noOfBlanksInput.setAttribute('readonly',true);
-                            document.querySelector('input[name="no_of_blanks"]').style.backgroundColor= "#e9ecef";
+    // Prevent form double-submit on save
+    form.addEventListener('submit', function (ev) {
+      const saveBtn = form.querySelector('button[name="save_material_data"]');
+      if (document.activeElement === saveBtn) {
+        // regular save - let it proceed
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+      }
+    });
+  })();
+</script>
 
-
-                        }
-
-                        // Function to perform dynamic calculations
-                        function calculate() {
-                            const length = parseFloat(document.querySelector('input[name="length"]').value) || 0;
-                            const width = parseFloat(document.querySelector('input[name="width"]').value) || 0;
-                            const thickness = parseFloat(document.querySelector('input[name="thickness"]').value) || 0;
-                            const finishWeight = parseFloat(document.querySelector('input[name="finish_weight"]').value) || 0;
-                            const rmPrice = parseFloat(document.querySelector('input[name="rm_price"]').value) || 0;
-                            const scrapPrice = parseFloat(document.querySelector('input[name="scrap_price"]').value) || 0;
-                            const cuttingProcess = document.querySelector('select[name="process"]').value;
-                            let sheetLength = 2500;
-                            let sheetWidth = 1250;
-
-                            // Calculate sheet length and width based on the cutting process
-                            if (cuttingProcess) {
-                                if (cuttingProcess.toLowerCase() === "shearing") {
-                                    sheetLength = length >= 2500 ? length : 2500;
-                                    sheetWidth = width >= 1250 ? width : 1250;
-                                } else if (cuttingProcess.toLowerCase() === "blanking") {
-                                    sheetLength = length + (thickness * 3) >= 2500 ? length + (thickness * 3) : 2500;
-                                    sheetWidth = width + (thickness * 3) >= 1250 ? width + (thickness * 3) : 1250;
-                                } else if (cuttingProcess.toLowerCase() === "laser cutting" || cuttingProcess.toLowerCase() === "plasma cutting") {
-                                    sheetLength = length + 4 >= 2500 ? length + 4 : 2500;
-                                    sheetWidth = width + 4 >= 1250 ? width + 4 : 1250;
-                                }
-                            }
-
-                            sheetLength = Math.ceil(sheetLength / 5) * 5;
-                            sheetWidth = Math.ceil(sheetWidth / 5) * 5;
-
-                            document.querySelector('input[name="sheet_length"]').value = sheetLength;
-                            document.querySelector('input[name="sheet_width"]').value = sheetWidth;
-
-                            // Calculate blank length and width based on the cutting process
-                            let blankLength, blankWidth;
-                            if (cuttingProcess.toLowerCase() === "shearing") {
-                                blankLength = length;
-                                blankWidth = width;
-                            } else if (cuttingProcess.toLowerCase() === "blanking") {
-                                blankLength = length + thickness * 1.5;
-                                blankWidth = width + thickness * 3;
-                            } else if (cuttingProcess.toLowerCase() === "laser cutting" || cuttingProcess.toLowerCase() === "plasma cutting") {
-                                blankLength = length + 4;
-                                blankWidth = width + 4;
-                            } else {
-                                blankLength = length;
-                                blankWidth = width;
-                            }
-
-                            // Calculate potential blanks in both orientations
-                            const blanksOrientation1 = Math.floor(sheetLength / blankLength) * Math.floor(sheetWidth / blankWidth);
-                            const blanksOrientation2 = Math.floor(sheetLength / blankWidth) * Math.floor(sheetWidth / blankLength);
-
-                            // Choose the maximum of the two orientations
-                            let noOfBlanks = Math.max(blanksOrientation1, blanksOrientation2);
-
-                            // Calculate remaining unused area (end bit wastage) based on the orientation chosen
-                            let remainingLength, remainingWidth, extraParts;
-                            if (blanksOrientation1 >= blanksOrientation2) {
-                                remainingLength = sheetLength - (blankLength * Math.floor(sheetLength / blankLength));
-                                remainingWidth = sheetWidth - (blankWidth * Math.floor(sheetWidth / blankWidth));
-                                extraParts = Math.floor(remainingLength / blankWidth) * Math.floor(sheetWidth / blankLength);
-                            } else {
-                                remainingLength = sheetLength - (blankWidth * Math.floor(sheetLength / blankWidth));
-                                remainingWidth = sheetWidth - (blankLength * Math.floor(sheetWidth / blankLength));
-                                extraParts = Math.floor(sheetLength / blankLength) * Math.floor(remainingWidth / blankWidth);
-                            }
-
-                            // Add extra parts from the remaining area to the total number of blanks
-                            noOfBlanks += extraParts;
-                            document.querySelector('input[name="no_of_blanks"]').value = noOfBlanks;
-
-                            // Calculate sheet weight
-                            const sheetWeight = (sheetLength * sheetWidth * thickness * 7.86 / 10**6).toFixed(1);
-                            document.querySelector('input[name="sheet_weight"]').value = sheetWeight;
-
-                            // Calculate blank weight
-                            const blankWeight = (length * width * thickness * 7.86 / 10**6).toFixed(2);
-                            document.querySelector('input[name="blank_weight"]').value = blankWeight;
-
-                            // Calculate input weight
-                            const inputWeight = (sheetWeight / noOfBlanks).toFixed(2);
-                            document.querySelector('input[name="input_weight"]').value = inputWeight;
-
-                            // Calculate yield value
-                            const yieldValue = ((finishWeight / inputWeight) * 100).toFixed();
-                            document.querySelector('input[name="yield"]').value = yieldValue;
-                            if (yieldValue < 50) {
-                                document.querySelector('input[name="yield"]').style.backgroundColor= "pink";
-                            } else {
-                                document.querySelector('input[name="yield"]').style.backgroundColor = "";
-                            }
-
-                            // Calculate surface area per part
-                            const surfaceAreaPart = ((finishWeight / thickness / 7.86) * 2).toFixed(3);
-                            document.querySelector('input[name="surface_area"]').value = surfaceAreaPart;
-
-                            // Calculate scrap weight
-                            const scrapWeight = (inputWeight - finishWeight).toFixed(2);
-                            document.querySelector('input[name="scrap_weight"]').value = scrapWeight;
-
-                            // Calculate price per unit
-                            const pricePerUnit = ((rmPrice * inputWeight) - (scrapPrice * scrapWeight * 0.95)).toFixed(2);
-                            document.querySelector('input[name="price_per_unit"]').value = pricePerUnit;
-
-                            // Calculate direct RM cost
-                            const directRmCost = (finishWeight * rmPrice).toFixed(2);
-                            document.querySelector('input[name="direct_rm_cost"]').value = directRmCost;
-
-                            // Calculate allowance cost
-                            const allowanceCost = (pricePerUnit - directRmCost).toFixed(2);
-                            document.querySelector('input[name="allowance_cost"]').value = allowanceCost;
-                        }
-
-                        // Add event listeners to input fields for dynamic calculations
-                        document.querySelectorAll('input[name="length"], input[name="width"], input[name="thickness"], input[name="finish_weight"], select[name="process"]').forEach(input => {
-                            input.addEventListener('input', calculate);
-                        });
-
-                        // Initial calculation
-                        calculate();
-                    });
-                
-            </script>
 </body>
-  
 </html>
