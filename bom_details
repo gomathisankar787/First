@@ -1,189 +1,179 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
-from django.contrib import messages
-from .models import CRCSCTBL, BOMSheet, SMMaterial, RMbase
-import datetime, math, os
+<div class="accordion" id="accordionExample">
+                    <div class="card">
+                        <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            SM MATERIAL
+                            </button>
+                        </h5>
+                        </div>
 
+                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                            <div class="card-body">
+                                <form method="post" action="{% url 'bom_details' csc_values.id %}">
+                                    {% csrf_token %}
+                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Part No</th>
+                                                <th>Description</th>
+                                                <th>Estimation Method</th>
+                                                <th>Material Grade</th>
+                                                <th>RM Price / Kg (INR)</th>
+                                                <th>Length (mm)</th>
+                                                <th>Width (mm)</th>
+                                                <th>Thick (mm)</th>
+                                                <th>Sheet Length (mm)</th>
+                                                <th>Sheet Width (mm)</th>
+                                                <th>Shearing/ Blanking/ Laser cutting</th>
+                                                <th>Sheet Weight (kg)</th>
+                                                <th>No of Blanks per sheet</th>
+                                                <th>Blank weight (Kg)</th>
+                                                <th>Input Weight (Kg)</th>
+                                                <th>Finish weight (Kg)</th>
+                                                <th>Yield (%)</th>
+                                                <th>Surface Area / Part</th>
+                                                <th>Scrap wt (kg)</th>
+                                                <th>Scrap mat.Price</th>
+                                                <th>Recovery (%)</th>
+                                                <th>Price per unit (INR)</th>
+                                                <th>Direct RM Cost</th>
+                                                <th>Allowance cost</th>
+                                                <th>Remarks</th>
+                                            </tr>                   
+                                        </thead>
+                                        <tbody>
+                                            
+                                        {% if page_obj.object_list %}
+                                            {% with row=page_obj.object_list.0 %}
 
-def bomdetails(request, id):
+                                            <tr class="rowdata">
+                                                <td><input type="text" name="part_num" value="{{ row.part_no }}" style="width: 100px;" readonly></td>
+                                                <td><input type="text" name="description" value="{{ row.part_description }}" style="width: 80px;" readonly></td>
+                                                <td><input type="text" name="estimation_method" value="{{ row.method }}" style="width: 80px;" readonly></td>
+                                                <td>
+                                                    <select id="materialgrades" name="material_grade" style="width: 100px;" onchange="this.form.submit()" required>
+                                                        <option></option> <!-- This empty option is needed for the placeholder to work -->
+                                                        {% for grade in material_grades %}
+                                                        <option value="{{ grade }}" {% if grade == request.POST.material_grade %}selected{% endif %} >{{ grade }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td><input name="rm_price" value="{{ rm_price }}" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="" name="length" value="{{ request.POST.length }}" required min="0"></td>
+                                                <td><input type="" name="width" value="{{ request.POST.width }}" required min="0"></td>
+                                                <td><input type="" name="thickness" value="{{ request.POST.thickness }}" required min="0"></td>
+                                                <td><input name="sheet_length" value="{{ sheet_length }}" ></td>
+                                                <td><input name="sheet_width" value="{{ sheet_width }}" ></td>
+                                                <td>
+                                                    <select name="process" style="width: 100px;" onchange="this.form.submit()" required>
+                                                        <option value="" disabled selected>Select Process</option>
+                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
+                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
+                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
+                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="" name="sheet_weight" value="{{ sheet_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="no_of_blanks" value="{{ no_of_blanks }}" id="no_of_blanks"></td>
+                                                <td><input type="" name="blank_weight" value="{{ blank_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="input_weight" value="{{ input_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="finish_weight" value="{{ request.POST.finish_weight }}" onchange="this.form.submit()" required min="0"></td>
+                                                <td><input type="" name="yield" value="{{ yield_value }}" ></td>
+                                                <td><input type="" name="surface_area" value="{{ surface_area_part }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="scrap_weight" value="{{ scrap_weight }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input name="scrap_price" value="{{ scrap_price }}" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"></td>
+                                                <td><input type="" name="price_per_unit" value="{{ price_per_unit }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="direct_rm_cost" value="{{ direct_rm_cost }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="" name="allowance_cost" value="{{ allowance_cost }}" style="background-color: #e9ecef;" readonly></td>
+                                                <td><input type="text" name="remarks" style="width: 100px;"></td>
+                                            </tr>
+                                            
+                                        {% endwith %}
+                                        {% else %}
+                                            <td colspan="3">No data on this page.</td>
+                                        {% endif %}
 
-    # ──────────────────────────────
-    # 0️⃣ BASE CSC & BOM ROW FETCH
-    # ──────────────────────────────
-    csc_values = get_object_or_404(CRCSCTBL, id=id)
-    unique_csc_id = csc_values.unique_csc_id
-
-    bom_rows = BOMSheet.objects.filter(unique_csc_id=unique_csc_id).order_by('id')
-    paginator = Paginator(bom_rows, 1)  # 1 row per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    row = page_obj.object_list.first()
-
-    if not row:
-        messages.warning(request, 'No BOM rows available for this CSC.')
-        return render(request, 'bom_details.html', {'csc_values': csc_values})
-
-    material_grades = RMbase.objects.values_list('material_grade', flat=True)
-    system_user = os.environ.get('USERNAME', 'system')
-    current_date = datetime.datetime.now().strftime('%Y-%m-%d')
-
-    # Defaults for dynamic values
-    rm_price = scrap_price = 0
-    sheet_length = 2500
-    sheet_width = 1250
-    sheet_weight = blank_weight = input_weight = scrap_weight = 0
-    no_of_blanks = yield_value = surface_area_part = 0
-    price_per_unit = direct_rm_cost = allowance_cost = 0
-    finish_weight = 0
-
-    # Restore previous values if exist
-    old_smm = SMMaterial.objects.filter(bom_id=row.id).first()
-    if old_smm:
-        rm_price = old_smm.rm_price_per_kg
-        scrap_price = old_smm.scrap_price
-        sheet_length = old_smm.sheet_length
-        sheet_width = old_smm.sheet_width
-        sheet_weight = old_smm.sheet_weight
-        no_of_blanks = old_smm.no_of_blanks
-        blank_weight = old_smm.blank_weight
-        input_weight = old_smm.input_weight
-        finish_weight = old_smm.finish_weight
-        yield_value = old_smm.yield_value
-        surface_area_part = old_smm.surface_area_part
-        scrap_weight = old_smm.scrap_weight
-        price_per_unit = old_smm.price_per_unit
-        direct_rm_cost = old_smm.direct_rm_cost
-        allowance_cost = old_smm.allowance_cost
-
-    # ──────────────────────────────
-    # 1️⃣ SAVE MATERIAL RECORD
-    # ──────────────────────────────
-    if request.method == 'POST' and 'save_material_data' in request.POST:
-        try:
-            SMMaterial.objects.update_or_create(
-                bom_id=row.id,
-                defaults={
-                    'unique_csc_id': unique_csc_id,
-                    'part_no': row.part_no,
-                    'part_description': row.part_description,
-                    'estimation_mthd': row.method,
-                    'material_grade': request.POST['material_grade'],
-                    'rm_price_per_kg': float(request.POST['rm_price']),
-                    'length': float(request.POST['length']),
-                    'width': float(request.POST['width']),
-                    'thickness': float(request.POST['thickness']),
-                    'sheet_length': float(request.POST['sheet_length']),
-                    'sheet_width': float(request.POST['sheet_width']),
-                    'cutting_process': request.POST['process'],
-                    'sheet_weight': float(request.POST['sheet_weight']),
-                    'no_of_blanks': int(request.POST['no_of_blanks']),
-                    'blank_weight': float(request.POST['blank_weight']),
-                    'input_weight': float(request.POST['input_weight']),
-                    'finish_weight': float(request.POST['finish_weight']),
-                    'yield_value': float(request.POST['yield']),
-                    'surface_area_part': float(request.POST['surface_area']),
-                    'scrap_weight': float(request.POST['scrap_weight']),
-                    'scrap_price': float(request.POST['scrap_price']),
-                    'recovery_perc': 95,
-                    'price_per_unit': float(request.POST['price_per_unit']),
-                    'direct_rm_cost': float(request.POST['direct_rm_cost']),
-                    'allowance_cost': float(request.POST['allowance_cost']),
-                    'remarks': request.POST.get("remarks", ""),
-                    'updated_on': current_date,
-                    'updated_by': system_user
-                }
-            )
-
-            csc_values.csc_status = "Completed till SMMaterial details"
-            csc_values.save(update_fields=['csc_status'])
-
-            messages.success(request, "SM Material saved successfully!")
-            return redirect(f"/bom_details/{id}/?page={page_obj.number}")
-
-        except Exception as e:
-            messages.error(request, f"Error saving material: {e}")
-            return redirect(f"/bom_details/{id}/?page={page_obj.number}")
-
-    # ──────────────────────────────
-    # 2️⃣ DYNAMIC CALCULATIONS
-    # ──────────────────────────────
-    if request.method == 'POST' and 'save_material_data' not in request.POST:
-
-        material_grade = request.POST.get("material_grade")
-        length = float(request.POST.get("length") or 0)
-        width = float(request.POST.get("width") or 0)
-        thickness = float(request.POST.get("thickness") or 0)
-        finish_weight = float(request.POST.get("finish_weight") or 0)
-        process = request.POST.get("process")
-
-        # Fetch RM prices
-        try:
-            base = RMbase.objects.get(material_grade=material_grade)
-            rm_price, scrap_price = base.rm_rate, base.scrap_rate
-        except RMbase.DoesNotExist:
-            rm_price = scrap_price = 0
-
-        # SHEET DIMENSION LOGIC
-        if process:
-            if process.lower() == "shearing":
-                sl = max(length, 2500)
-                sw = max(width, 1250)
-            elif process.lower() == "blanking":
-                sl = max(length + thickness * 3, 2500)
-                sw = max(width + thickness * 3, 1250)
-            else:  # laser/plasma
-                sl = max(length + 4, 2500)
-                sw = max(width + 4, 1250)
-
-            sheet_length = math.ceil(sl / 5) * 5
-            sheet_width = math.ceil(sw / 5) * 5
-
-        # BLANK LOGIC
-        if process.lower() == "shearing":
-            bl, bw = length, width
-        elif process.lower() == "blanking":
-            bl, bw = length + thickness * 1.5, width + thickness * 3
-        else:
-            bl, bw = length + 4, width + 4
-
-        no_of_blanks = int(max(
-            (sheet_length // bl) * (sheet_width // bw),
-            (sheet_length // bw) * (sheet_width // bl)
-        ))
-
-        sheet_weight = round(sheet_length * sheet_width * thickness * 7.86 / 1e6, 2)
-        blank_weight = round(length * width * thickness * 7.86 / 1e6, 2)
-        input_weight = round(sheet_weight / no_of_blanks if no_of_blanks else 0, 2)
-        yield_value = round((finish_weight / input_weight) * 100) if input_weight else 0
-        surface_area_part = round((finish_weight / thickness / 7.86 * 2), 3) if finish_weight else 0
-        scrap_weight = round(input_weight - finish_weight, 2) if finish_weight else 0
-        price_per_unit = round((rm_price * input_weight) - (scrap_price * scrap_weight * 0.95), 2)
-        direct_rm_cost = round(finish_weight * rm_price, 2)
-        allowance_cost = round(price_per_unit - direct_rm_cost, 2)
-
-    # ──────────────────────────────
-    # 3️⃣ RETURN CONTEXT TO TEMPLATE
-    # ──────────────────────────────
-    context = {
-        'csc_values': csc_values,
-        'page_obj': page_obj,
-        'row': row,
-        'material_grades': material_grades,
-        'rm_price': rm_price,
-        'scrap_price': scrap_price,
-        'sheet_length': sheet_length,
-        'sheet_width': sheet_width,
-        'sheet_weight': sheet_weight,
-        'no_of_blanks': no_of_blanks,
-        'blank_weight': blank_weight,
-        'input_weight': input_weight,
-        'finish_weight': finish_weight,
-        'yield_value': yield_value,
-        'surface_area_part': surface_area_part,
-        'scrap_weight': scrap_weight,
-        'price_per_unit': price_per_unit,
-        'direct_rm_cost': direct_rm_cost,
-        'allowance_cost': allowance_cost,
-    }
-
-    return render(request, "bom_details.html", context)
+                                        </tbody>
+                                    </table></div><br><div class="action-buttons">
+                                        <button type="submit" name="save_material_data">Save Material Data</button>
+                                    </div>
+                                    
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header" id="headingTwo">
+                            <h5 class="mb-0">
+                                <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                SM PROCESS
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                        <div class="card-body">
+                            <form method="post" action="{% url 'bom_details' csc_values.id %}">
+                                {% csrf_token %}
+                                <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                    <table class="table table-bordered" id="processTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Part No</th>
+                                                <th>Process Type</th>
+                                                <th>Part Description</th>
+                                                <th>Process Description</th>
+                                                <th>Thickness</th>
+                                                <th>Mechnical/Hydrlic</th>
+                                                <th>Cutg/Frmg Len</th>
+                                                <th>PressForce Cutting</th>
+                                                <th>PressForce Forming</th>
+                                                <th>Machine Type</th>
+                                                <th>No of Ope</th>
+                                                <th>Part per Cycle</th>
+                                                <th>Norms</th>
+                                                <th>Process Cost Unit</th>
+                                                <th>Uts</th>
+                                                <th>Remarks</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><select style="padding: 5px;">
+                                                    <option>Select Process</option>
+                                                    <option>Cutting</option>
+                                                    <option>Forming</option>
+                                                </select></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input style="margin-left: 15px;"></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input style="margin-left: 15px;"></td>
+                                                <td><input style="margin-left: 15px;"></td>
+                                                <td><input style="margin-left: 15px;"></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input style="width: 130px;"></td>
+                                                
+                                                <td class="action-buttons">
+                                                    <button  id="addrow"  onclick="processaddRow(this)">AddRow</button>
+                                                    <button id="delete" onclick="processdeleteRow(this)">Delete</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table></div>
+                                <div class="action-buttons">
+                                <button onclick="saveRow(this)" style="margin-top: 20px; width: 100px;">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                        </div>
+                    </div>
