@@ -1,4 +1,76 @@
-<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+<div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-2" id="green">
+                <!-- <h4>Sidebar</h4> -->
+                <!-- Navigation links in sidebar-->
+                <a href="#">Home</a>
+                <br/>
+                <br/>
+                <a href="mycsc">CSC</a>
+                <br/>
+                <br/>
+                <a href="#">BOM</a>
+                <br/>
+                <br/>
+                <a href="#">SM MATERIAL</a>
+                <br/>
+                <br/>
+            </div>
+            <div class="col-10" style="text-align: justify;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
+                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
+                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
+                            <div class="col-2">RM BASE <span style="margin-left: 55px;">:</span> <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">DESCRIPTION <span style="margin-left: 13px;">:</span> <b>{{csc_values.desc}}</b></div>
+                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
+                            <div class="col-2">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                    </div>
+                </div>
+            </br>
+                <!-- Pagination Controls -->
+                <div class="pagination" style="display: flex; gap: 10px;">
+                    <!-- previous button -->
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                    {% else %}
+                        <span style="opacity: 0.5;">Previous</span>
+                    {% endif %}
+                    <!-- page numbers -->
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <strong>{{ num }}</strong>
+                        {% else %}
+                            <a href="?page={{ num }}">{{num}}</a>
+                        {% endif %}
+                    {% endfor %}
+                    <!-- next button -->
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                    {% else %}
+                        <span style="opacity:0.5;">Next</span>
+                    {% endif %}
+                </div>
+            </br>
+                <!-- Bom details -->
+                
+                <div class="accordion" id="accordionExample">
+                    <div class="card">
+                        <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            SM MATERIAL
+                            </button>
+                        </h5>
+                        </div>
+
+                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
                             <div class="card-body">
                                 <form method="post" action="{% url 'sm_material' %}">
                                     {% csrf_token %}
@@ -81,3 +153,35 @@
                                 </form>
                             </div>
                         </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header" id="headingTwo">
+                        <h5 class="mb-0">
+                            <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            SM PROCESS
+                            </button>
+                        </h5>
+                        </div>
+                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                        <div class="card-body">
+                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                        </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header" id="headingThree">
+                        <h5 class="mb-0">
+                            <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            OH PROFIT
+                            </button>
+                        </h5>
+                        </div>
+                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                        <div class="card-body">
+                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>   
