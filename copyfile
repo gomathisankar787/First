@@ -1,3 +1,384 @@
+import csv
+import datetime
+import math
+from pyexpat.errors import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import ValidationError
+from django.contrib import messages
+from django.urls import reverse
+from django.db.models import F
+from .forms import ProjectForm
+from . import models
+from .models import *
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+import openpyxl
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+import os,json
+import pandas as pd
+from django.core.files.storage import FileSystemStorage
+from datetime import datetime
+import datetime
+from django.core.paginator import Paginator
+
+# Create your views here.
+def home(request):
+    return render(request,'home.html')
+
+@csrf_exempt
+def createcsc(request):
+    # Fetch the latest dates from the respective tables
+    # rm_base = RMbase.objects.exists()
+    # process_base = Processbase.objects.exists()
+    # oh_profit_base = OH_ProfitData.objects.exists()
+    # if rm_base and process_base and oh_profit_base:
+    #     latest_rm_base = RMbase.objects.latest('base').base
+    #     latest_process_base = Processbase.objects.latest('base').base
+    #     latest_oh_profit_base = OH_ProfitData.objects.latest('base').base
+    # else:
+    #     latest_rm_base = None
+    #     latest_process_base = None
+    #     latest_oh_profit_base = None
+
+    # Get the current date and system user
+    current_date = datetime.datetime.now().strftime('%d-%m-%Y')
+    system_user = os.environ.get('USERNAME', '').lower()
+
+    # Fetch all PartType objects
+#     part_types = PARTTYPETBL.objects.all()
+#     projects = PROJECTLISTTBL.objects.all()
+
+#     # Fetch all unique base values from RMbase
+#     if rm_base:
+#         rm_base_values = RMbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+#     else:
+#         rm_base_values = None
+#     if process_base:
+#         process_base_values = list(Processbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct())
+# # Remove duplicates while maintaining order
+#         seen = set()
+#         process_base_values = [x for x in process_base_values if not (x in seen or seen.add(x))]
+#     else:
+#         process_base_values = None
+#     if oh_profit_base:
+#         ohprofit_base_values = OH_ProfitData.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+#     else:
+#         ohprofit_base_values = None
+
+    data = None
+    if request.method == 'POST':
+        # part_no = request.POST.get('part_num')
+        # part_rev = request.POST.get('rev')
+        # description = request.POST.get('desc')
+        # part_type_value = request.POST.get('part_typ')
+        # project_value = request.POST.get('projects')
+        # rm_base = request.POST.get('rm_base')
+        # process_base = request.POST.get('process_base')
+        # oh_profit_base = request.POST.get('oh_profit_base')
+        # remarks = request.POST.get('remarks')
+
+        
+        data = json.loads(request.body.decode('utf-8'))
+
+        part_no = data.get('part_num')
+        part_rev = data.get('rev')
+        description = data.get('desc')
+        part_type_value = data.get('part_typ')
+        project_value = data.get('projects')
+        rm_base = data.get('rm_base')
+        process_base = data.get('process_base')
+        oh_profit_base = data.get('oh_profit_base')
+        remarks = data.get('remarks')
+
+
+        if not all([part_no, part_rev, description, part_type_value, project_value, rm_base, process_base, oh_profit_base]):
+            messages.error(request, "All fields must be filled out Except Remarks.")
+            return redirect('createcsc') 
+
+        # Create and save the new CSC entry
+        new_csc = CRCSCTBL(
+            part_num=part_no,
+            rev=part_rev,
+            desc=description,
+            part_typ_id=part_type_value,
+            projects_id=project_value,
+            rm_base=rm_base,
+            process_base=process_base,
+            oh_profit_base=oh_profit_base,
+            remarks=remarks,
+            updated_by=system_user
+        )
+        new_csc.save()
+
+        # Store values in session
+        request.session['part_num'] = part_no
+        request.session['rev'] = part_rev
+        request.session['desc'] = description
+
+        # Redirect to BOM page after successful creation
+        # return redirect('bom')  # Replace 'bom' with the actual URL name of your BOM page
+    # mycsc(request)
+    return JsonResponse({'status': 'success', 'message': 'CSC created successfully'})
+# , {
+#         'data': data,
+#         'latest_rm_base': latest_rm_base,
+#         'latest_process_base': latest_process_base,
+#         'latest_oh_profit_base': latest_oh_profit_base,
+#         'current_date': current_date,
+#         'system_user': system_user,
+#         'rm_base_values': rm_base_values,
+#         'process_base_values': process_base_values,
+#         'ohprofit_base_values': ohprofit_base_values,
+#         'part_types': part_types,
+#         'projects': projects
+#     })
+
+
+
+@csrf_exempt
+def updatecsc(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+
+            csc_id = data.get('id')  # ID of the CSC to update
+            part_no = data.get('part_num')
+            rev = data.get('rev')
+            description = data.get('desc')
+            part_type_value = data.get('part_typ')
+            project_value = data.get('projects')
+            rm_base = data.get('rm_base')
+            process_base = data.get('process_base')
+            oh_profit_base = data.get('oh_profit_base')
+            remarks = data.get('remarks')
+
+            # Validate
+            if not csc_id:
+                return JsonResponse({'status': 'error', 'message': 'CSC ID is required'}, status=400)
+
+            # Fetch and update
+            csc = CRCSCTBL.objects.get(id=csc_id)
+            csc.part_num = part_no
+            csc.rev = rev
+            csc.desc = description
+            csc.part_typ_id = part_type_value
+            csc.projects_id = project_value
+            csc.rm_base = rm_base
+            csc.process_base = process_base
+            csc.oh_profit_base = oh_profit_base
+            csc.remarks = remarks
+            csc.updated_on = datetime.datetime.now()
+            csc.save()
+
+            return JsonResponse({'status': 'success', 'message': 'CSC updated successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def deletecsc(request):
+    if request.method == 'DELETE':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            csc_id = data.get('id')
+            csc = CRCSCTBL.objects.get(id=csc_id)
+            csc.delete()
+            return JsonResponse({'status': 'success', 'message': 'CSC deleted successfully'})
+        except CRCSCTBL.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'CSC not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+
+@csrf_exempt
+def add_parttype(request):
+    data = json.loads(request.body.decode('utf-8'))
+    if request.method == 'POST':
+        part_type_name = data.get('part_name').strip()
+        # part_type_name = request.POST.get('partTypeName').strip()
+        if not part_type_name:
+            return JsonResponse({'error': 'Part type name cannot be empty'}, status=400)
+        if PARTTYPETBL.objects.filter(parttype_name=part_type_name).exists():
+            return JsonResponse({'error': 'Part type already exists'}, status=400)
+        new_part_type = PARTTYPETBL.objects.create(parttype_name=part_type_name)
+        return JsonResponse({'partTypeId': new_part_type.id, 'partTypeName': new_part_type.parttype_name})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
+@csrf_exempt
+def add_project(request):
+    data = json.loads(request.body.decode('utf-8'))
+    if request.method == 'POST':
+        project_name = data.get('part_name').strip()
+        print('name',project_name)
+        if not project_name:
+            return JsonResponse({'error': 'Project name cannot be empty'}, status=400)
+        if PROJECTLISTTBL.objects.filter(projects_name=project_name).exists():
+            print('worked')
+            return JsonResponse({'error': 'Project already exists'}, status=400)
+        new_project = PROJECTLISTTBL.objects.create(projects_name=project_name)
+        return JsonResponse({'projectId': new_project.id, 'projectName': new_project.projects_name})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+#bom page code
+def bombkp(request):
+    if request.method == "POST":
+        part_no_list = request.POST.getlist('part_num[]')
+        level_list = request.POST.getlist('level[]')
+        revision_list = request.POST.getlist('rev[]')
+        part_description_list = request.POST.getlist('desc[]')
+        qty_list = request.POST.getlist('qty[]')
+        process_type_list = request.POST.getlist('process_type[]')
+        scope_list = request.POST.getlist('scope[]')
+        method_list = request.POST.getlist('method[]')
+        is_nesting_needed_list = request.POST.getlist('is_nesting_needed[]')
+
+        # Ensure all lists have the same length
+        if not (len(part_no_list) == len(level_list) == len(revision_list) == len(part_description_list) == len(qty_list) == len(process_type_list) == len(scope_list) == len(method_list) == len(is_nesting_needed_list)):
+            messages.error(request, "Please fill out all fields.")
+            return redirect('bom')
+
+        # Check for empty fields in any row
+        for i in range(len(part_no_list)):
+            if not all([
+                part_no_list[i], level_list[i], revision_list[i],
+                part_description_list[i], qty_list[i], process_type_list[i],
+                scope_list[i], method_list[i], is_nesting_needed_list[i]
+            ]):
+                messages.error(request, f"All fields must be filled in row {i+1}.")
+                # return redirect('bom')
+
+        # Process and save data for each row
+        for i in range(len(part_no_list)):
+            part_no = part_no_list[i]
+            level = level_list[i]
+            revision = revision_list[i]
+            part_description = part_description_list[i]
+            qty = qty_list[i]
+            process_type = process_type_list[i]
+            scope = scope_list[i]
+            method = method_list[i]
+            is_nesting_needed = is_nesting_needed_list[i]
+
+            # Check if a BOM entry with the same part_no and revision exists
+            existing_bom = BOMSheet.objects.filter(part_no=part_no, revision=revision).first()
+            unique_csc_id = existing_bom.unique_csc_id if existing_bom else None
+
+            # Create and save new BOM entry
+            new_bom = BOMSheet(
+                part_no=part_no,
+                level=level,
+                revision=revision,
+                part_description=part_description,
+                qty=qty,
+                process_type=process_type,
+                scope=scope,
+                method=method,
+                is_nesting_needed=is_nesting_needed,
+                unique_csc_id=unique_csc_id
+            )
+            new_bom.save()
+
+            # Update the CSC status
+            if unique_csc_id:
+                CRCSCTBL.objects.filter(unique_csc_id=unique_csc_id).update(csc_status='Completed till BOM details')
+
+        request.session['estimation_method'] = method
+        request.session['unique_csc_id'] = unique_csc_id
+        print('session',request.session['unique_csc_id'])
+        messages.success(request, "BOM Sheet created successfully!")
+
+        return redirect('sm_material')  # Stay on the BOM page after saving
+
+    else:
+        # Fetch session values
+        session_part_num = request.session.get('part_num')
+        rev = request.session.get('rev')
+        desc = request.session.get('desc')
+
+        # Fetch all parts and process types
+        all_parts = BOMSheet.objects.all()
+        process_types = OH_ProfitData.objects.values_list('process_type', flat=True).distinct()
+
+        return render(request, 'bom.html', {
+            'all_parts': all_parts,
+            'part_num': session_part_num,
+            'rev': rev,
+            'desc': desc,
+            'process_types': process_types,
+        })
+    
+#bom api updated by sankar
+@csrf_exempt
+def bom(request):
+
+    if request.method == "GET":
+        return render(request, "bom.html")
+
+    if request.method == "POST":
+
+        data = json.loads(request.body.decode("utf-8"))
+        cscid = data.get('cscid')
+        part_no_list = data.get("part_no_list", [])
+        level_list = data.get("level_list", [])
+        revision_list = data.get("revision_list", [])
+        desc_list = data.get("desc_list", [])
+        qty_list = data.get("qty_list", [])
+        process_type_list = data.get("process_type_list", [])
+        scope_list = data.get("scope_list", [])
+        method_list = data.get("method_list", [])
+        nesting_list = data.get("nesting_list", [])
+
+        row_count = len(part_no_list)
+
+        # Validate equal lengths
+        if not (row_count == len(level_list) == len(revision_list) == len(desc_list) ==
+                len(qty_list) == len(process_type_list) == len(scope_list) ==
+                len(method_list) == len(nesting_list)):
+            return JsonResponse({"status": "error", "message": "Incomplete rows"})
+
+        # Save each row
+        for i in range(row_count):
+
+            # Skip empty rows
+            if not part_no_list[i]:
+                continue
+
+            # existing_bom = BOMSheet.objects.filter(
+            #     part_no=part_no_list[i],
+            #     revision=revision_list[i]
+            # ).first()
+            existing_bom = CRCSCTBL.objects.filter(id=cscid).first()
+
+            unique_csc_id = existing_bom.unique_csc_id if existing_bom else None
+            print('uniquecsc',unique_csc_id)
+
+            BOMSheet.objects.create(
+                part_no=part_no_list[i],
+                level=level_list[i],
+                revision=revision_list[i],
+                part_description=desc_list[i],
+                qty=qty_list[i],
+                process_type=process_type_list[i],
+                scope=scope_list[i],
+                method=method_list[i],
+                is_nesting_needed=nesting_list[i],
+                unique_csc_id=unique_csc_id
+            )
+            # Update the CSC status
+            if unique_csc_id:
+                CRCSCTBL.objects.filter(unique_csc_id=unique_csc_id).update(csc_status='Completed till BOM details')
+
+        return JsonResponse({"status": "success"})
+
+
+#SM Material    
 def sm_material(request):
     part_no = request.session.get('part_num')
     des = request.session.get('desc')
@@ -282,3 +663,639 @@ def sm_material(request):
     }
 
     return render(request, 'sm_material.html', context)
+
+def sm_process(request):
+    return render(request,'sm_process.html')
+
+
+
+
+
+
+
+
+
+
+
+
+# oh_profit code
+
+def create_oh_profit_csv_template():
+    # Define the columns
+    columns = [
+        "Process Type", "ICC on RM", "ICC on Conv", "ICC on BOF", "Rej on RM", "Rej on Conv", "Rej on BOF",
+        "Inspection on RM", "Inspection on Conv", "Inspection on BOF", "TMC on RM", "TMC on Conv", "TMC on BOF",
+        "Design cost on RM", "Design cost on Conv", "Design cost on BOF", "OH on RM", "OH on Conv", "OH on BOF",
+        "Profit on RM", "Profit on Conv", "Profit on BOF", "Warranty cost", "Inbound Logistics", "Effective from", "Base" ,"Source", "Remarks"
+    ]
+
+    # Create a CSV file with the specified columns
+    with open('oh_profit_template.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(columns)
+
+def download_oh_profit_csv_template(request):
+    create_oh_profit_csv_template()
+    file_path = 'oh_profit_template.csv'
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    return JsonResponse({'error': 'File not found.'}, status=404)
+
+def get_process_types(request):
+    process_types = OH_ProfitData.objects.values_list('process_type', flat=True).distinct()
+    return JsonResponse(list(process_types), safe=False)
+
+
+def oh_profit(request):
+    system_user = os.environ.get('USERNAME', '').lower()
+    current_date = datetime.datetime.now().strftime('%d-%m-%Y')
+    
+    # Define expected columns for display
+    expected_columns = [
+        "Process Type", "ICC on RM", "ICC on Conv", "ICC on BOF",
+        "Rej on RM", "Rej on Conv", "Rej on BOF",
+        "Inspection on RM", "Inspection on Conv", "Inspection on BOF",
+        "TMC on RM", "TMC on Conv", "TMC on BOF",
+        "Design cost on RM", "Design cost on Conv", "Design cost on BOF",
+        "OH on RM", "OH on Conv", "OH on BOF",
+        "Profit on RM", "Profit on Conv", "Profit on BOF",
+        "Warranty cost", "Inbound Logistics", "Effective from", "Base" ,"Source", "Remarks"
+    ]
+    
+    
+    if request.method == 'POST':
+        # File Upload Handling
+        if 'excel_file' in request.FILES:
+            uploaded_file = request.FILES['excel_file']
+            filename = uploaded_file.name
+            
+            # Validate file name
+            if filename != 'oh_profit_template.xlsx':
+                messages.error(request, 'Invalid file name. Please upload a file named "oh_profit_template.xlsx".')
+                return redirect('oh_profit')
+            else:
+                # Save the uploaded file
+                with open(filename, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+                try:
+                    # Read Excel file (skip header row)
+                    df = pd.read_excel(filename, header=None, skiprows=1, dtype={'Base': str, 'Source': str, 'Remarks': str})
+                    
+                    # Validate number of columns
+                    if len(df.columns) >= len(expected_columns):
+                        df.columns = expected_columns
+                    else:
+                        messages.error(request, 'The uploaded file does not contain all expected columns.')
+                        return redirect('oh_profit')
+                    
+                    # Check for empty values in all fields except 'Remarks'
+                    mandatory_columns = [col for col in expected_columns if col != 'Remarks']
+                    if df[mandatory_columns].isnull().values.any():
+                        messages.error(request,'The uploaded file contains empty values. All fields are mandatory except "Remarks". Please fill all required fields.')
+                        return redirect('oh_profit')
+                    
+                    # Clean data
+                    df = df.where(pd.notnull(df), None)
+                    df = df.dropna(subset=["Process Type"])
+                    
+                    # Convert Base column to string if it is a Timestamp
+                    df['Base'] = df['Base'].apply(lambda x: x.strftime('%b-%y') if isinstance(x, pd.Timestamp) else x)
+                    
+                    data_to_display = df.to_dict('records')
+                    
+                    messages.success(request, 'File processed successfully!')
+                    # Render without redirecting so that the processed data is displayed
+                    return render(request, 'oh_profit.html', {
+                        'data': data_to_display,
+                        'columns': expected_columns,
+                        'updated_by': system_user,
+                        'updated_on': current_date,
+                    })
+                except Exception as e:
+                    messages.error(request, f"Error processing file: {str(e)}")
+                    return redirect('oh_profit')
+                finally:
+                    os.remove(filename)
+        else:
+            # Process form data from the table
+            process_types = request.POST.getlist('Process Type')
+            icc_rms = request.POST.getlist('ICC on RM')
+            icc_convs = request.POST.getlist('ICC on Conv')
+            icc_bofs = request.POST.getlist('ICC on BOF')
+            rej_rms = request.POST.getlist('Rej on RM')
+            rej_convs = request.POST.getlist('Rej on Conv')
+            rej_bofs = request.POST.getlist('Rej on BOF')
+            inspection_rms = request.POST.getlist('Inspection on RM')
+            inspection_convs = request.POST.getlist('Inspection on Conv')
+            inspection_bofs = request.POST.getlist('Inspection on BOF')
+            tmc_rms = request.POST.getlist('TMC on RM')
+            tmc_convs = request.POST.getlist('TMC on Conv')
+            tmc_bofs = request.POST.getlist('TMC on BOF')
+            design_cost_rms = request.POST.getlist('Design cost on RM')
+            design_cost_convs = request.POST.getlist('Design cost on Conv')
+            design_cost_bofs = request.POST.getlist('Design cost on BOF')
+            oh_rms = request.POST.getlist('OH on RM')
+            oh_convs = request.POST.getlist('OH on Conv')
+            oh_bofs = request.POST.getlist('OH on BOF')
+            profit_rms = request.POST.getlist('Profit on RM')
+            profit_convs = request.POST.getlist('Profit on Conv')
+            profit_bofs = request.POST.getlist('Profit on BOF')
+            warranty_costs = request.POST.getlist('Warranty cost')
+            inbound_logistics = request.POST.getlist('Inbound Logistics')
+            effective_from = request.POST.getlist('Effective from')
+            base = request.POST.getlist('Base')
+            source = request.POST.getlist('Source')
+            remarks = request.POST.getlist('Remarks')
+            
+            num_rows = len(process_types)
+            # Validate all lists have the same length
+            if not all(len(lst) == num_rows for lst in [
+                icc_rms, icc_convs, icc_bofs, rej_rms, rej_convs, rej_bofs,
+                inspection_rms, inspection_convs, inspection_bofs,
+                tmc_rms, tmc_convs, tmc_bofs,
+                design_cost_rms, design_cost_convs, design_cost_bofs,
+                oh_rms, oh_convs, oh_bofs,
+                profit_rms, profit_convs, profit_bofs,
+                warranty_costs, inbound_logistics, effective_from, base, source, remarks
+            ]):
+                messages.error(request, 'Form data lists have inconsistent lengths.')
+                return redirect('oh_profit')
+            else:
+                for i in range(num_rows):
+                    existing_record = OH_ProfitData.objects.filter(
+                        process_type=process_types[i],
+                        icc_rm=icc_rms[i],
+                        icc_conv=icc_convs[i],
+                        icc_bof=icc_bofs[i],
+                        rej_rm=rej_rms[i],
+                        rej_conv=rej_convs[i],
+                        rej_bof=rej_bofs[i],
+                        inspection_rm=inspection_rms[i],
+                        inspection_conv=inspection_convs[i],
+                        inspection_bof=inspection_bofs[i],
+                        tmc_rm=tmc_rms[i],
+                        tmc_conv=tmc_convs[i],
+                        tmc_bof=tmc_bofs[i],
+                        design_cost_rm=design_cost_rms[i],
+                        design_cost_conv=design_cost_convs[i],
+                        design_cost_bof=design_cost_bofs[i],
+                        oh_rm=oh_rms[i],
+                        oh_conv=oh_convs[i],
+                        oh_bof=oh_bofs[i],
+                        profit_rm=profit_rms[i],
+                        profit_conv=profit_convs[i],
+                        profit_bof=profit_bofs[i],
+                        warranty_cost=warranty_costs[i],
+                        inbound_logistics=inbound_logistics[i],
+                        effective_from=effective_from[i],
+                        base=base[i],
+                        source=source[i],
+                        remarks=remarks[i]
+                    ).first()
+                    if existing_record:
+                        continue
+                    else:
+                        OH_ProfitData.objects.create(
+                            process_type=process_types[i],
+                            icc_rm=icc_rms[i],
+                            icc_conv=icc_convs[i],
+                            icc_bof=icc_bofs[i],
+                            rej_rm=rej_rms[i],
+                            rej_conv=rej_convs[i],
+                            rej_bof=rej_bofs[i],
+                            inspection_rm=inspection_rms[i],
+                            inspection_conv=inspection_convs[i],
+                            inspection_bof=inspection_bofs[i],
+                            tmc_rm=tmc_rms[i],
+                            tmc_conv=tmc_convs[i],
+                            tmc_bof=tmc_bofs[i],
+                            design_cost_rm=design_cost_rms[i],
+                            design_cost_conv=design_cost_convs[i],
+                            design_cost_bof=design_cost_bofs[i],
+                            oh_rm=oh_rms[i],
+                            oh_conv=oh_convs[i],
+                            oh_bof=oh_bofs[i],
+                            profit_rm=profit_rms[i],
+                            profit_conv=profit_convs[i],
+                            profit_bof=profit_bofs[i],
+                            warranty_cost=warranty_costs[i],
+                            inbound_logistics=inbound_logistics[i],
+                            effective_from=effective_from[i],
+                            base=base[i],
+                            source=source[i],
+                            remarks=remarks[i],
+                            updated_on=current_date,
+                            updated_by=system_user
+                        )
+                messages.success(request, 'Data submitted successfully!')
+                return redirect('oh_profit')
+    
+    # For GET requests or when no POST data is present
+    return render(request, 'oh_profit.html', {
+        'data': [],
+        'columns': expected_columns,
+        'updated_by': system_user,
+        'updated_on': current_date,
+    })
+
+# process_base code
+
+def create_process_base_csv_template():
+    # Define the columns
+    columns = [
+        "Process Category", "Process Description", "Norms", "UOM", "Effective From","Base", "Source","Remarks"
+    ]
+
+    # Create a CSV file with the specified columns
+    with open('processbase_template.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(columns)
+
+def download_process_base_csv_template(request):
+    create_process_base_csv_template()
+    file_path = 'processbase_template.csv'
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    return JsonResponse({'error': 'File not found.'}, status=404)
+
+def get_pbase_process_types(request):
+    process_types = Processbase.objects.values_list('process_type', flat=True).distinct()
+    return JsonResponse(list(process_types), safe=False)
+
+
+def process_base(request):
+    system_user = os.environ.get('USERNAME', '').lower()
+    current_date = datetime.datetime.now().strftime('%d-%m-%Y')
+    # Define expected columns for display
+    expected_columns = [
+        "Process Category", "Process Description", "Norms", "UOM","Effective From", "Base", "Source", "Remarks"
+    ]
+
+
+    if request.method == 'POST':
+        if 'excelFile' in request.FILES:
+            # Handle Excel file upload
+            uploaded_file = request.FILES['excelFile']
+            filename = uploaded_file.name
+
+            # Validate the filename
+            if filename != 'processbase_template.xlsx':
+                messages.error(request, 'Invalid file name. Please upload a file named "processbase_template.xlsx".')
+                return redirect('process_base')
+            else:
+                # Save the uploaded file with the standard filename
+                with open(filename, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+
+                try:
+                    # Read the Excel file without specifying sheet name
+                    df = pd.read_excel(filename, header=None, skiprows=1,dtype={'Base': str, 'Source': str, 'Remarks': str})
+
+                    # Check if the columns match the expected columns
+                    if len(df.columns) >= len(expected_columns):
+                        df.columns = expected_columns
+                    else:
+                        messages.error(request, 'The uploaded file does not contain all expected columns.')
+                        return redirect('process_base')
+                    
+                    mandatory_columns = [col for col in expected_columns if col != 'Remarks']
+                    if df[mandatory_columns].isnull().values.any():
+                        messages.error(request,'The uploaded file contains empty values. All fields are mandatory except "Remarks". Please fill all required fields.')
+                        return redirect('process_base')
+
+                        # Clean data
+                    df = df.where(pd.notnull(df), None)
+                    df = df.dropna(subset=["Process Category"])
+                    df['Base'] = df['Base'].apply(lambda x: x.strftime('%b-%y') if isinstance(x, pd.Timestamp) else x)
+                    data_to_display = df.to_dict('records')
+
+                    messages.success(request, 'File processed successfully!')
+                    return render(request, 'process_base.html', {
+                        'data': data_to_display,
+                        'columns': expected_columns,
+                        'updated_by': system_user,
+                        'updated_on': current_date,
+                        
+                    })
+                except Exception as e:
+                    messages.error(request, f"Error processing file: {str(e)}")
+                    return redirect('process_base')
+
+                finally:
+                    # Remove the file after processing
+                    os.remove(filename)
+        else:
+            process_category = request.POST.getlist('Process Category')
+            process_descriptions = request.POST.getlist('Process Description')
+            normss = request.POST.getlist('Norms')
+            uoms = request.POST.getlist('UOM')
+            effective_from = request.POST.getlist('Effective From')
+            base = request.POST.getlist('Base')
+            sources = request.POST.getlist('Source')
+            remarks = request.POST.getlist('Remarks')
+
+            num_rows = len(process_category)
+            if not all(len(lst) == num_rows for lst in [process_descriptions, normss, uoms, effective_from,base, sources,remarks]):
+                messages.error(request, 'Form data lists have inconsistent lengths.')
+                return redirect('oh_profit')
+            else:
+                for i in range(num_rows):
+                    existing_record=Processbase.objects.filter(
+                        process_category=process_category[i],
+                        process_description=process_descriptions[i],
+                        norms=normss[i],
+                        uom=uoms[i],
+                        effective_from=effective_from[i],
+                        base=base[i],
+                        source=sources[i],
+                        remarks=remarks[i],
+                    ).first()
+                    if existing_record:
+                        # Skip saving if the record already exists
+                        continue
+                    else:
+                        Processbase.objects.create(
+                            process_category=process_category[i],
+                            process_description=process_descriptions[i],
+                            norms=normss[i],
+                            uom=uoms[i],
+                            effective_from=effective_from[i],
+                            base=base[i],
+                            source=sources[i],
+                            remarks=remarks[i],
+                            updated_on =current_date,
+                            updated_by=system_user
+
+                        )
+                messages.success(request, 'Data submitted successfully!')
+                return redirect('process_base')
+
+    return render(request, 'process_base.html', {
+        'data': [],
+        'columns': expected_columns,
+        'updated_by': system_user,
+        'updated_on': current_date,
+        
+    })
+
+
+# rm base code
+def create_rm_base_csv_template():
+    # Define the columns
+    columns = [
+        "Category", "Material Grade", "RM Rate/Kg", "Scrap Rate/Kg", "UOM","Effective From", "Base", "Source", "Remarks"
+    ]
+
+    # Create a CSV file with the specified columns
+    with open('rmbase_template.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(columns)
+
+def download_rm_base_csv_template(request):
+    create_rm_base_csv_template()
+    file_path = 'rmbase_template.csv'
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    return JsonResponse({'error': 'File not found.'}, status=404)
+
+def get_rm_process_types(request):
+    category = RMbase.objects.values_list('category', flat=True).distinct()
+    return JsonResponse(list(category), safe=False)
+
+def rm_base(request):
+    system_user = os.environ.get('USERNAME', '').lower()
+    current_date = datetime.datetime.now().strftime('%d-%m-%Y')
+
+    # Define expected columns for display
+    expected_columns= [
+        "Category", "Material Grade", "RM Rate/Kg", "Scrap Rate/Kg", "UOM","Effective From", "Base", "Source", "Remarks"
+    ]
+
+    if request.method == 'POST':
+        if 'excelFile' in request.FILES:
+            # Handle Excel file upload
+            uploaded_file = request.FILES['excelFile']
+            filename = uploaded_file.name
+
+            # Validate the filename
+            if filename != 'rmbase_template.csv':
+                messages.error(request, 'Invalid file name. Please upload a file named "rmbase_template.xlsx".')
+                return redirect('rm_base')            
+            else:
+                # Save the uploaded file with the standard filename
+                with open(filename, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+                    print('workding destination')
+
+                try:
+                    # Read the Excel file without specifying sheet name
+                    df = pd.read_excel(filename, header=None, skiprows=1, dtype={'Base': str, 'Source': str, 'Remarks': str})
+
+                    # Check if the columns match the expected columns
+                    if len(df.columns) >= len(expected_columns):
+                        df.columns = expected_columns
+                    else:
+                        messages.error(request, 'The uploaded file does not contain all expected columns.')
+                        return redirect('rm_base')
+                    
+                    mandatory_columns = [col for col in expected_columns if col != 'Remarks']
+                    if df[mandatory_columns].isnull().values.any():
+                        messages.error(request,'The uploaded file contains empty values. All fields are mandatory except "Remarks". Please fill all required fields.')
+                        return redirect('rm_base')
+
+                        # Clean data
+                    df = df.where(pd.notnull(df), None)
+                    df = df.dropna(subset=["Category"])
+                    df['Base'] = df['Base'].apply(lambda x: x.strftime('%b-%y') if isinstance(x, pd.Timestamp) else x)
+                    data_to_display = df.to_dict('records')
+
+                    messages.success(request, 'File processed successfully!')
+                    return render(request, 'rm_base.html', {
+                        'data': data_to_display,
+                        'columns': expected_columns,
+                        'updated_by': system_user,
+                        'updated_on': current_date,
+                    
+                    })
+                except Exception as e:
+                    messages.error(request, f"Error processing file: {str(e)}")
+                    return redirect('rm_base')
+                finally:
+                    # Remove the file after processing
+                    os.remove(filename)
+        else:
+            category = request.POST.getlist('Category')
+            material_grades = request.POST.getlist('Material Grade')
+            rm_rates = request.POST.getlist('RM Rate/Kg')
+            scrap_rates = request.POST.getlist('Scrap Rate/Kg')
+            uoms = request.POST.getlist('UOM')
+            effective_from = request.POST.getlist('Effective From')
+            base = request.POST.getlist('Base')
+            sources = request.POST.getlist('Source')
+            remarks = request.POST.getlist('Remarks')
+
+            num_rows = len(category)
+            if not all(len(lst) == num_rows for lst in [material_grades, rm_rates, scrap_rates, uoms, sources, effective_from, base,sources, remarks]):
+                messages.error(request, 'Form data lists have inconsistent lengths.')
+                return redirect('rm_base')            
+            else:
+                for i in range(num_rows):
+                    existing_record = RMbase.objects.filter(
+                        category=category[i],
+                        material_grade=material_grades[i],
+                        rm_rate=rm_rates[i],
+                        scrap_rate=scrap_rates[i],
+                        uom=uoms[i],
+                        effective_from=effective_from[i],
+                        base=base[i],
+                        source=sources[i],
+                        remarks=remarks[i]
+                    ).first()
+
+                    if existing_record:
+                        # Skip saving if the record already exists
+                        continue
+                    else:
+                        RMbase.objects.create(
+                            category=category[i],
+                            material_grade=material_grades[i],
+                            rm_rate=rm_rates[i],
+                            scrap_rate=scrap_rates[i],
+                            uom=uoms[i],
+                            effective_from=effective_from[i],
+                            base=base[i],
+                            source=sources[i],
+                            remarks=remarks[i],
+                            updated_on =current_date,
+                            updated_by=system_user
+                        )
+                messages.success(request, 'Data submitted successfully!')
+                return redirect('rm_base')
+            
+    # Fetch material grades for the dropdown
+    material_grades = RMbase.objects.values_list('material_grade', flat=True).distinct()
+
+    return render(request, 'rm_base.html', {
+        'data': [],
+        'columns': expected_columns,
+        'updated_by': system_user,
+        'updated_on': current_date,
+    
+    })
+
+
+def mycsc(request):
+    csc = CRCSCTBL.objects.all().order_by('-updated_on')
+    part_types = PARTTYPETBL.objects.all()
+    projects = PROJECTLISTTBL.objects.all()
+    rm_base = RMbase.objects.exists()
+    process_base = Processbase.objects.exists()
+    oh_profit_base = OH_ProfitData.objects.exists()
+    if rm_base:
+        rm_base_values = RMbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+    else:
+        rm_base_values = None
+    if process_base:
+        process_base_values = list(Processbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct())
+        seen = set() # Remove duplicates while maintaining order
+        process_base_values = [x for x in process_base_values if not (x in seen or seen.add(x))]
+    else:
+        process_base_values = None
+    if oh_profit_base:
+        ohprofit_base_values = OH_ProfitData.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+    else:
+        ohprofit_base_values = None
+    
+    paginator = Paginator(csc, 15)
+
+    # Get current page number from query params
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    print('page',page_obj)
+
+    return render(request,'test.html',{'page_obj': page_obj,
+                   'part_types':part_types,
+                   'projects':projects,
+                   'rm_base_values': rm_base_values,
+                    'process_base_values': process_base_values,
+                    'ohprofit_base_values': ohprofit_base_values}) #,
+
+def admin(request):
+    return render(request,'admin.html')
+
+def ratio_chart(request):
+    return render(request,'ratio_chart.html')
+
+def bomsumry(request):
+    return render(request,'bomsumry.html')
+
+
+def viewcsc(request):
+    obj_id = request.GET.get('id')
+    if obj_id is None:
+        return render(request, 'viewuniquecsc.html', {'error': 'Missing "id" parameter.'})
+    csc_values = get_object_or_404(CRCSCTBL, id=obj_id)
+    bom_list = BOMSheet.objects.filter(unique_csc_id=csc_values.unique_csc_id).values()
+    print('bom_list',bom_list)
+    process_types = OH_ProfitData.objects.values_list('process_type', flat=True).distinct()
+    return render(request, 'viewuniquecsc.html', {'csc_values': csc_values,'process_types': process_types,'bom_list':bom_list})
+
+def bomdetails(request,id):
+    # obj_id = request.GET.get('id')
+    # if obj_id is None:
+    #     return render(request, 'bom_details.html', {'error': 'Missing "id" parameter.'})
+    if request.method == "POST":
+        csc_values = get_object_or_404(CRCSCTBL, id=id)
+        # bom_list = BOMSheet.objects.filter(unique_csc_id=csc_values.unique_csc_id).values()
+        bom_qs = (BOMSheet.objects.filter(unique_csc_id=csc_values.unique_csc_id).order_by('id').values())
+
+        paginator = Paginator(bom_qs, 1)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        material_grades = RMbase.objects.values_list('material_grade', flat=True).distinct()
+        rm_price = 0
+        material_grade = request.POST.get('material_grade')
+        try:
+            rm_base = RMbase.objects.get(material_grade=material_grade)
+            rm_price = (rm_base.rm_rate)
+            scrap_price = rm_base.scrap_rate
+        except RMbase.DoesNotExist:
+            rm_price = None
+            scrap_price = None
+        return redirect(f"/bom_details/{id}/?page={page_obj.number}")
+    csc_values = get_object_or_404(CRCSCTBL, id=id)
+    bom_qs = (BOMSheet.objects.filter(unique_csc_id=csc_values.unique_csc_id).order_by('id').values())
+
+    paginator = Paginator(bom_qs, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    material_grades = RMbase.objects.values_list('material_grade', flat=True).distinct()
+    rm_price = 0
+    material_grade = request.POST.get('material_grade')
+    try:
+        rm_base = RMbase.objects.get(material_grade=material_grade)
+        rm_price = (rm_base.rm_rate)
+        scrap_price = rm_base.scrap_rate
+    except RMbase.DoesNotExist:
+        rm_price = None
+        scrap_price = None
+    context = {
+        'csc_values': csc_values,
+        'page_obj':page_obj,
+        'material_grades': material_grades,
+        'rm_price': rm_price,
+        'scrap_price':scrap_price
+    }
+    return render(request,'bom_details.html',context)
