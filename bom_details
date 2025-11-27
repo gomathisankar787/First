@@ -1,249 +1,153 @@
 {% csrf_token %}
-                            <div class="table-container">
-                                <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                    <th style="background-color: #24948f;">S.No</th>
-                                    <th style="background-color: #24968f;">Level</th>
-                                    <th style="background-color: #24968f;">Part No.</th>
-                                    <th style="background-color: #24968f;">Rev</th>
-                                    <th style="background-color: #24968f;">Parts Description</th>
-                                    <th style="background-color: #24968f;">Qty</th>
-                                    <th style="background-color: #24968f;">Process Type</th>
-                                    <th style="background-color: #24968f;">Scope</th>
-                                    <th style="background-color: #24968f;">Method</th>
-                                    <th style="background-color: #24968f;">Is Nesting Needed</th>
-                                    <th style="background-color: #24968f;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bomdata" id="bom-table-body">
-                                    {% if bom_list %}
-                                    {% for values in bom_list %}
-                                    <tr>
-                                        <td class="sno">{{ forloop.counter }}</td>
+<div class="table-container">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Level</th>
+                <th>Part No.</th>
+                <th>Rev</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Process Type</th>
+                <th>Scope</th>
+                <th>Method</th>
+                <th>Nesting Needed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-                                        <td><input type="number" class="form-control"
-                                                value="{{ values.level }}" style="width:60px;height:35px;"></td>
+        <tbody id="bom-table-body">
+            {% for row in bom_list %}
+            <tr>
+                <td class="sno">{{ forloop.counter }}</td>
 
-                                        <td><input type="text" class="form-control"
-                                                value="{{ values.part_no }}" style="width:120px;height:35px;"></td>
+                <!-- IMPORTANT : BOM ID -->
+                <input type="hidden" name="bom_id[]" value="{{ row.id }}">
 
-                                        <td><input type="text" class="form-control"
-                                                value="{{ values.revision }}" style="width:50px;height:35px;"></td>
+                <td><input type="number" name="level[]" class="form-control" value="{{ row.level }}"></td>
+                <td><input type="text" name="part_num[]" class="form-control" value="{{ row.part_no }}"></td>
+                <td><input type="text" name="rev[]" class="form-control" value="{{ row.revision }}"></td>
+                <td><input type="text" name="desc[]" class="form-control" value="{{ row.part_description }}"></td>
+                <td><input type="number" name="qty[]" class="form-control" value="{{ row.qty }}"></td>
 
-                                        <td><input type="text" class="form-control"
-                                                value="{{ values.part_description }}" style="width:200px;height:35px;"></td>
+                <td>
+                    <select name="process_type[]" class="form-control">
+                        <option value="" disabled>Select</option>
+                        {% for p in process_types %}
+                        <option value="{{ p }}" {% if row.process_type == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
 
-                                        <td><input type="number" class="form-control"
-                                                value="{{ values.qty }}" style="width:60px;height:35px;"></td>
+                <td>
+                    <select name="scope[]" class="form-control">
+                        <option value="" disabled>Select</option>
+                        <option value="InHouse" {% if row.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
+                        <option value="BOSF" {% if row.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
+                        <option value="BOF" {% if row.scope == 'BOF' %}selected{% endif %}>BOF</option>
+                    </select>
+                </td>
 
-                                        <!-- PROCESS TYPE -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleProcessType(this)">
-                                                <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
-                                                {% for process in process_types %}
-                                                    <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
-                                                        {{ process }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </td>
+                <td>
+                    <select name="method[]" class="form-control">
+                        <option value="" disabled>Select</option>
+                        {% for m in method_list %}
+                        <option value="{{ m }}" {% if row.method == m %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
 
-                                        <!-- SCOPE -->
-                                        <td>
-                                            <select class="form-control">
-                                                <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
-                                                <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
-                                                <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
-                                                <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
-                                            </select>
-                                        </td>
+                <td>
+                    <select name="is_nesting_needed[]" class="form-control">
+                        <option value="" disabled>Select</option>
+                        <option value="Yes" {% if row.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
+                        <option value="No" {% if row.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
+                    </select>
+                </td>
 
-                                        <!-- METHOD -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleMethod(this)">
-                                                <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-                                                {% for m in method_list %}
-                                                    <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </td>
+                <td>
+                    <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
+                    <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-                                        <!-- NESTING -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleNoOfBlanks(this)">
-                                                <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
-                                                <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
-                                                <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
-                                            </select>
-                                        </td>
+<div class="col-3 d-flex justify-content-end">
+    {% if bom_list %}
+    <button type="button" class="btn btn-warning" onclick="updatebomdata({{ csc_values.id }})">Update BOM Data</button>
+    {% else %}
+    <button type="button" class="btn btn-primary" onclick="savebomdata({{ csc_values.id }})">Save BOM Data</button>
+    {% endif %}
+</div>
+function renumberRows() {
+    document.querySelectorAll('#bom-table-body .sno').forEach((td, index) => {
+        td.textContent = index + 1;
+    });
+}
 
-                                        <!-- ACTIONS -->
-                                        <td>
-                                            <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
-                                            <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td class="sno">1</td>
+function addRow() {
+    const tbody = document.getElementById("bom-table-body");
+    const sno = tbody.rows.length + 1;
 
-                                        <td><input type="number" name="level[]" class="form-control"style="width:60px;height:35px;"></td>
-                                        <td><input type="text" name="part_num[]" class="form-control"style="width:120px;height:35px;"></td>
-                                        <td><input type="text" name="rev[]" class="form-control" style="width:50px;height:35px;"></td>
-                                        <td><input type="text" name="desc[]" class="form-control" style="width:200px;height:35px;"></td>
-                                        <td><input type="number" name="qty[]" class="form-control" style="width:60px;height:35px;"></td>
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td class="sno">${sno}</td>
+        <input type="hidden" name="bom_id[]" value="">  <!-- new row -->
+        <td><input type="number" name="level[]" class="form-control"></td>
+        <td><input type="text" name="part_num[]" class="form-control"></td>
+        <td><input type="text" name="rev[]" class="form-control"></td>
+        <td><input type="text" name="desc[]" class="form-control"></td>
+        <td><input type="number" name="qty[]" class="form-control"></td>
 
-                                        <!-- PROCESS TYPE -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleProcessType(this)">
-                                                <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
-                                                {% for process in process_types %}
-                                                    <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
-                                                        {{ process }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </td>
+        <td>
+            <select name="process_type[]" class="form-control">
+                <option value="" disabled selected>Select</option>
+                {% for p in process_types %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </td>
 
-                                        <!-- SCOPE -->
-                                        <td>
-                                            <select class="form-control">
-                                                <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
-                                                <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
-                                                <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
-                                                <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
-                                            </select>
-                                        </td>
+        <td>
+            <select name="scope[]" class="form-control">
+                <option value="" disabled selected>Select</option>
+                <option value="InHouse">InHouse</option>
+                <option value="BOSF">BOSF</option>
+                <option value="BOF">BOF</option>
+            </select>
+        </td>
 
-                                        <!-- METHOD -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleMethod(this)">
-                                                <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-                                                {% for m in method_list %}
-                                                    <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </td>
+        <td>
+            <select name="method[]" class="form-control">
+                <option value="" disabled selected>Select</option>
+                {% for m in method_list %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+        </td>
 
-                                        <!-- NESTING -->
-                                        <td>
-                                            <select class="form-control" onchange="toggleNoOfBlanks(this)">
-                                                <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
-                                                <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
-                                                <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
-                                            </select>
-                                        </td>
+        <td>
+            <select name="is_nesting_needed[]" class="form-control">
+                <option value="" disabled selected>Select</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </td>
 
-                                        <!-- ACTIONS -->
-                                        <td>
-                                            <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
-                                            <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                                </table>
-                            </div>
-newRow.innerHTML = `
-                        <td class="sno">${sno}</td>
-                        <td><input type="number" name="level[]" class="form-control" style="width: 50px; height:35px;"></td>
-                        <td><input type="text" name="part_num[]" class="form-control"  style="width: 100px; height:35px;"></td>
-                        <td><input type="text" name="rev[]" class="form-control" style="width: 50px; height:35px;"></td>
-                        <td><input type="text" name="desc[]" class="form-control" style="width: 200px; height:35px;"></td>
-                        <td><input type="number" name="qty[]" class="form-control" style="width: 50px; height:35px;"></td>
-                        <td>
-                            <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
-                                <option value="" disabled selected>Select Process Type</option>
-                                {% for process in process_types %}
-                                    <option value="{{ process }}">{{ process }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td>
-                            <select name="scope[]" class="form-control" >
-                                <option value="" disabled selected>Select Scope</option>
-                                <option value="InHouse">InHouse</option>
-                                <option value="BOSF">BOSF</option>
-                                <option value="BOF">BOF</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select name="method[]" class="form-control" onchange="toggleMethod(this)">
-                                <option value="" disabled selected>Select Method</option>
-                                <option value="CSC">CSC</option>
-                                <option value="Standard">Standard</option>
-                                <option value="Import">Import</option>
-                                <option value="Quote">Quote</option>
-                                <option value="Reference">Reference</option>
-                                <option value="Consumables">Consumables</option>
-                                <option value="LPP-Regression">LPP-Regression</option>
-                                <option value="LPP-Thumbrule">LPP-Thumbrule</option>
-                                <option value="KMC">KMC</option>
-                                <option value="ME2M">ME2M</option>
-                                <option value="MM03">MM03</option>
-                                <option value="ZS08">ZS08</option>
-                                <option value="ZS12">ZS12</option>
-                                <option value="CS03">CS03</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select name="is_nesting_needed[]" class="form-control">
-                                <option value="" disabled selected>Select</option>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </td>
-                        <td>
-                            <i class="bi bi-plus-circle btn" id="Editcsc" onclick="addRow()"></i>
-                            <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
-                        </td>`;
- <div class="col-3 d-flex justify-content-end">
-                                    <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
-                                </div>
-function savebomdata(id){
-                    const part_no_list = [...document.getElementsByName('part_num[]')].map(e => e.value);
-                    const level_list = [...document.getElementsByName('level[]')].map(e => e.value);
-                    const revision_list = [...document.getElementsByName('rev[]')].map(e => e.value);
-                    const desc_list = [...document.getElementsByName('desc[]')].map(e => e.value);
-                    const qty_list = [...document.getElementsByName('qty[]')].map(e => e.value);
-                    const process_type_list = [...document.getElementsByName('process_type[]')].map(e => e.value);
-                    const scope_list = [...document.getElementsByName('scope[]')].map(e => e.value);
-                    const method_list = [...document.getElementsByName('method[]')].map(e => e.value);
-                    const nesting_list = [...document.getElementsByName('is_nesting_needed[]')].map(e => e.value);
-                    const cscid = id;
+        <td>
+            <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
+            <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
+        </td>
+    `;
 
-                    const payload = {
-                        cscid,
-                        part_no_list,
-                        level_list,
-                        revision_list,
-                        desc_list,
-                        qty_list,
-                        process_type_list,
-                        scope_list,
-                        method_list,
-                        nesting_list
-                    };
+    tbody.appendChild(row);
+}
 
-                    fetch("bom", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}"
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            toastr.success("Bom data save successfully")
-                            setTimeout(() => {
-                                window.location.href=`/viewcsc?id=${encodeURIComponent(id)}`
-                            }, 1000);
-                        } else {
-                            alert("Error: " + data.message);
-                        }
-                    });
-                }
+function deleteRow(btn) {
+    btn.closest("tr").remove();
+    renumberRows();
+}
