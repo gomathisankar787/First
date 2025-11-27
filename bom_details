@@ -1,65 +1,67 @@
 {% for values in bom_list %}
-                                    <tr>
-                                    <td class="sno">{{ forloop.counter }}</td>
-                                    <td><input type="number" name="level[]" class="form-control" value="{{values.level}}" style="width: 60px;height:35px;"></td>
-                                    <td><input type="text" name="part_num[]" class="form-control" value="{{values.part_no}}" style="width: 100px; height:35px;"></td>
-                                    <td><input type="text" name="rev[]" class="form-control" value="{{values.revision}}" style="width: 50px; height:35px;"></td>
-                                    <td><input type="text" name="desc[]" class="form-control" value="{{values.part_description}}" style="width: 200px; height:35px;"></td>
-                                    <td><input type="number" name="qty[]" class="form-control" value="{{values.qty}}" style="width: 50px; height:35px;"></td>
-                                    <td>
-                                        <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
-                                        {% if values.process_type %}
-                                        <option value="{{values.process_type}}" disabled selected></option>
-                                        {% endif %} 
-                                        <option value="">Select Process Type</option>
-                                        {% for process in process_types %}
-                                            <option value="{{ process }}">{{ process }}</option>
-                                        {% endfor %}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="scope[]" class="form-control">
-                                            {% if values.scope %}
-                                            <option value="{{values.scope}}">Select Scope</option>
-                                            {% endif %}    
-                                        <option value="" disabled selected>Select Scope</option>
-                                        <option value="InHouse">InHouse</option>
-                                        <option value="BOSF">BOSF</option>
-                                        <option value="BOF">BOF</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="method[]" class="form-control"  onchange="toggleMethod(this)">
-                                        <option value="" disabled selected>Select Method</option>
-                                        <option value="CSC">CSC</option>
-                                        <option value="Import">Import</option>
-                                        <option value="Quote">Quote</option>
-                                        <option value="Reference">Reference</option>
-                                        <option value="Consumables">Consumables</option>
-                                        <option value="LPP-Regression">LPP-Regression</option>
-                                        <option value="LPP-Thumbrule">LPP-Thumbrule</option>
-                                        <option value="KMC">KMC</option>
-                                        <option value="ME2M">ME2M</option>
-                                        <option value="MM03">MM03</option>
-                                        <option value="ZS08">ZS08</option>
-                                        <option value="ZS12">ZS12</option>
-                                        <option value="CS03">CS03</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="is_nesting_needed[]" class="form-control" onchange="toggleNoOfBlanks(this)">
-                                        <option value="" disabled selected>Select</option>
-                                        <option value="Yes">Yes</option>
-                                        <option value="No">No</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <!-- <button type="button" class="btn small-btn"  style="background-color: green;" onclick="addRow()">Add Row</button> -->
-                                        <i class="bi bi-plus-circle btn" id="showcsc" onclick="addRow()"></i>
-                                        <!-- <i class="bi bi-pencil-square btn" id="Editcsc"></i> -->
-                                        <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
-                                        <!-- <button type="button" class="btn small-btn"  style="background-color: rgba(255, 0, 0, 0.712);" onclick="">Delete</button> -->
-                                    </td>
-                                    </tr>
-                                    {% endfor %}
-correct the logics
+<tr>
+    <td class="sno">{{ forloop.counter }}</td>
+
+    <td><input type="number" name="level[]" class="form-control"
+            value="{{ values.level }}" style="width:60px;height:35px;"></td>
+
+    <td><input type="text" name="part_num[]" class="form-control"
+            value="{{ values.part_no }}" style="width:100px;height:35px;"></td>
+
+    <td><input type="text" name="rev[]" class="form-control"
+            value="{{ values.revision }}" style="width:50px;height:35px;"></td>
+
+    <td><input type="text" name="desc[]" class="form-control"
+            value="{{ values.part_description }}" style="width:200px;height:35px;"></td>
+
+    <td><input type="number" name="qty[]" class="form-control"
+            value="{{ values.qty }}" style="width:50px;height:35px;"></td>
+
+    <!-- PROCESS TYPE -->
+    <td>
+        <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
+            <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
+            {% for process in process_types %}
+                <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
+                    {{ process }}
+                </option>
+            {% endfor %}
+        </select>
+    </td>
+
+    <!-- SCOPE -->
+    <td>
+        <select name="scope[]" class="form-control">
+            <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
+            <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
+            <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
+            <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
+        </select>
+    </td>
+
+    <!-- METHOD -->
+    <td>
+        <select name="method[]" class="form-control" onchange="toggleMethod(this)">
+            <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
+            {% for m in "CSC,Import,Quote,Reference,Consumables,LPP-Regression,LPP-Thumbrule,KMC,ME2M,MM03,ZS08,ZS12,CS03".split(',') %}
+                <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+    </td>
+
+    <!-- NESTING -->
+    <td>
+        <select name="is_nesting_needed[]" class="form-control" onchange="toggleNoOfBlanks(this)">
+            <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
+            <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
+            <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
+        </select>
+    </td>
+
+    <!-- ACTIONS -->
+    <td>
+        <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
+        <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
+    </td>
+</tr>
+{% endfor %}
