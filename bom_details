@@ -1,179 +1,65 @@
-<div class="accordion" id="accordionExample">
-                    <div class="card">
-                        <div class="card-header" id="headingOne">
-                        <h5 class="mb-0">
-                            <button class="btn" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            SM MATERIAL
-                            </button>
-                        </h5>
-                        </div>
-
-                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <form method="post" action="{% url 'bom_details' csc_values.id %}">
-                                    {% csrf_token %}
-                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Part No</th>
-                                                <th>Description</th>
-                                                <th>Estimation Method</th>
-                                                <th>Material Grade</th>
-                                                <th>RM Price / Kg (INR)</th>
-                                                <th>Length (mm)</th>
-                                                <th>Width (mm)</th>
-                                                <th>Thick (mm)</th>
-                                                <th>Sheet Length (mm)</th>
-                                                <th>Sheet Width (mm)</th>
-                                                <th>Shearing/ Blanking/ Laser cutting</th>
-                                                <th>Sheet Weight (kg)</th>
-                                                <th>No of Blanks per sheet</th>
-                                                <th>Blank weight (Kg)</th>
-                                                <th>Input Weight (Kg)</th>
-                                                <th>Finish weight (Kg)</th>
-                                                <th>Yield (%)</th>
-                                                <th>Surface Area / Part</th>
-                                                <th>Scrap wt (kg)</th>
-                                                <th>Scrap mat.Price</th>
-                                                <th>Recovery (%)</th>
-                                                <th>Price per unit (INR)</th>
-                                                <th>Direct RM Cost</th>
-                                                <th>Allowance cost</th>
-                                                <th>Remarks</th>
-                                            </tr>                   
-                                        </thead>
-                                        <tbody>
-                                            
-                                        {% if page_obj.object_list %}
-                                            {% with row=page_obj.object_list.0 %}
-
-                                            <tr class="rowdata">
-                                                <td><input type="text" name="part_num" value="{{ row.part_no }}" style="width: 100px;" readonly></td>
-                                                <td><input type="text" name="description" value="{{ row.part_description }}" style="width: 80px;" readonly></td>
-                                                <td><input type="text" name="estimation_method" value="{{ row.method }}" style="width: 80px;" readonly></td>
-                                                <td>
-                                                    <select id="materialgrades" name="material_grade" style="width: 100px;" onchange="this.form.submit()" required>
-                                                        <option></option> <!-- This empty option is needed for the placeholder to work -->
-                                                        {% for grade in material_grades %}
-                                                        <option value="{{ grade }}" {% if grade == request.POST.material_grade %}selected{% endif %} >{{ grade }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </td>
-                                                <td><input name="rm_price" value="{{ rm_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="" name="length" value="{{ request.POST.length }}" required min="0"></td>
-                                                <td><input type="" name="width" value="{{ request.POST.width }}" required min="0"></td>
-                                                <td><input type="" name="thickness" value="{{ request.POST.thickness }}" required min="0"></td>
-                                                <td><input name="sheet_length" value="{{ sheet_length }}" ></td>
-                                                <td><input name="sheet_width" value="{{ sheet_width }}" ></td>
-                                                <td>
-                                                    <select name="process" style="width: 100px;" onchange="this.form.submit()" required>
-                                                        <option value="" disabled selected>Select Process</option>
-                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
-                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
-                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
-                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
-                                                    </select>
-                                                </td>
-                                                <td><input type="" name="sheet_weight" value="{{ sheet_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="no_of_blanks" value="{{ no_of_blanks }}" id="no_of_blanks"></td>
-                                                <td><input type="" name="blank_weight" value="{{ blank_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="input_weight" value="{{ input_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="finish_weight" value="{{ request.POST.finish_weight }}" onchange="this.form.submit()" required min="0"></td>
-                                                <td><input type="" name="yield" value="{{ yield_value }}" ></td>
-                                                <td><input type="" name="surface_area" value="{{ surface_area_part }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="scrap_weight" value="{{ scrap_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input name="scrap_price" value="{{ scrap_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input type="" name="price_per_unit" value="{{ price_per_unit }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="direct_rm_cost" value="{{ direct_rm_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="" name="allowance_cost" value="{{ allowance_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input type="text" name="remarks" style="width: 100px;"></td>
-                                            </tr>
-                                            
-                                        {% endwith %}
-                                        {% else %}
-                                            <td colspan="3">No data on this page.</td>
-                                        {% endif %}
-
-                                        </tbody>
-                                    </table></div><br><div class="action-buttons">
-                                        <button type="submit" name="save_material_data">Save Material Data</button>
-                                    </div>
-                                    
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header" id="headingTwo">
-                            <h5 class="mb-0">
-                                <button class="btn collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                SM PROCESS
-                                </button>
-                            </h5>
-                        </div>
-                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-                        <div class="card-body">
-                            <form method="post" action="{% url 'bom_details' csc_values.id %}">
-                                {% csrf_token %}
-                                <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                    <table class="table table-bordered" id="processTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Part No</th>
-                                                <th>Process Type</th>
-                                                <th>Part Description</th>
-                                                <th>Process Description</th>
-                                                <th>Thickness</th>
-                                                <th>Mechnical/Hydrlic</th>
-                                                <th>Cutg/Frmg Len</th>
-                                                <th>PressForce Cutting</th>
-                                                <th>PressForce Forming</th>
-                                                <th>Machine Type</th>
-                                                <th>No of Ope</th>
-                                                <th>Part per Cycle</th>
-                                                <th>Norms</th>
-                                                <th>Process Cost Unit</th>
-                                                <th>Uts</th>
-                                                <th>Remarks</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><input style="width: 130px;"></td>
-                                                <td><select style="padding: 5px;">
-                                                    <option>Select Process</option>
-                                                    <option>Cutting</option>
-                                                    <option>Forming</option>
-                                                </select></td>
-                                                <td><input style="width: 130px;"></td>
-                                                <td><input style="width: 130px;"></td>
-                                                <td><input style="margin-left: 15px;"></td>
-                                                <td><input style="width: 130px;"></td>
-                                                <td><input style="margin-left: 15px;"></td>
-                                                <td><input style="margin-left: 15px;"></td>
-                                                <td><input style="margin-left: 15px;"></td>
-                                                <td><input style="width: 130px;"></td>
-                                                <td><input></td>
-                                                <td><input></td>
-                                                <td><input></td>
-                                                <td><input></td>
-                                                <td><input></td>
-                                                <td><input style="width: 130px;"></td>
-                                                
-                                                <td class="action-buttons">
-                                                    <button  id="addrow"  onclick="processaddRow(this)">AddRow</button>
-                                                    <button id="delete" onclick="processdeleteRow(this)">Delete</button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table></div>
-                                <div class="action-buttons">
-                                <button onclick="saveRow(this)" style="margin-top: 20px; width: 100px;">Save</button>
-                                </div>
-                            </form>
-                        </div>
-                        </div>
-                    </div>
+{% for values in bom_list %}
+                                    <tr>
+                                    <td class="sno">{{ forloop.counter }}</td>
+                                    <td><input type="number" name="level[]" class="form-control" value="{{values.level}}" style="width: 60px;height:35px;"></td>
+                                    <td><input type="text" name="part_num[]" class="form-control" value="{{values.part_no}}" style="width: 100px; height:35px;"></td>
+                                    <td><input type="text" name="rev[]" class="form-control" value="{{values.revision}}" style="width: 50px; height:35px;"></td>
+                                    <td><input type="text" name="desc[]" class="form-control" value="{{values.part_description}}" style="width: 200px; height:35px;"></td>
+                                    <td><input type="number" name="qty[]" class="form-control" value="{{values.qty}}" style="width: 50px; height:35px;"></td>
+                                    <td>
+                                        <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
+                                        {% if values.process_type %}
+                                        <option value="{{values.process_type}}" disabled selected></option>
+                                        {% endif %} 
+                                        <option value="">Select Process Type</option>
+                                        {% for process in process_types %}
+                                            <option value="{{ process }}">{{ process }}</option>
+                                        {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="scope[]" class="form-control">
+                                            {% if values.scope %}
+                                            <option value="{{values.scope}}">Select Scope</option>
+                                            {% endif %}    
+                                        <option value="" disabled selected>Select Scope</option>
+                                        <option value="InHouse">InHouse</option>
+                                        <option value="BOSF">BOSF</option>
+                                        <option value="BOF">BOF</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="method[]" class="form-control"  onchange="toggleMethod(this)">
+                                        <option value="" disabled selected>Select Method</option>
+                                        <option value="CSC">CSC</option>
+                                        <option value="Import">Import</option>
+                                        <option value="Quote">Quote</option>
+                                        <option value="Reference">Reference</option>
+                                        <option value="Consumables">Consumables</option>
+                                        <option value="LPP-Regression">LPP-Regression</option>
+                                        <option value="LPP-Thumbrule">LPP-Thumbrule</option>
+                                        <option value="KMC">KMC</option>
+                                        <option value="ME2M">ME2M</option>
+                                        <option value="MM03">MM03</option>
+                                        <option value="ZS08">ZS08</option>
+                                        <option value="ZS12">ZS12</option>
+                                        <option value="CS03">CS03</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="is_nesting_needed[]" class="form-control" onchange="toggleNoOfBlanks(this)">
+                                        <option value="" disabled selected>Select</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <!-- <button type="button" class="btn small-btn"  style="background-color: green;" onclick="addRow()">Add Row</button> -->
+                                        <i class="bi bi-plus-circle btn" id="showcsc" onclick="addRow()"></i>
+                                        <!-- <i class="bi bi-pencil-square btn" id="Editcsc"></i> -->
+                                        <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
+                                        <!-- <button type="button" class="btn small-btn"  style="background-color: rgba(255, 0, 0, 0.712);" onclick="">Delete</button> -->
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+correct the logics
