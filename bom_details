@@ -1,67 +1,8 @@
-{% for values in bom_list %}
-<tr>
-    <td class="sno">{{ forloop.counter }}</td>
-
-    <td><input type="number" name="level[]" class="form-control"
-            value="{{ values.level }}" style="width:60px;height:35px;"></td>
-
-    <td><input type="text" name="part_num[]" class="form-control"
-            value="{{ values.part_no }}" style="width:100px;height:35px;"></td>
-
-    <td><input type="text" name="rev[]" class="form-control"
-            value="{{ values.revision }}" style="width:50px;height:35px;"></td>
-
-    <td><input type="text" name="desc[]" class="form-control"
-            value="{{ values.part_description }}" style="width:200px;height:35px;"></td>
-
-    <td><input type="number" name="qty[]" class="form-control"
-            value="{{ values.qty }}" style="width:50px;height:35px;"></td>
-
-    <!-- PROCESS TYPE -->
-    <td>
-        <select name="process_type[]" class="form-control" onchange="toggleProcessType(this)">
-            <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
-            {% for process in process_types %}
-                <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
-                    {{ process }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
-
-    <!-- SCOPE -->
-    <td>
-        <select name="scope[]" class="form-control">
-            <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
-            <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
-            <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
-            <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
-        </select>
-    </td>
-
-    <!-- METHOD -->
-    <td>
-        <select name="method[]" class="form-control" onchange="toggleMethod(this)">
-            <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-            {% for m in "CSC,Import,Quote,Reference,Consumables,LPP-Regression,LPP-Thumbrule,KMC,ME2M,MM03,ZS08,ZS12,CS03".split(',') %}
-                <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
-            {% endfor %}
-        </select>
-    </td>
-
-    <!-- NESTING -->
-    <td>
-        <select name="is_nesting_needed[]" class="form-control" onchange="toggleNoOfBlanks(this)">
-            <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
-            <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
-            <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
-        </select>
-    </td>
-
-    <!-- ACTIONS -->
-    <td>
-        <i class="bi bi-plus-circle btn" onclick="addRow()"></i>
-        <i class="bi bi-trash btn" onclick="deleteRow(this)"></i>
-    </td>
-</tr>
-{% endfor %}
+{% with method_list="CSC,Import,Quote,Reference,Consumables,LPP-Regression,LPP-Thumbrule,KMC,ME2M,MM03,ZS08,ZS12,CS03" %}
+<select name="method[]" class="form-control" onchange="toggleMethod(this)">
+    <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
+    {% for m in method_list|split:"," %}
+        <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
+    {% endfor %}
+</select>
+{% endwith %}
