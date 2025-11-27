@@ -1,8 +1,17 @@
-{% with method_list="CSC,Import,Quote,Reference,Consumables,LPP-Regression,LPP-Thumbrule,KMC,ME2M,MM03,ZS08,ZS12,CS03" %}
+method_list = [
+    "CSC","Import","Quote","Reference","Consumables",
+    "LPP-Regression","LPP-Thumbrule","KMC","ME2M",
+    "MM03","ZS08","ZS12","CS03"
+]
+
+return render(request, "your_template.html", {
+    "bom_list": bom_list,
+    "process_types": process_types,
+    "method_list": method_list,
+})
 <select name="method[]" class="form-control" onchange="toggleMethod(this)">
     <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-    {% for m in method_list|split:"," %}
+    {% for m in method_list %}
         <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
     {% endfor %}
 </select>
-{% endwith %}
