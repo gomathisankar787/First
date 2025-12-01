@@ -1,41 +1,10 @@
- $('#updatecscModal').on('show.bs.modal', function (event) {
-                    console.log('modal opened')
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var modal = $(this);
-
-            // Extract data attributes
-            modal.find('#edit_id').val(button.data('id'));
-            modal.find('#editpartNumber').val(button.data('partno'));
-            modal.find('#editdescription').val(button.data('description'));
-            modal.find('#editmethod').val(button.data('method'));
-
-            const isNestingNeeded = "{{ is_nesting_needed }}"; // Get the value from the server
-                        const noOfBlanksInput = document.querySelector('input[name="no_of_blanks"]');
-
-                    // nesting yes it should be editable
-                        if (isNestingNeeded === "Yes") {
-                            noOfBlanksInput.removeAttribute('readonly',false);
-
-
-                        } else {
-                            noOfBlanksInput.setAttribute('readonly',true);
-                            document.querySelector('input[name="no_of_blanks"]').style.backgroundColor= "#e9ecef";
-
-
-                        }
-            function calculate() {
-                const length = parseFloat(document.querySelector('input[name="length"]').value) || 0;
-                const width = parseFloat(document.querySelector('input[name="width"]').value) || 0;
-                const thickness = parseFloat(document.querySelector('input[name="thickness"]').value) || 0;
-                const finishWeight = parseFloat(document.querySelector('input[name="finish_weight"]').value) || 0;
-                const rmPrice = parseFloat(document.querySelector('input[name="rm_price"]').value) || 0;
-                const scrapPrice = parseFloat(document.querySelector('input[name="scrap_price"]').value) || 0;
-                const cuttingProcess = document.querySelector('select[name="process"]').value;
+const cuttingProcess = modal.find('select[name="process"]').val() //document.querySelector('select[name="process"]').value;
                 let sheetLength = 2500;
                 let sheetWidth = 1250;
+                console.log('process',modal.find('select[name="process"]').val())
 
                 // Calculate sheet length and width based on the cutting process
-                if (cuttingProcess) {
+                if (cuttingProcess != null) {
                     if (cuttingProcess.toLowerCase() === "shearing") {
                         sheetLength = length >= 2500 ? length : 2500;
                         sheetWidth = width >= 1250 ? width : 1250;
@@ -47,12 +16,3 @@
                         sheetWidth = width + 4 >= 1250 ? width + 4 : 1250;
                     }
                 }
-
-                sheetLength = Math.ceil(sheetLength / 5) * 5;
-                sheetWidth = Math.ceil(sheetWidth / 5) * 5;
-
-                // console.log('sheet',sheetLength)
-
-                document.querySelector('input[name="sheet_length"]').value = sheetLength;
-                console.log('sheet',document.querySelector('input[name="sheet_length"]').value)
-                document.querySelector('input[name="sheet_width"]').value = sheetWidth;
