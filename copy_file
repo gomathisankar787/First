@@ -1,0 +1,111 @@
+<tbody class = "smprocessdata">
+                                            <tr>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input style="width: 130px">
+                                                    <!-- <select style="padding: 5px;">
+                                                        <option>Select Process</option>
+                                                        <option>Cutting</option>
+                                                        <option>Forming</option>
+                                                    </select> -->
+                                                </td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td><input></td>
+                                                <td>
+                                                    <select>
+                                                        <option value="" disabled selected>Select Process</option>
+                                                        <option>Mechanical Press - Cutting</option>
+                                                        <option>Mechanical Press - Forming</option>
+                                                        <option>Hydraulic Press - Cutting</option>
+                                                        <option>Hydraulic Press - Forming</option>
+                                                    </select>
+                                                </td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td>
+                                                    <select style="width: 130px;" onchange="getMachineTypeNorms(this.value)">
+                                                        <option value="" disabled selected>Select Type</option>
+                                                        {% for m in process_base %}
+                                                            <option value="{{ m.process_description }}">{{ m.process_description }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input name="norms"></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td>
+                                                    <!-- <button id="addrow" onclick="processaddRow(this)" type="button">AddRow</button>
+                                                    <button id="delete" onclick="processdeleteRow(this)" type="button">Delete</button> -->
+                                                    <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
+                                                    <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+function processaddRow() {
+      const table = document.getElementById('processTable').getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+      const cols = `
+            <td><input style="width: 130px;"></td>
+            <td><input style="width: 130px">
+                <!-- <select style="padding: 5px;">
+                    <option>Select Process</option>
+                    <option>Cutting</option>
+                    <option>Forming</option>
+                </select> -->
+            </td>
+            <td><input style="width: 130px;"></td>
+            <td><input style="width: 130px;"></td>
+            <td><input></td>
+            <td>
+                <select>
+                    <option value="" disabled selected>Select Process</option>
+                    <option>Mechanical Press - Cutting</option>
+                    <option>Mechanical Press - Forming</option>
+                    <option>Hydraulic Press - Cutting</option>
+                    <option>Hydraulic Press - Forming</option>
+                </select>
+            </td>
+            <td><input></td>
+            <td><input></td>
+            <td><input></td>
+            <td>
+                <select style="width: 130px;" onchange="getMachineTypeNorms(this.value)">
+                    <option value="" disabled selected>Select Type</option>
+                    {% for m in process_base %}
+                        <option value="{{ m.process_description }}">{{ m.process_description }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td><input></td>
+            <td><input></td>
+            <td><input name="norms"></td>
+            <td><input></td>
+            <td><input></td>
+            <td><input style="width: 130px;"></td>
+            <td>
+                <!-- <button id="addrow" onclick="processaddRow(this)" type="button">AddRow</button>
+                <button id="delete" onclick="processdeleteRow(this)" type="button">Delete</button> -->
+                <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
+                <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
+            </td>`;
+      newRow.innerHTML = cols;
+    }
+function getMachineTypeNorms(grade) {
+                if (!grade) return;
+
+                fetch(`/ajax/machine_norms/?machine_type=${grade}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // document.querySelector('input[name="rm_price"]').value = data.rm_price;
+                        // document.querySelector('input[name="scrap_price"]').value = data.scrap_price;
+                        $('#updatecscModal').find('input[name="norms"]').val(data.norms);
+                        // trigger recalculation
+                        // const evt = new Event('input');
+                        // document.querySelector('input[name="length"]').dispatchEvent(evt);
+                    })
+                    .catch(err => console.log("Error fetching material rates", err));
+            }
