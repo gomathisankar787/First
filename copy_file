@@ -1,82 +1,87 @@
-<script>
-function processbaserows() {
-    const mainProcess = document.querySelector('select[name="process"]').value;
-    if (!mainProcess) return;
+try:
+                print('post',request.POST)
+                rows = request.POST.getlist('rows')
+                # unique_csc_id = request.session.get('unique_csc_id')
+                # csc_values = get_object_or_404(CRCSCTBL, id=id)
+                unique_csc_id = bom_values.unique_csc_id
+                print('unique_csc_id',unique_csc_id)
+                data_to_insert = []
+                sheetmetal_part_nos_thickness = []
 
-    const table = document.getElementById('processTable').getElementsByTagName('tbody')[0];
-    table.innerHTML = ""; // clear rows
+                part_no = request.POST.get('part_num')
+                part_description = request.POST.get('description')
+                estimation_mthd = request.POST.get('estimation_method')
+                material_grade = request.POST.get('material_grade')
+                rm_price_per_kg = float(request.POST.get('rm_price'))
+                length = float(request.POST.get('length'))
+                width = float(request.POST.get('width'))
+                thickness = float(request.POST.get('thickness'))
+                sheet_length = float(request.POST.get('sheet_length'))
+                sheet_width = float(request.POST.get('sheet_width'))
+                cutting_process = request.POST.get('process')
+                sheet_weight = math.ceil(float(request.POST.get('sheet_weight')))
+                no_of_blanks = int(request.POST.get('no_of_blanks'))
+                blank_weight = float(request.POST.get('blank_weight'))
+                input_weight = float(request.POST.get('input_weight'))
+                finish_weight = float(request.POST.get('finish_weight'))
+                yield_value = float(request.POST.get('yield'))
+                surface_area_part = float(request.POST.get('surface_area'))
+                scrap_weight = float(request.POST.get('scrap_weight'))
+                scrap_price = float(request.POST.get('scrap_price'))
+                recovery_perc = float(request.POST.get('recovery'))
+                price_per_unit = float(request.POST.get('price_per_unit'))
+                direct_rm_cost = float(request.POST.get('direct_rm_cost'))
+                allowance_cost = float(request.POST.get('allowance_cost'))
+                remarks = request.POST.get('remarks')
 
-    const processList = [
-        "Shearing",
-        "2nd Shearing",
-        "Blanking",
-        "Laser Cutting",
-        "Hole Spotting",
-        "Piercing",
-        "Bending",
-        "Forming",
-        "Dressing",
-        "Block_setting",
-        "Setting_assy_handling"
-    ];
+                data_row = SMMaterial(
+                    part_no=part_no,
+                    part_description=part_description,
+                    estimation_mthd=estimation_mthd,
+                    material_grade=material_grade,
+                    rm_price_per_kg=rm_price_per_kg,
+                    length=length,
+                    width=width,
+                    thickness=thickness,
+                    sheet_length=sheet_length,
+                    sheet_width=sheet_width,
+                    cutting_process=cutting_process,
+                    sheet_weight=sheet_weight,
+                    no_of_blanks=no_of_blanks,
+                    blank_weight=blank_weight,
+                    input_weight=input_weight,
+                    finish_weight=finish_weight,
+                    yield_value=yield_value,
+                    surface_area_part=surface_area_part,
+                    scrap_weight=scrap_weight,
+                    scrap_price=scrap_price,
+                    recovery_perc=recovery_perc,
+                    price_per_unit=price_per_unit,
+                    direct_rm_cost=direct_rm_cost,
+                    allowance_cost=allowance_cost,
+                    remarks=remarks,
+                    updated_on=current_date,
+                    updated_by=system_user,
+                    unique_csc_id=unique_csc_id
+                )
+                data_to_insert.append(data_row)
+                sheetmetal_part_nos_thickness.append({'part_no': part_no, 'material_grade': material_grade, 'thickness': thickness})
 
-    // Exclusion rules per selected process
-    let exclude = [];
-    if (mainProcess === "shearing") {
-        exclude = ["Laser Cutting", "Blanking"]; // 2 removed ⇒ 11 - 2 = 9 rows
-    } else if (mainProcess === "blanking") {
-        exclude = ["Shearing", "2nd Shearing", "Laser Cutting"]; // ⇒ 8 rows
-    } else if (mainProcess === "laser cutting") {
-        exclude = ["Shearing", "2nd Shearing", "Blanking"]; // ⇒ 8 rows
-    }
+                # Delete existing records with the same unique_csc_id
+                smmatt = SMMaterial.objects.filter(part_no=bom_values.part_no)    #.delete()
 
-    const filtered = processList.filter(p => !exclude.includes(p));
+                # Save the new record
+                if smmatt.exists():
+                    SMMaterial.objects.bulk_update(data_to_insert)
+                else:
+                    SMMaterial.objects.bulk_create(data_to_insert)
 
-    filtered.forEach((proc, index) => {
-        const newRow = table.insertRow();
-        newRow.innerHTML = `
-            <td><input style="width:130px" value="${partNo}"></td>
-            <td><input style="width:130px" value="${scope}"></td>
-            <td><input style="width:130px" value="${part_description}"></td>
-            <td>
-                <select>
-                    ${filtered.map(p => `
-                        <option ${(index === 0 && p.toLowerCase() === mainProcess) ? "selected" : ""}>
-                            ${p}
-                        </option>`).join("")}
-                </select>
-            </td>
-            <td>
-                <select>
-                    <option value="" disabled selected>Select Process</option>
-                    <option>Mechanical Press - Cutting</option>
-                    <option>Mechanical Press - Forming</option>
-                    <option>Hydraulic Press - Cutting</option>
-                    <option>Hydraulic Press - Forming</option>
-                </select>
-            </td>
-            <td><input></td>
-            <td><input></td>
-            <td><input></td>
-            <td>
-                <select style="width:130px;" onchange="getMachineTypeNorms(this)">
-                    <option value="" disabled selected>Select Type</option>
-                    {% for m in process_base %}
-                        <option value="{{ m.process_description }}">{{ m.process_description }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td><input></td>
-            <td><input></td>
-            <td><input name="norms"></td>
-            <td><input></td>
-            <td><input></td>
-            <td><input style="width:130px;"></td>
-            <td>
-                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
-            </td>
-        `;
-    });
-}
-</script>
+                # Update the CSC status
+                CRCSCTBL.objects.filter(unique_csc_id=unique_csc_id).update(csc_status='Completed till SMMaterial details')
+
+                # messages.success(request, 'SM Material Data saved successfully!')
+                return JsonResponse({"status":"success","message":"SM Material Data Saved Successfully"})  # Redirect to sm_process page after saving data
+            except Exception as e:
+                print(f"Error saving SM Material Data: {str(e)}")  # Log error before returning
+                messages.error(request, f"Error saving SM Material Data: {str(e)}")
+                return redirect('sm_material')
