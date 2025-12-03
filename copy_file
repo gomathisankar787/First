@@ -1,22 +1,171 @@
-function clearCalculatedValues() {
-    const fieldsToClear = [
-        "viewrmprice",
-        "viewsheetlength",
-        "viewsheetwidth",
-        "viewsheetweight",
-        "viewnoofblanks",
-        "viewblanweight",
-        "viewinputweight",
-        "viewsurfacearea",
-        "viewscrapweight",
-        "viewscrapprice",
-        "viewpriceperunit",
-        "viewdirectrmcost",
-        "viewallowancecost"
-    ];
+function calculate() {
+                const length = parseFloat(modal.find('input[name="length"]').val()) || 0;
+                const width = parseFloat(modal.find('input[name="width"]').val()) || 0;
+                const thickness = parseFloat(modal.find('input[name="thickness"]').val()) || 0;
+                const finishWeight = parseFloat(modal.find('input[name="finish_weight"]').val()) || 0;
+                const rmPrice = parseFloat(modal.find('input[name="rm_price"]').val()) || 0;
+                const scrapPrice = parseFloat(modal.find('input[name="scrap_price"]').val()) || 0;
+                const cuttingProcess = modal.find('select[name="process"]').val() //document.querySelector('select[name="process"]').value;
+                let sheetLength = 2500;
+                let sheetWidth = 1250;
+                // console.log('process',modal.find('select[name="process"]').val())
 
-    fieldsToClear.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = ""; // DO NOT use += — always overwrite
-    });
-}
+                // Calculate sheet length and width based on the cutting process
+                if (cuttingProcess != null) {
+                    const processLower = cuttingProcess.toLowerCase();
+                    if (processLower === "shearing") {
+                        sheetLength = length >= 2500 ? length : 2500;
+                        sheetWidth = width >= 1250 ? width : 1250;
+                    } else if (processLower === "blanking") {
+                        sheetLength = length + (thickness * 3) >= 2500 ? length + (thickness * 3) : 2500;
+                        sheetWidth = width + (thickness * 3) >= 1250 ? width + (thickness * 3) : 1250;
+                    } else if (processLower === "laser cutting" || cuttingProcess.toLowerCase() === "plasma cutting") {
+                        sheetLength = length + 4 >= 2500 ? length + 4 : 2500;
+                        sheetWidth = width + 4 >= 1250 ? width + 4 : 1250;
+                    }
+                }
+
+                sheetLength = Math.ceil(sheetLength / 5) * 5;
+                sheetWidth = Math.ceil(sheetWidth / 5) * 5;
+
+                // console.log('sheet',sheetLength)
+
+                // document.querySelector('input[name="sheet_length"]').value = sheetLength;
+                // document.querySelector('input[name="sheet_width"]').value = sheetWidth;
+                modal.find('input[name="sheet_length"]').val(sheetLength);
+                modal.find('input[name="sheet_width"]').val(sheetWidth);
+
+                // Calculate blank length and width based on the cutting process
+                let blankLength, blankWidth;
+                // if (cuttingProcess){
+                // const processLower = cuttingProcess.toLowerCase();
+                // if (processLower === "shearing") {
+                //     blankLength = length;
+                //     blankWidth = width;
+                // } else if (processLower === "blanking") {
+                //     blankLength = length + thickness * 1.5;
+                //     blankWidth = width + thickness * 3;
+                // } else if (processLower === "laser cutting" || processLower === "plasma cutting") {
+                //     blankLength = length + 4;
+                //     blankWidth = width + 4;
+                // } else {
+                //     blankLength = length;
+                //     blankWidth = width;
+                // }}
+                let rm_length = parseFloat(sheetLength)
+                let rm_width = parseFloat(sheetWidth)
+
+                // Orientation 1
+                blankLength = length + thickness * 1.5
+                blankWidth = width + thickness * 3
+
+                // Orientation 2 (swapped allowances)
+                let blankLength1 = length + thickness * 3
+                let blankWidth1 = width + thickness * 1.5
+
+                function calcOrientation(rmLength, rmWidth, blLen, blWid) {
+                    // Base count
+                    const base = Math.floor(rmLength / blWid) * Math.floor(rmWidth / blLen);
+
+                    // Remaining strips
+                    const remainingLength = rmLength - (blWid * Math.floor(rmLength / blWid));
+                    const remainingWidth = rmWidth - (blLen * Math.floor(rmWidth / blLen));
+
+                    // Extra parts from remaining strips
+                    const extra1 = Math.floor(remainingLength / blLen) * Math.floor(rmWidth / blWid);
+                    const extra2 = Math.floor(rmLength / blLen) * Math.floor(remainingWidth / blWid);
+                    return base + Math.max(extra1, extra2);
+                }
+                
+                const blanksOrientation1 = calcOrientation(rm_length, rm_width, blankLength, blankWidth);
+                const blanksOrientation2 = calcOrientation(rm_length, rm_width, blankLength1, blankWidth1);
+
+                let noOfBlanks = Math.max(blanksOrientation1, blanksOrientation2);
+                // Calculate potential blanks in both orientations
+                // const blanksOrientation1 = Math.floor(sheetLength / blankLength) * Math.floor(sheetWidth / blankWidth);
+                // const blanksOrientation2 = Math.floor(sheetLength / blankWidth) * Math.floor(sheetWidth / blankLength);
+
+                // // Choose the maximum of the two orientations
+                // let noOfBlanks = Math.max(blanksOrientation1, blanksOrientation2);
+
+                // // Calculate remaining unused area (end bit wastage) based on the orientation chosen
+                // let remainingLength, remainingWidth, extraParts;
+                // if (blanksOrientation1 >= blanksOrientation2) {
+                //     remainingLength = sheetLength - (blankLength * Math.floor(sheetLength / blankLength));
+                //     remainingWidth = sheetWidth - (blankWidth * Math.floor(sheetWidth / blankWidth));
+                //     extraParts = Math.floor(remainingLength / blankWidth) * Math.floor(sheetWidth / blankLength);
+                // } else {
+                //     remainingLength = sheetLength - (blankWidth * Math.floor(sheetLength / blankWidth));
+                //     remainingWidth = sheetWidth - (blankLength * Math.floor(sheetWidth / blankLength));
+                //     extraParts = Math.floor(sheetLength / blankLength) * Math.floor(remainingWidth / blankWidth);
+                // }
+
+                // // Add extra parts from the remaining area to the total number of blanks
+                // noOfBlanks += extraParts;
+                // document.querySelector('input[name="no_of_blanks"]').value = noOfBlanks;
+                modal.find('input[name="no_of_blanks"]').val(noOfBlanks);
+
+                // Calculate sheet weight
+                const sheetWeight = (sheetLength * sheetWidth * thickness * 7.86 / 10**6).toFixed(0);
+                // document.querySelector('input[name="sheet_weight"]').value = sheetWeight;
+                modal.find('input[name="sheet_weight"]').val(sheetWeight);
+
+                // Calculate blank weight
+                const blankWeight = (length * width * thickness * 7.86 / 10**6).toFixed(3);
+                // document.querySelector('input[name="blank_weight"]').value = blankWeight;
+                modal.find('input[name="blank_weight"]').val(blankWeight);
+
+                // Calculate input weight
+                const inputWeight = (sheetWeight / noOfBlanks).toFixed(3);
+                // const inputWeight = 0.491
+                // document.querySelector('input[name="input_weight"]').value = inputWeight;
+                modal.find('input[name="input_weight"]').val(inputWeight);
+
+                // Calculate yield value
+                const yieldValue = ((finishWeight / inputWeight) * 100).toFixed();
+                // document.querySelector('input[name="yield"]').value = yieldValue;
+                modal.find('input[name="yield"]').val(yieldValue);
+                if (yieldValue < 50) {
+                    document.querySelector('input[name="yield"]').style.backgroundColor= "pink";
+                } else {
+                    document.querySelector('input[name="yield"]').style.backgroundColor = "";
+                }
+
+                // Calculate surface area per part
+                const surfaceAreaPart = ((finishWeight / thickness / 7.86) * 2).toFixed(3);
+                // document.querySelector('input[name="surface_area"]').value = surfaceAreaPart;
+                modal.find('input[name="surface_area"]').val(surfaceAreaPart);
+
+                // Calculate scrap weight
+                const scrapWeight = (inputWeight - finishWeight).toFixed(2);
+                // document.querySelector('input[name="scrap_weight"]').value = scrapWeight;
+                modal.find('input[name="scrap_weight"]').val(scrapWeight);
+
+                // Calculate price per unit
+                const pricePerUnit = ((rmPrice * inputWeight) - (scrapPrice * scrapWeight * 0.95)).toFixed(2);
+                // document.querySelector('input[name="price_per_unit"]').value = pricePerUnit;
+                modal.find('input[name="price_per_unit"]').val(pricePerUnit)
+
+                // Calculate direct RM cost
+                const directRmCost = (finishWeight * rmPrice).toFixed(2);
+                // document.querySelector('input[name="direct_rm_cost"]').value = directRmCost;
+                modal.find('input[name="direct_rm_cost"]').val(directRmCost)
+
+                // Calculate allowance cost
+                const allowanceCost = (pricePerUnit - directRmCost).toFixed(2);
+                // document.querySelector('input[name="allowance_cost"]').value = allowanceCost;
+                modal.find('input[name="allowance_cost"]').val(allowanceCost)
+                modal.find('input[name="recovery"]').val(95)
+            }
+
+            // Add event listeners to input fields for dynamic calculations
+            // document.querySelectorAll('input[name="length"], input[name="width"], input[name="thickness"], input[name="finish_weight"], select[name="process"]').forEach(input => {
+            //     input.addEventListener('input', calculate);
+            // });
+            modal.find('input[name="length"],input[name="width"],input[name="thickness"],input[name="finish_weight"]').each(function(){
+                $(this).on('input',calculate);
+            });
+
+            // Initial calculation
+            calculate();
+                })
