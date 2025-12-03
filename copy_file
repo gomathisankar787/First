@@ -1,4 +1,63 @@
-function calculate() {
+$('#updatecscModal').on('show.bs.modal', function (event) {
+                    // console.log('modal opened')
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var modal = $(this);
+
+            // Extract data attributes
+            partNo = button.data('partno');
+            part_description = button.data('description')
+            scope = button.data('scope')
+            modal.find('#edit_id').val(button.data('id'));
+            modal.find('#editpartNumber').val(button.data('partno'));
+            modal.find('#editdescription').val(button.data('description'));
+            modal.find('#editmethod').val(button.data('method'));
+            modal.find('#process_partnumber').val(button.data('partno'));
+            modal.find('#process_part_description').val(button.data('description'))
+            modal.find('#process_place').val(button.data('scope'))
+
+            const isNestingNeeded = "{{ is_nesting_needed }}"; // Get the value from the server
+                        const noOfBlanksInput = document.querySelector('input[name="no_of_blanks"]');
+
+                    // nesting yes it should be editable
+                        if (isNestingNeeded === "Yes") {
+                            noOfBlanksInput.removeAttribute('readonly',false);
+
+
+                        } else {
+                            noOfBlanksInput.setAttribute('readonly',true);
+                            document.querySelector('input[name="no_of_blanks"]').style.backgroundColor= "#e9ecef";
+
+
+                        }
+
+            document.getElementById("viewfinishweight").addEventListener("input",clearCalculatedValues);
+
+            function clearCalculatedValues() {
+                const fieldsToClear = [
+                    "viewrmprice",
+                    "viewsheetlength",
+                    "viewsheetwidth",
+                    "viewsheetweight",
+                    "viewnoofblanks",
+                    "viewblanweight",
+                    "viewinputweight",
+                    "viewsurfacearea",
+                    "viewscrapweight",
+                    "viewscrapprice",
+                    "viewpriceperunit",
+                    "viewdirectrmcost",
+                    "viewallowancecost"
+                ];
+
+                fieldsToClear.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = ""; // DO NOT use += — always overwrite
+                });
+            
+                calculate();
+            }            
+            
+            function calculate() {
                 const length = parseFloat(modal.find('input[name="length"]').val()) || 0;
                 const width = parseFloat(modal.find('input[name="width"]').val()) || 0;
                 const thickness = parseFloat(modal.find('input[name="thickness"]').val()) || 0;
