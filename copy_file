@@ -1,59 +1,50 @@
-<td>
-                                                    <select name="process" style="width: 100px;" required onclick="processbaserows()">
-                                                        <!-- onchange="this.form.submit()" -->
-                                                        <option value="" disabled selected>Select Process</option>
-                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
-                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
-                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
-                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
-                                                    </select>
-                                                </td>
- <td>
-                                                    <select>
-                                                        <option>Shearing</option>
-                                                        <option>2nd Shearing</option>
-                                                        <option>Blanking</option>
-                                                        <option>Laser Cutting</option>
-                                                        <option selected>Hole Spotting</option>
-                                                        <option>Piercing</option>
-                                                        <option>Bending</option>
-                                                        <option>Forming</option>
-                                                        <option>Dressing</option>
-                                                        <option>Block_setting</option>
-                                                        <option>Setting_assy_handling</option>
-                                                    </select>
-                                                </td>
- function processbaserows(){
-        
+<script>
+function processbaserows() {
+    const mainProcess = document.querySelector('select[name="process"]').value;
+    if (!mainProcess) return;
+
+    const table = document.getElementById('processTable').getElementsByTagName('tbody')[0];
+    table.innerHTML = ""; // clear rows
+
+    const processList = [
+        "Shearing",
+        "2nd Shearing",
+        "Blanking",
+        "Laser Cutting",
+        "Hole Spotting",
+        "Piercing",
+        "Bending",
+        "Forming",
+        "Dressing",
+        "Block_setting",
+        "Setting_assy_handling"
+    ];
+
+    // Exclusion rules per selected process
+    let exclude = [];
+    if (mainProcess === "shearing") {
+        exclude = ["Laser Cutting", "Blanking"]; // 2 removed ⇒ 11 - 2 = 9 rows
+    } else if (mainProcess === "blanking") {
+        exclude = ["Shearing", "2nd Shearing", "Laser Cutting"]; // ⇒ 8 rows
+    } else if (mainProcess === "laser cutting") {
+        exclude = ["Shearing", "2nd Shearing", "Blanking"]; // ⇒ 8 rows
     }
 
-    function processaddRow() {
-      const table = document.getElementById('processTable').getElementsByTagName('tbody')[0];
-      const newRow = table.insertRow();
-      const cols = `
-            <td><input value="${partNo}" style="width: 130px;"></td>
-            <td><input style="width: 130px" value="${scope}">
-                <!-- <select style="padding: 5px;">
-                    <option>Select Process</option>
-                    <option>Cutting</option>
-                    <option>Forming</option>
-                </select> -->
-            </td>
-            <td><input style="width: 130px;" value="${part_description}"></td>
+    const filtered = processList.filter(p => !exclude.includes(p));
+
+    filtered.forEach((proc, index) => {
+        const newRow = table.insertRow();
+        newRow.innerHTML = `
+            <td><input style="width:130px" value="${partNo}"></td>
+            <td><input style="width:130px" value="${scope}"></td>
+            <td><input style="width:130px" value="${part_description}"></td>
             <td>
-               <select>
-                <option>Shearing</option>
-                <option>2nd Shearing</option>
-                <option>Blanking</option>
-                <option>Laser Cutting</option>
-                <option selected>Hole Spotting</option>
-                <option>Piercing</option>
-                <option>Bending</option>
-                <option>Forming</option>
-                <option>Dressing</option>
-                <option>Block_setting</option>
-                <option>Setting_assy_handling</option>
-            </select>
+                <select>
+                    ${filtered.map(p => `
+                        <option ${(index === 0 && p.toLowerCase() === mainProcess) ? "selected" : ""}>
+                            ${p}
+                        </option>`).join("")}
+                </select>
             </td>
             <td>
                 <select>
@@ -68,7 +59,7 @@
             <td><input></td>
             <td><input></td>
             <td>
-                <select style="width: 130px;" onchange="getMachineTypeNorms(this)">
+                <select style="width:130px;" onchange="getMachineTypeNorms(this)">
                     <option value="" disabled selected>Select Type</option>
                     {% for m in process_base %}
                         <option value="{{ m.process_description }}">{{ m.process_description }}</option>
@@ -80,12 +71,12 @@
             <td><input name="norms"></td>
             <td><input></td>
             <td><input></td>
-            <td><input style="width: 130px;"></td>
+            <td><input style="width:130px;"></td>
             <td>
-                <!-- <button id="addrow" onclick="processaddRow(this)" type="button">AddRow</button>
-                <button id="delete" onclick="processdeleteRow(this)" type="button">Delete</button> -->
-                <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
-                <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
-            </td>`;
-      newRow.innerHTML = cols;
-    }
+                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
+                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
+            </td>
+        `;
+    });
+}
+</script>
