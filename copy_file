@@ -1,119 +1,56 @@
-function hideColumnByIndex(colIndex, hide) {
-    const table = document.getElementById("processTableBody");
-    if (!table) return;
+process_base_sh = (
+                process_base
+                .filter(process_description__icontains="shearing")
+                .values_list("process_description", flat=True)
+            )
 
-    // Hide header
-    const headerRow = table.parentElement.querySelector("thead tr");
-    if (headerRow && headerRow.children[colIndex]) {
-        headerRow.children[colIndex].style.display = hide ? "none" : "";
-    }
+            best_process = pick_process_for_thickness(material_thickness, process_base_sh)
+def pick_process_for_thickness(material_thickness: float, process_qs):
+    """
+    material_thickness: numeric thickness from your material record (e.g., 6)
+    process_qs: QuerySet of Processbase objects (or iterable with .process_description)
+    required_kind: optional keyword to filter by process kind (e.g., 'shearing', 'laser cutting')
+    Returns the best matching Processbase object (or None).
+    """
+    candidates = []
+    # rx = re.compile(r'^\s*(\d+(?:\.\d+)?)\s*mm\b', re.IGNORECASE)
 
-    // Hide all rows' cells
-    const rows = table.querySelectorAll("tr");
-    rows.forEach(row => {
-        if (row.children[colIndex]) {
-            row.children[colIndex].style.display = hide ? "none" : "";
-        }
-    });
-}
+    for p in process_qs:
+        desc = (getattr(p, "process_description", "") or "")
+        print('desc',desc)
+        # m = rx.search(desc)
+        # print('m',m)
+        # if not m:
+        #     continue 
+        try:
+            mm_value = float(desc.group(1))
+        except ValueError:
+            continue
+        candidates.append((mm_value, p))
 
-function processbaserows() {
-    const mainProcess = document.querySelector('select[name="process"]').value;
-    if (!mainProcess) return;
+    if not candidates:
+        return None
 
-    const table = document.getElementById('processTableBody');
-    table.innerHTML = ""; // clear all existing rows
+    candidates.sort(key=lambda t: t[0])
 
-    const processList = [
-        "Shearing",
-        "2nd Shearing",
-        "Blanking",
-        "Laser Cutting",
-        "Hole Spotting",
-        "Piercing",
-        "Bending",
-        "Forming",
-        "Dressing",
-        "Block_setting",
-        "Setting_assy_handling"
-    ];
-
-    let exclude = [];
-
-    // -----------------
-    // COLUMN INDICES
-    // -----------------
-    const COL_MACHINE_TYPE = 4;
-    const COL_CUTG_FRMG_LEN = 5;
-
-    // -----------------
-    // PROCESS RULES
-    // -----------------
-    if (mainProcess === "shearing") {
-        hideColumnByIndex(COL_MACHINE_TYPE, true);
-        hideColumnByIndex(COL_CUTG_FRMG_LEN, true);
-
-        exclude = ["Laser Cutting", "Blanking"];
-
-    } else if (mainProcess === "blanking") {
-        hideColumnByIndex(COL_MACHINE_TYPE, false);
-        hideColumnByIndex(COL_CUTG_FRMG_LEN, false);
-
-        exclude = ["Shearing", "2nd Shearing", "Laser Cutting"];
-
-    } else if (mainProcess === "laser cutting") {
-        hideColumnByIndex(COL_MACHINE_TYPE, false);
-        hideColumnByIndex(COL_CUTG_FRMG_LEN, false);
-
-        exclude = ["Shearing", "2nd Shearing", "Blanking"];
-    }
-
-    // -----------------
-    // Create filtered rows
-    // -----------------
-    const filtered = processList.filter(item => !exclude.includes(item));
-
-    filtered.forEach(proc => {
-        let row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td><input style="width: 130px;"></td>
-            <td><input style="width: 130px"></td>
-            <td><input style="width: 130px;"></td>
-            <td>
-                <select>
-                    <option>${proc}</option>
-                </select>
-            </td>
-            <td>
-                <select>
-                    <option value="" disabled selected>Select Process</option>
-                    <option>Mechanical Press - Cutting</option>
-                    <option>Mechanical Press - Forming</option>
-                    <option>Hydraulic Press - Cutting</option>
-                    <option>Hydraulic Press - Forming</option>
-                </select>
-            </td>
-            <td><input></td>
-            <td><input></td>
-            <td><input></td>
-            <td>
-                <select style="width: 130px;" onchange="getMachineTypeNorms(this)">
-                    <option value="" disabled selected>Select Type</option>
-                </select>
-            </td>
-            <td><input></td>
-            <td><input></td>
-            <td><input name="norms"></td>
-            <td><input></td>
-            <td><input></td>
-            <td><input style="width: 130px;"></td>
-            <td>
-                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
-            </td>
-        `;
-
-        table.appendChild(row);
-    });
-}
+    for mm_value, proc in candidates:
+        if mm_value >= material_thickness:
+            return proc
+    return candidates[-1][1]
+there is no only mm exist i give some sample list
+4 mm Shearing
+5 mm Shearing
+6 mm Shearing
+10 T Mechanical press
+20 T Mechanical press
+30 T Mechanical press
+100 T Hydraulic press
+160 T Mechanical press
+Laser Cutting 4 mm
+Laser Cutting 5 mm
+Laser Cutting 6 mm
+if shearing then shearing list 
+blanking has two type mechanical hydraulic
+mechanical_hydrualic_bl = "mechanical"
+based on this the list shown and 
+if laser cutting then laser cutting
