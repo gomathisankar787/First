@@ -1,30 +1,43 @@
-function populateSMProcessTable(processList) {
-    const tbody = document.getElementById("processTableBody");
-    tbody.innerHTML = ""; // clear existing rows
+sm_process_list = list(SMProcess.objects.filter(unique_csc_id = bom.unique_csc_id,part_no=bom.part_no).values())
+        process_base_list = Processbase.objects.all().values('process_description')
+        process_description_list = ['Shearing','2nd Shearing','Blanking','Laser cutting','Hole spotting','Piercing','Bending','Forming','Dressing','Block Setting','Setting, Assembly & Handling']
 
-    processList.forEach(proc => {
-        const row = document.createElement("tr");
+        return JsonResponse({"sm_process": sm_process_list,"sm_material_by_id":sm_material,"process_base":process_base_list,"process_desc":process_description_list}, status=200)
+function populateSMProcessTable(processList,selectprocesslist,selectprocessdesclist) {
+                const tbody = document.getElementById("processTableBody");
+                tbody.innerHTML = ""; // clear existing rows
 
-        row.innerHTML = `
-            <td><input value="${proc.part_no || ''}"></td>
-            <td><input value="${proc.process_place || ''}"></td>
-            <td><input value="${proc.part_description || ''}"></td>
-            <td><input value="${proc.process_description || ''}"></td>
-            <td><input value="${proc.mechanical_hydraulic || ''}"></td>
-            <td><input value="${proc.cutting_forminglength || ''}"></td>
-            <td><input value="${proc.machine_type || ''}"></td>
-            <td><input value="${proc.no_of_operations || ''}"></td>
-            <td><input value="${proc.parts_per_cycle || ''}"></td>
-            <td><input value="${proc.norms || ''}"></td>
-            <td><input value="${proc.process_cost_unit || ''}"></td>
-            <td><input value="${proc.uts || ''}"></td>
-            <td><input value="${proc.remarks || ''}"></td>
-            <td>
-                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
-            </td>
-        `;
+                processList.forEach(proc => {
+                    const row = document.createElement("tr");
 
-        tbody.appendChild(row);
-    });
-}
+                    row.innerHTML = `
+                        <td><input value="${proc.part_no || ''}" style="width:110px"></td>
+                        <td><input value="${proc.process_type || ''}"></td>
+                        <td><input value="${proc.part_description || ''}"></td>
+                        <td>
+                            <select>
+                                <option value="proc.process_description">selectprocessdesclist</option>
+                            </select>
+                        </td>
+                        <td><input value="${proc.mechanical_hydraulic || ''}"></td>
+                        <td><input value="${proc.cutting_forminglength || ''}"></td>
+                        <td>
+                            <select>
+                                <option value="proc.machinetype">selectprocesslist</option>
+                            </select>
+                        </td>
+                        <td><input value="${proc.no_of_operations || ''}"></td>
+                        <td><input value="${proc.parts_per_cycle || ''}"></td>
+                        <td><input value="${proc.norms || ''}"></td>
+                        <td><input value="${proc.process_cost_unit || ''}"></td>
+                        <td><input value="${proc.uts || ''}"></td>
+                        <td><input value="${proc.remarks || ''}"></td>
+                        <td>
+                            <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
+                            <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+            }
