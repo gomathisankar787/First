@@ -1,56 +1,56 @@
-process_base_sh = (
-                process_base
-                .filter(process_description__icontains="shearing")
-                .values_list("process_description", flat=True)
-            )
 
-            best_process = pick_process_for_thickness(material_thickness, process_base_sh)
-def pick_process_for_thickness(material_thickness: float, process_qs):
+
+def pick_process_for_thickness(material_thickness: float, process_list, mech_hyd_req=None):
     """
-    material_thickness: numeric thickness from your material record (e.g., 6)
-    process_qs: QuerySet of Processbase objects (or iterable with .process_description)
-    required_kind: optional keyword to filter by process kind (e.g., 'shearing', 'laser cutting')
-    Returns the best matching Processbase object (or None).
+    material_thickness: numeric thickness (e.g. 6)
+    process_list: list/qs of descriptions like:
+        "4 mm Shearing", "10 T Mechanical press", "Laser Cutting 6 mm"
+    mech_hyd_req: for blanking → "mechanical" or "hydraulic"
     """
+
     candidates = []
-    # rx = re.compile(r'^\s*(\d+(?:\.\d+)?)\s*mm\b', re.IGNORECASE)
 
-    for p in process_qs:
-        desc = (getattr(p, "process_description", "") or "")
-        print('desc',desc)
-        # m = rx.search(desc)
-        # print('m',m)
-        # if not m:
-        #     continue 
-        try:
-            mm_value = float(desc.group(1))
-        except ValueError:
-            continue
-        candidates.append((mm_value, p))
+    # Regex for mm (shearing / laser)
+    rx_mm = re.compile(r'(\d+(?:\.\d+)?)\s*mm', re.IGNORECASE)
 
+    # Regex for tonnage (blanking Mechanical/Hydraulic)
+    rx_ton = re.compile(r'(\d+(?:\.\d+)?)\s*T', re.IGNORECASE)
+
+    for p in process_list:
+        desc = p.lower()
+
+        # ------- SHEARING / LASER (mm based) -------
+        if "shearing" in desc or "laser cutting" in desc:
+            mm_match = rx_mm.search(p)
+            if mm_match:
+                mm_value = float(mm_match.group(1))
+                candidates.append((mm_value, p))
+                continue
+
+        # ------- BLANKING (Tonnage) -------
+        if "mechanical" in desc or "hydraulic" in desc:
+
+            # filter by mechanical_hydraulic
+            if mech_hyd_req and mech_hyd_req.lower() not in desc:
+                continue
+
+            t_match = rx_ton.search(p)
+            if t_match:
+                t_value = float(t_match.group(1))
+                candidates.append((t_value, p))
+                continue
+
+    # No match found
     if not candidates:
         return None
 
-    candidates.sort(key=lambda t: t[0])
+    # Sort by numeric value
+    candidates.sort(key=lambda x: x[0])
 
-    for mm_value, proc in candidates:
-        if mm_value >= material_thickness:
-            return proc
+    # Pick first >= required thickness/tonnage
+    for val, desc in candidates:
+        if val >= material_thickness:
+            return desc
+
+    # Otherwise return highest
     return candidates[-1][1]
-there is no only mm exist i give some sample list
-4 mm Shearing
-5 mm Shearing
-6 mm Shearing
-10 T Mechanical press
-20 T Mechanical press
-30 T Mechanical press
-100 T Hydraulic press
-160 T Mechanical press
-Laser Cutting 4 mm
-Laser Cutting 5 mm
-Laser Cutting 6 mm
-if shearing then shearing list 
-blanking has two type mechanical hydraulic
-mechanical_hydrualic_bl = "mechanical"
-based on this the list shown and 
-if laser cutting then laser cutting
