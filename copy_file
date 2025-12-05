@@ -1,482 +1,168 @@
-def pick_process_for_thickness(material_thickness: float, process_list, mech_hyd_req=None):
-    """
-    material_thickness: numeric thickness (e.g. 6)
-    process_list: list/qs of descriptions like:
-        "4 mm Shearing", "10 T Mechanical press", "Laser Cutting 6 mm"
-    mech_hyd_req: for blanking → "mechanical" or "hydraulic"
-    """
-
-    candidates = []
-
-    # Regex for mm (shearing / laser)
-    rx_mm = re.compile(r'(\d+(?:\.\d+)?)\s*mm', re.IGNORECASE)
-
-    # Regex for tonnage (blanking Mechanical/Hydraulic)
-    rx_ton = re.compile(r'(\d+(?:\.\d+)?)\s*T', re.IGNORECASE)
-
-    for p in process_list:
-        desc = p.lower()
-
-        # ------- SHEARING / LASER (mm based) -------
-        if "shearing" in desc or "laser cutting" in desc:
-            mm_match = rx_mm.search(p)
-            if mm_match:
-                mm_value = float(mm_match.group(1))
-                candidates.append((mm_value, p))
-                continue
-
-        # ------- BLANKING (Tonnage) -------
-        if "mechanical" in desc or "hydraulic" in desc:
-
-            # filter by mechanical_hydraulic
-            if mech_hyd_req and mech_hyd_req.lower() not in desc:
-                continue
-
-            t_match = rx_ton.search(p)
-            if t_match:
-                t_value = float(t_match.group(1))
-                candidates.append((t_value, p))
-                continue
-
-    # No match found
-    if not candidates:
-        return None
-
-    # Sort by numeric value
-    candidates.sort(key=lambda x: x[0])
-
-    # Pick first >= required thickness/tonnage
-    for val, desc in candidates:
-        if val >= material_thickness:
-            return desc
-
-    # Otherwise return highest
-    return candidates[-1][1]
-
-
-
 @require_http_methods(["GET"])
 def showbomSmMaterial(request, id):
     try:
         bom = BOMSheet.objects.filter(id=id).first()
         if not bom:
-            return JsonResponse(
-                {"error": f"No BOM found for id={id}"},
-                status=404
-            )
+            return JsonResponse({"error": f"No BOM found for id={id}"}, status=404)
 
-        sm_qs = SMMaterial.objects.filter(
+        sm = SMMaterial.objects.filter(
             part_no=bom.part_no,
             unique_csc_id=bom.unique_csc_id
-        ).values()
-        sm_material = list(sm_qs)
+        ).first()
 
-        first_row = sm_qs.first()
-        sm_material_type = first_row['cutting_process']
+        if not sm:
+            return JsonResponse({"error": "No SM Material found"}, status=404)
 
-        # process base selection list
+        sm_type = sm.cutting_process.lower()
+        material_thickness = sm.thickness
+
         process_base = Processbase.objects.all()
-
         part_no = bom.part_no
-        process_place = bom.scope 
+        process_place = bom.scope
         part_description = bom.part_description
+        uid = bom.unique_csc_id
 
+        # -----------------------------
+        #   1) SHEARING
+        # -----------------------------
+        if sm_type == 'shearing':
+            qs = process_base.filter(process_description__icontains="shearing").values_list("process_description", flat=True)
+            best, norms = get_best_process(material_thickness, qs)
+            for proc_name in ["Shearing", "2nd Shearing"]:
+                create_smprocess(
+                    part_no, process_place, part_description,
+                    proc_name, best, norms,
+                    no_of_operations=7, parts_per_cycle=280,
+                    unique_csc_id=uid
+                )
 
+        # -----------------------------
+        #   2) BLANKING
+        # -----------------------------
+        if sm_type == 'blanking':
+            cutting_len = 520
+            tonnage = (material_thickness * cutting_len * 470 * 0.75 * 1.1) / 1000 / 9.81
+            qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
+            best, norms = get_best_process(tonnage, qs, "mechanical")
 
-        if sm_material_type == 'shearing':
-            # for shearing
-            process_description_sh = 'Shearing'
-            mechanical_hydrualic_sh = 'NA'
-            cutting_forminglength_sh = 'NA'
-            material_thickness = first_row['thickness']
-          
-            process_base_sh = (
-                process_base
-                .filter(process_description__icontains="shearing")
-                .values_list("process_description", flat=True)
+            create_smprocess(
+                part_no, process_place, part_description,
+                "Blanking", best, norms,
+                no_of_operations=1, parts_per_cycle=1,
+                cutting_forminglength=cutting_len,
+                mechanical_hydraulic="Mechanical",
+                unique_csc_id=uid
             )
 
-            best_process_sh = pick_process_for_thickness(material_thickness, process_base_sh)
-            no_of_operation_sh = 7 # refer from blank
-            parts_per_cycle_sh = 280 # refer from blank
-            process_norm_obj = (Processbase.objects.filter(
-                    process_description=best_process_sh,
-                ).first())
-            
-            process_norm = process_norm_obj.norms if process_norm_obj else None
-            process_cost_unit = (process_norm * no_of_operation_sh) / parts_per_cycle_sh
-            SMProcess.objects.create(
-                part_no = part_no,
-                process_type = process_place,
-                part_description = part_description,
-                process_description = process_description_sh,
-                thickness  = None,
-                mechanical_hydraulic = mechanical_hydrualic_sh,
-                cutting_forminglength = cutting_forminglength_sh,
-                press_forcecutting = None,
-                press_forceforming = None,
-                machinetype = best_process_sh,
-                no_of_operations = no_of_operation_sh,
-                parts_per_cycle = parts_per_cycle_sh,
-                norms = process_norm,
-                process_cost_unit = process_cost_unit,
-                uts = 470,
-                remarks = None,
-                unique_csc_id = bom.unique_csc_id
+        # -----------------------------
+        #   3) LASER CUTTING
+        # -----------------------------
+        if sm_type == 'laser cutting':
+            qs = process_base.filter(process_description__icontains="laser").values_list("process_description", flat=True)
+            best, norms = get_best_process(material_thickness, qs)
+
+            create_smprocess(
+                part_no, process_place, part_description,
+                "Laser Cutting", best, norms,
+                no_of_operations=1, parts_per_cycle=1,
+                unique_csc_id=uid
             )
 
-            SMProcess.objects.create(
-                part_no = part_no,
-                process_type = process_place,
-                part_description = part_description,
-                process_description = '2nd Shearing',
-                thickness  = None,
-                mechanical_hydraulic = mechanical_hydrualic_sh,
-                cutting_forminglength = cutting_forminglength_sh,
-                press_forcecutting = None,
-                press_forceforming = None,
-                machinetype = best_process_sh,
-                no_of_operations = no_of_operation_sh,
-                parts_per_cycle = parts_per_cycle_sh,
-                norms = process_norm,
-                process_cost_unit = process_cost_unit,
-                uts = 470,
-                remarks = None,
-                unique_csc_id = bom.unique_csc_id
-            )
+        # -----------------------------
+        #   4) HOLE SPOTTING
+        # -----------------------------
+        best = "Laser cutting Hole spotting"
+        obj = Processbase.objects.filter(process_description=best).first()
+        norms = obj.norms if obj else None
 
-        if  sm_material_type == 'Blanking':   
-            # for blanking
-            process_description_bl = 'Blanking'
-            mechanical_hydrualic_bl = None # input by user
-            cutting_forminglength_bl = 520 # input by user
-            material_thickness_bl = (material_thickness * cutting_forminglength_bl * 470  * 0.75 * 1.1) / 1000 / 9.81 # 3 should be changed UTS value refer from db
-            process_base_bl = (
-                process_base
-                .filter(process_description__icontains="Mechanical")
-                .values_list("process_description", flat=True)
-            )
-            best_process_bl = pick_process_for_thickness(material_thickness_bl, process_base_bl,mech_hyd_req="Mechanical")
-            no_of_operation_bl = 1 # input by user
-            parts_per_cycle_bl = 1 # input by user
-            
-            process_norm_obj_bl = (Processbase.objects.filter(
-                    process_description=best_process_bl,
-                ).first())
-            
-            process_norm_bl = process_norm_obj_bl.norms if process_norm_obj_bl else None
-            process_cost_unit_bl = (process_norm_bl * no_of_operation_bl) / parts_per_cycle_bl
-            SMProcess.objects.create(
-                part_no = part_no,
-                process_type = process_place,
-                part_description = part_description,
-                process_description = 'Blanking',
-                thickness  = None,
-                mechanical_hydraulic = mechanical_hydrualic_bl,
-                cutting_forminglength = cutting_forminglength_bl,
-                press_forcecutting = None,
-                press_forceforming = None,
-                machinetype = best_process_bl,
-                no_of_operations = no_of_operation_bl,
-                parts_per_cycle = parts_per_cycle_bl,
-                norms = process_norm_bl,
-                process_cost_unit = process_cost_unit_bl,
-                uts = 470,
-                remarks = None,
-                unique_csc_id = bom.unique_csc_id
-            )
-
-        if  sm_material_type == 'Laser Cutting':
-            #laser cutting
-            process_description_lc = 'Laser Cutting'
-            mechanical_hydrualic_lc = 'NA'
-            cutting_forminglength_lc = 'NA'
-            material_thickness = first_row['thickness']
-          
-            process_base_lc = (
-                process_base
-                .filter(process_description__icontains="laser")
-                .values_list("process_description", flat=True)
-            )
-
-            best_process_lc = pick_process_for_thickness(material_thickness, process_base_lc)
-            no_of_operation_lc = 1 # refer from blank
-            parts_per_cycle_lc = 1 # refer from blank
-            process_norm_obj_lc = (Processbase.objects.filter(
-                    process_description=best_process_lc,
-                ).first())
-            
-            process_norm_lc = process_norm_obj_lc.norms if process_norm_obj_lc else None
-            process_cost_unit_lc = (process_norm_lc * no_of_operation_lc) / parts_per_cycle_lc
-            SMProcess.objects.create(
-                part_no = part_no,
-                process_type = process_place,
-                part_description = part_description,
-                process_description = process_description_lc,
-                thickness  = None,
-                mechanical_hydraulic = mechanical_hydrualic_lc,
-                cutting_forminglength = cutting_forminglength_lc,
-                press_forcecutting = None,
-                press_forceforming = None,
-                machinetype = best_process_lc,
-                no_of_operations = no_of_operation_lc,
-                parts_per_cycle = parts_per_cycle_lc,
-                norms = process_norm_lc,
-                process_cost_unit = process_cost_unit_lc,
-                uts = 470,
-                remarks = None,
-                unique_csc_id = bom.unique_csc_id
-            )
-
-        # for hole spotting
-        process_description_hs = 'Hole Spotting'
-        mechanical_hydrualic_hs = 'NA'
-        cutting_forminglength_hs = 'NA'
-        best_process_hs = 'Laser cutting Hole spotting'
-        no_of_operation_hs = 1 # refer from blank
-        parts_per_cycle_hs = 1 # refer from blank
-        process_norm_obj_hs = (Processbase.objects.filter(
-                process_description=best_process_hs,
-            ).first())
-        
-        process_norm_hs = process_norm_obj_hs.norms if process_norm_obj_hs else None
-        process_cost_unit_hs = (process_norm * no_of_operation_hs) / parts_per_cycle_hs
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_hs,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_hs,
-            cutting_forminglength = cutting_forminglength_hs,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_hs,
-            no_of_operations = no_of_operation_hs,
-            parts_per_cycle = parts_per_cycle_hs,
-            norms = process_norm_hs,
-            process_cost_unit = process_cost_unit_hs,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Hole Spotting", best, norms,
+            no_of_operations=1, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        # for piercing
-        process_description_p = 'Piercing'
-        mechanical_hydrualic_p = None # input by user
-        cutting_forminglength_p = None # input by user
-        material_thickness_p = (material_thickness * cutting_forminglength_p * 470  * 0.75 * 1.1) / 1000 / 9.81
-        
-        process_base_p = (
-            process_base
-            .filter(process_description__icontains="Mechanical")
-            .values_list("process_description", flat=True)
+        # -----------------------------
+        #   5) PIERCING
+        # -----------------------------
+        # Similar calculation as blanking
+        piercing_val = (material_thickness * 520 * 470 * 0.75 * 1.1) / 1000 / 9.81
+        qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
+        best, norms = get_best_process(piercing_val, qs)
+
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Piercing", best, norms,
+            no_of_operations=1, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        best_process_p = pick_process_for_thickness(material_thickness_p, process_base_p)
-        no_of_operation_p = 1 # refer from blank
-        parts_per_cycle_p = 1 # refer from blank
-        process_norm_obj_p = (Processbase.objects.filter(
-                process_description=best_process_p,
-            ).first())
-        
-        process_norm_p = process_norm_obj_p.norms if process_norm_obj_p else None
-        process_cost_unit_p = (process_norm_p * no_of_operation_p) / parts_per_cycle_p
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_p,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_p,
-            cutting_forminglength = cutting_forminglength_p,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_p,
-            no_of_operations = no_of_operation_p,
-            parts_per_cycle = parts_per_cycle_p,
-            norms = process_norm_p,
-            process_cost_unit = process_cost_unit_p,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
+        # -----------------------------
+        #   6) BENDING
+        # -----------------------------
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Bending", None, None,
+            no_of_operations=1, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        # for Bending
-        process_description_b = 'Bending'
-        mechanical_hydrualic_b = None # input by user
-        cutting_forminglength_b = None # input by user
-        best_process_b = None # input by user
-        no_of_operation_b = 1 # refer from blank
-        parts_per_cycle_b = 1 # refer from blank
-        # process_norm_obj_b = (Processbase.objects.filter(
-        #         process_description=best_process_b,
-        #     ).first())
-        
-        # process_norm_b = process_norm_obj_b.norms if process_norm_obj_b else None
-        # process_cost_unit_b = (process_norm_b * no_of_operation_b) / parts_per_cycle_b
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_b,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_b,
-            cutting_forminglength = cutting_forminglength_b,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = None,
-            no_of_operations = no_of_operation_b,
-            parts_per_cycle = parts_per_cycle_b,
-            norms = None,
-            process_cost_unit = None,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
+        # -----------------------------
+        #   7) FORMING
+        # -----------------------------
+        forming_val = (material_thickness * 520 * 470 * 0.75 * 1.1) / 1000 / 9.81
+        qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
+        best, norms = get_best_process(forming_val, qs)
+
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Forming", best, norms,
+            no_of_operations=1, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        # for forming
-        process_description_f = 'Forming'
-        mechanical_hydrualic_f = None # input by user
-        cutting_forminglength_f = None # input by user
-        material_thickness_f = (material_thickness * cutting_forminglength_f * 470  * 0.75 * 1.1) / 1000 / 9.81
-        
-        process_base_f = (
-            process_base
-            .filter(process_description__icontains="Mechanical")
-            .values_list("process_description", flat=True)
+        # -----------------------------
+        #   8) DRESSING
+        # -----------------------------
+        weight = sm.finish_weight / 2
+        qs = Processbase.objects.filter(process_description="Dressing")
+        norms = qs.first().norms if qs.exists() else None
+
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Dressing", "Dressing", norms,
+            no_of_operations=weight, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        best_process_f = pick_process_for_thickness(material_thickness_f, process_base_f)
-        no_of_operation_f = 1 # refer from blank
-        parts_per_cycle_f = 1 # refer from blank
-        process_norm_obj_f = (Processbase.objects.filter(
-                process_description=best_process_f,
-            ).first())
-        
-        process_norm_f = process_norm_obj_f.norms if process_norm_obj_f else None
-        process_cost_unit_f = (process_norm_f * no_of_operation_f) / parts_per_cycle_f
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_f,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_f,
-            cutting_forminglength = cutting_forminglength_f,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_f,
-            no_of_operations = no_of_operation_f,
-            parts_per_cycle = parts_per_cycle_f,
-            norms = process_norm_f,
-            process_cost_unit = process_cost_unit_f,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
+        # -----------------------------
+        #   9) BLOCK SETTING
+        # -----------------------------
+        qs = Processbase.objects.filter(process_description="Block Setting")
+        norms = qs.first().norms if qs.exists() else None
+
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Block Setting", "Block Setting", norms,
+            no_of_operations=weight, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        # for dressing
-        process_description_d = 'Dressing'
-        mechanical_hydrualic_d = "NA"
-        cutting_forminglength_d = "NA"
-        best_process_d = 'Dressing'
-        no_of_operation_d = first_row['finish_weight'] /2 
-        parts_per_cycle_d = 1 # refer from blank
-        process_norm_obj_d = (Processbase.objects.filter(
-                process_description=best_process_d,
-            ).first())
-        
-        process_norm_d = process_norm_obj_d.norms if process_norm_obj_d else None
-        process_cost_unit_d = (process_norm_d * no_of_operation_d) / parts_per_cycle_d
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_d,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_d,
-            cutting_forminglength = cutting_forminglength_d,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_d,
-            no_of_operations = no_of_operation_d,
-            parts_per_cycle = parts_per_cycle_d,
-            norms = process_norm_d,
-            process_cost_unit = process_cost_unit_d,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
+        # -----------------------------
+        #  10) SETTING / ASSEMBLY / HANDLING
+        # -----------------------------
+        qs = Processbase.objects.filter(process_description="Setting, Assembly & Handling")
+        norms = qs.first().norms if qs.exists() else None
+
+        create_smprocess(
+            part_no, process_place, part_description,
+            "Setting, Assembly & Handling",
+            "Setting, Assembly & Handling", norms,
+            no_of_operations=weight, parts_per_cycle=1,
+            unique_csc_id=uid
         )
 
-        # for Block setting
-        process_description_bs = 'Block Setting'
-        mechanical_hydrualic_bs = "NA"
-        cutting_forminglength_bs = "NA"
-        best_process_bs = 'Block Setting'
-        no_of_operation_bs = first_row['finish_weight'] /2 
-        parts_per_cycle_bs = 1 # refer from blank
-        process_norm_obj_bs = (Processbase.objects.filter(
-                process_description=best_process_bs,
-            ).first())
-        
-        process_norm_bs = process_norm_obj_bs.norms if process_norm_obj_bs else None
-        process_cost_unit_bs = (process_norm_bs * no_of_operation_bs) / parts_per_cycle_bs
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_bs,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_bs,
-            cutting_forminglength = cutting_forminglength_bs,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_bs,
-            no_of_operations = no_of_operation_bs,
-            parts_per_cycle = parts_per_cycle_bs,
-            norms = process_norm_bs,
-            process_cost_unit = process_cost_unit_bs,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
-        )
-
-        # for setting, Assembly & Handling
-        process_description_s = 'Setting, Assembly & Handling'
-        mechanical_hydrualic_s = "NA"
-        cutting_forminglength_s = "NA"
-        best_process_s = 'Setting, Assembly & Handling'
-        no_of_operation_s = first_row['finish_weight'] /2 
-        parts_per_cycle_s = 1 # refer from blank
-        process_norm_obj_s = (Processbase.objects.filter(
-                process_description=best_process_s,
-            ).first())
-        
-        process_norm_s = process_norm_obj_s.norms if process_norm_obj_s else None
-        process_cost_unit_s = (process_norm_s * no_of_operation_s) / parts_per_cycle_s
-        SMProcess.objects.create(
-            part_no = part_no,
-            process_type = process_place,
-            part_description = part_description,
-            process_description = process_description_s,
-            thickness  = None,
-            mechanical_hydraulic = mechanical_hydrualic_s,
-            cutting_forminglength = cutting_forminglength_s,
-            press_forcecutting = None,
-            press_forceforming = None,
-            machinetype = best_process_s,
-            no_of_operations = no_of_operation_s,
-            parts_per_cycle = parts_per_cycle_s,
-            norms = process_norm_s,
-            process_cost_unit = process_cost_unit_s,
-            uts = 470,
-            remarks = None,
-            unique_csc_id = bom.unique_csc_id
-        )
-
-        return JsonResponse({"sm_material_by_id": sm_material}, status=200)
+        return JsonResponse({"message": "Processes created successfully"}, status=200)
 
     except Exception as e:
-        # Helpful error payload for debugging (remove in production)
         return JsonResponse({"error": str(e)}, status=500)
