@@ -1,168 +1,32 @@
-@require_http_methods(["GET"])
-def showbomSmMaterial(request, id):
-    try:
-        bom = BOMSheet.objects.filter(id=id).first()
-        if not bom:
-            return JsonResponse({"error": f"No BOM found for id={id}"}, status=404)
+def get_best_process(material_value, qs, mech_hyd=None):
+    best = pick_process_for_thickness(material_value, qs, mech_hyd)
+    obj = Processbase.objects.filter(process_description=best).first()
+    return best, (obj.norms if obj else None)
+def create_smprocess(
+    part_no, process_place, part_description,
+    process_description, machinetype, norms,
+    no_of_operations, parts_per_cycle, unique_csc_id,
+    thickness=None, mechanical_hydraulic=None,
+    cutting_forminglength=None, remarks=None, uts=470
+):
+    process_cost_unit = None
+    if norms:
+        process_cost_unit = (norms * no_of_operations) / parts_per_cycle
 
-        sm = SMMaterial.objects.filter(
-            part_no=bom.part_no,
-            unique_csc_id=bom.unique_csc_id
-        ).first()
-
-        if not sm:
-            return JsonResponse({"error": "No SM Material found"}, status=404)
-
-        sm_type = sm.cutting_process.lower()
-        material_thickness = sm.thickness
-
-        process_base = Processbase.objects.all()
-        part_no = bom.part_no
-        process_place = bom.scope
-        part_description = bom.part_description
-        uid = bom.unique_csc_id
-
-        # -----------------------------
-        #   1) SHEARING
-        # -----------------------------
-        if sm_type == 'shearing':
-            qs = process_base.filter(process_description__icontains="shearing").values_list("process_description", flat=True)
-            best, norms = get_best_process(material_thickness, qs)
-            for proc_name in ["Shearing", "2nd Shearing"]:
-                create_smprocess(
-                    part_no, process_place, part_description,
-                    proc_name, best, norms,
-                    no_of_operations=7, parts_per_cycle=280,
-                    unique_csc_id=uid
-                )
-
-        # -----------------------------
-        #   2) BLANKING
-        # -----------------------------
-        if sm_type == 'blanking':
-            cutting_len = 520
-            tonnage = (material_thickness * cutting_len * 470 * 0.75 * 1.1) / 1000 / 9.81
-            qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
-            best, norms = get_best_process(tonnage, qs, "mechanical")
-
-            create_smprocess(
-                part_no, process_place, part_description,
-                "Blanking", best, norms,
-                no_of_operations=1, parts_per_cycle=1,
-                cutting_forminglength=cutting_len,
-                mechanical_hydraulic="Mechanical",
-                unique_csc_id=uid
-            )
-
-        # -----------------------------
-        #   3) LASER CUTTING
-        # -----------------------------
-        if sm_type == 'laser cutting':
-            qs = process_base.filter(process_description__icontains="laser").values_list("process_description", flat=True)
-            best, norms = get_best_process(material_thickness, qs)
-
-            create_smprocess(
-                part_no, process_place, part_description,
-                "Laser Cutting", best, norms,
-                no_of_operations=1, parts_per_cycle=1,
-                unique_csc_id=uid
-            )
-
-        # -----------------------------
-        #   4) HOLE SPOTTING
-        # -----------------------------
-        best = "Laser cutting Hole spotting"
-        obj = Processbase.objects.filter(process_description=best).first()
-        norms = obj.norms if obj else None
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Hole Spotting", best, norms,
-            no_of_operations=1, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #   5) PIERCING
-        # -----------------------------
-        # Similar calculation as blanking
-        piercing_val = (material_thickness * 520 * 470 * 0.75 * 1.1) / 1000 / 9.81
-        qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
-        best, norms = get_best_process(piercing_val, qs)
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Piercing", best, norms,
-            no_of_operations=1, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #   6) BENDING
-        # -----------------------------
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Bending", None, None,
-            no_of_operations=1, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #   7) FORMING
-        # -----------------------------
-        forming_val = (material_thickness * 520 * 470 * 0.75 * 1.1) / 1000 / 9.81
-        qs = process_base.filter(process_description__icontains="mechanical").values_list("process_description", flat=True)
-        best, norms = get_best_process(forming_val, qs)
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Forming", best, norms,
-            no_of_operations=1, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #   8) DRESSING
-        # -----------------------------
-        weight = sm.finish_weight / 2
-        qs = Processbase.objects.filter(process_description="Dressing")
-        norms = qs.first().norms if qs.exists() else None
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Dressing", "Dressing", norms,
-            no_of_operations=weight, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #   9) BLOCK SETTING
-        # -----------------------------
-        qs = Processbase.objects.filter(process_description="Block Setting")
-        norms = qs.first().norms if qs.exists() else None
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Block Setting", "Block Setting", norms,
-            no_of_operations=weight, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        # -----------------------------
-        #  10) SETTING / ASSEMBLY / HANDLING
-        # -----------------------------
-        qs = Processbase.objects.filter(process_description="Setting, Assembly & Handling")
-        norms = qs.first().norms if qs.exists() else None
-
-        create_smprocess(
-            part_no, process_place, part_description,
-            "Setting, Assembly & Handling",
-            "Setting, Assembly & Handling", norms,
-            no_of_operations=weight, parts_per_cycle=1,
-            unique_csc_id=uid
-        )
-
-        return JsonResponse({"message": "Processes created successfully"}, status=200)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    SMProcess.objects.create(
+        part_no=part_no,
+        process_type=process_place,
+        part_description=part_description,
+        process_description=process_description,
+        thickness=thickness,
+        mechanical_hydraulic=mechanical_hydraulic,
+        cutting_forminglength=cutting_forminglength,
+        machinetype=machinetype,
+        no_of_operations=no_of_operations,
+        parts_per_cycle=parts_per_cycle,
+        norms=norms,
+        process_cost_unit=process_cost_unit,
+        uts=uts,
+        remarks=remarks,
+        unique_csc_id=unique_csc_id
+    )
