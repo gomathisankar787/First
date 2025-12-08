@@ -1,31 +1,79 @@
-<td>
-                            <select class="process-desc" data-id="${proc.id}" >
-                                ${machineTypeOption}
-                            </select>
-                        </td>
-                        <td><input class="process-lenght" data-id="${proc.id}" value="${proc.cutting_forminglength || 0}"></td>
+def UpdateSmProcess(request):
+    try:
+        
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        id = data.get('id')
+        value = data.get('value')
+        value_type = data.get('type')
 
-                        <!-- Machine Type Dropdown -->
-                        <td>
-                            <select class="process-type-desc" data-id="${proc.id}">
-                                ${processTypeOptions}
-                            </select>
-                        </td>
-document.addEventListener("change", function(e){
-                const select = e.target.closest("select")
-                if (e.target.classList.contains("process-desc")){
-                    const rowId = e.target.dataset.id;
-                    const processdescvalue = select.value
-                    idfind(rowId,processdescvalue)
-                }
-                if (e.target.classList.contains("process-type-desc")){
-                    const rowId = e.target.dataset.id;
-                    const processtypedescvalue = select.value
-                    idfind(rowId,processtypedescvalue)
-                }
-                if (e.target.classList.contains("process-length")){
-                    const rowId = e.target.dataset.id;
-                    const processlength = e.target.value
-                    idfind(rowId,processlength)
-                }
-            })
+        sm_process = SMProcess.objects.filter(id=id).first()
+        if value_type == "process-desc":
+            if sm_process.machinetype:
+                sm_process.mechanical_hydraulic = value
+                print('etst',sm_process.machinetype.split(" ")[0])
+                get_best_process
+                return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+            else:
+                sm_process.mechanical_hydraulic = value
+                sm_process.save()
+        return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+def get_best_process(material_value, qs, mech_hyd=None):
+    best = pick_process_for_thickness(material_value, qs, mech_hyd)
+    obj = Processbase.objects.filter(process_description=best).first()
+    return best, (obj.norms if obj else None)
+def pick_process_for_thickness(material_thickness: float, process_list, mech_hyd_req=None):
+    """
+    material_thickness: numeric thickness (e.g. 6)
+    process_list: list/qs of descriptions like:
+        "4 mm Shearing", "10 T Mechanical press", "Laser Cutting 6 mm"
+    mech_hyd_req: for blanking → "mechanical" or "hydraulic"
+    """
+
+    candidates = []
+
+    # Regex for mm (shearing / laser)
+    rx_mm = re.compile(r'(\d+(?:\.\d+)?)\s*mm', re.IGNORECASE)
+
+    # Regex for tonnage (blanking Mechanical/Hydraulic)
+    rx_ton = re.compile(r'(\d+(?:\.\d+)?)\s*T', re.IGNORECASE)
+
+    for p in process_list:
+        desc = p.lower()
+
+        # ------- SHEARING / LASER (mm based) -------
+        if "shearing" in desc or "laser cutting" in desc:
+            mm_match = rx_mm.search(p)
+            if mm_match:
+                mm_value = float(mm_match.group(1))
+                candidates.append((mm_value, p))
+                continue
+
+        # ------- BLANKING (Tonnage) -------
+        if "mechanical" in desc or "hydraulic" in desc:
+
+            # filter by mechanical_hydraulic
+            if mech_hyd_req and mech_hyd_req.lower() not in desc:
+                continue
+
+            t_match = rx_ton.search(p)
+            if t_match:
+                t_value = float(t_match.group(1))
+                candidates.append((t_value, p))
+                continue
+
+    # No match found
+    if not candidates:
+        return None
+
+    # Sort by numeric value
+    candidates.sort(key=lambda x: x[0])
+
+    # Pick first >= required thickness/tonnage
+    for val, desc in candidates:
+        if val >= material_thickness:
+            return desc
+
+    # Otherwise return highest
+    return candidates[-1][1]
