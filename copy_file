@@ -1,3 +1,100 @@
+<div class="modal fade" id="updatecscModal" tabindex="-1" data-backdrop="static" data-keyboard="false" aria-labelledby="updatecscModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content"> 
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Update Bom Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+<div class="form-container">
+                                <form id="sm_process_form" method="post" action="{% url 'bom_details' csc_values.id %}">
+                                    <h5>SM PROCESS</h5>
+                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                    <table class="table table-bordered" id="processTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Part No</th>
+                                                <th>Process Place</th>
+                                                <th>Part Description</th>
+                                                <th>Process Description</th>
+                                                <th>Mechnical/Hydrlic</th>
+                                                <th>Cutg/Frmg Len</th>
+                                                <!-- <th>PressForce Cutting</th>
+                                                <th>PressForce Forming</th> -->
+                                                <th>Machine Type</th>
+                                                <th>No of Ope</th>
+                                                <th>Part per Cycle</th>
+                                                <th>Norms</th>
+                                                <th>Process Cost Unit</th>
+                                                <th>Uts</th>
+                                                <th>Remarks</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class = "smprocessdata" id="processTableBody">
+                                            <tr>
+                                                <td><input id="process_partnumber" style="width: 130px;"></td>
+                                                <td><input id="process_place" style="width: 130px">
+                                                    <!-- <select style="padding: 5px;">
+                                                        <option>Select Process</option>
+                                                        <option>Cutting</option>
+                                                        <option>Forming</option>
+                                                    </select> -->
+                                                </td>
+                                                <td><input id="process_part_description" style="width: 130px;"></td>
+                                                <td>
+                                                    <select>
+                                                        <option>Shearing</option>
+                                                        <option>2nd Shearing</option>
+                                                        <option>Blanking</option>
+                                                        <option>Laser Cutting</option>
+                                                        <option selected>Hole Spotting</option>
+                                                        <option>Piercing</option>
+                                                        <option>Bending</option>
+                                                        <option>Forming</option>
+                                                        <option>Dressing</option>
+                                                        <option>Block_setting</option>
+                                                        <option>Setting_assy_handling</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select>
+                                                        <option value="" disabled selected>Select Process</option>
+                                                        <option>Mechanical Press - Cutting</option>
+                                                        <option>Mechanical Press - Forming</option>
+                                                        <option>Hydraulic Press - Cutting</option>
+                                                        <option>Hydraulic Press - Forming</option>
+                                                    </select>
+                                                </td>
+                                                <td><input></td>
+                                                <!-- <td><input></td>
+                                                <td><input></td> -->
+                                                <td>
+                                                    <select style="width: 130px;" onchange="getMachineTypeNorms(this)">
+                                                        <option value="" disabled selected>Select Type</option>
+                                                        {% for m in process_base %}
+                                                            <option value="{{ m.process_description }}">{{ m.process_description }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input name="norms"></td>
+                                                <td><input></td>
+                                                <td><input></td>
+                                                <td><input style="width: 130px;"></td>
+                                                <td>
+                                                    <!-- <button id="addrow" onclick="processaddRow(this)" type="button">AddRow</button>
+                                                    <button id="delete" onclick="processdeleteRow(this)" type="button">Delete</button> -->
+                                                    <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
+                                                    <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table></div>
+                                </form></div>
 function idfind(id){
                 console.log('id',id)
             }
