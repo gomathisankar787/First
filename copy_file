@@ -1,59 +1,73 @@
-function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist) {
-    const tbody = document.getElementById("processTableBody");
-    tbody.innerHTML = ""; // clear existing rows
+function idfind(id){
+                console.log('id',id)
+            }
+            
+            function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type) {
+                const tbody = document.getElementById("processTableBody");
+                tbody.innerHTML = ""; // clear existing rows
 
-    processList.forEach(proc => {
-        const row = document.createElement("tr");
+                processList.forEach(proc => {
+                    const row = document.createElement("tr");
+                    // console.log('id',proc.id)
+                    // Build Process Description Dropdown
+                    let processDescOptions = `<option value="">Select</option>`;
+                    selectprocessdesclist.forEach(desc => {
+                        const selected = proc.process_description === desc ? "selected" : "";
+                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+                    });
 
-        // Build Process Description Dropdown
-        let processDescOptions = `<option value="">Select</option>`;
-        selectprocessdesclist.forEach(desc => {
-            const selected = proc.process_description === desc ? "selected" : "";
-            processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-        });
+                    // Build Machine Type Dropdown
+                    let processTypeOptions = `<option value="">Select</option>`;
+                    selectprocesslist.forEach(item => {
+                        const selected = proc.machinetype === item.process_description ? "selected" : "";
+                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
+                    });
 
-        // Build Machine Type Dropdown
-        let processTypeOptions = `<option value="">Select</option>`;
-        selectprocesslist.forEach(item => {
-            const selected = proc.machinetype === item.process_description ? "selected" : "";
-            processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-        });
+                    let machineTypeOption = `<option value="">Select</option>`;
+                    machine_type.forEach(item => {
+                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
+                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
+                    })
 
-        row.innerHTML = `
-            <td><input value="${proc.part_no || ''}" style="width:110px"></td>
-            <td><input value="${proc.process_type || ''}"></td>
-            <td><input value="${proc.part_description || ''}"></td>
+                    row.innerHTML = `
+                        <td><input value="${proc.part_no || ''}" style="width:110px"></td>
+                        <td><input value="${proc.process_type || ''}"></td>
+                        <td><input value="${proc.part_description || ''}"></td>
 
-            <!-- Process Description Dropdown -->
-            <td>
-                <select>
-                    ${processDescOptions}
-                </select>
-            </td>
+                        <!-- Process Description Dropdown -->
+                        <td>
+                            <select onchange="idfind('${proc.id}')">
+                                ${processDescOptions}
+                            </select>
+                        </td>
 
-            <td><input value="${proc.mechanical_hydraulic || ''}"></td>
-            <td><input value="${proc.cutting_forminglength || ''}"></td>
+                        <td>
+                            <select>
+                                ${machineTypeOption}
+                            </select>
+                        </td>
+                        <td><input value="${proc.cutting_forminglength || 0}"></td>
 
-            <!-- Machine Type Dropdown -->
-            <td>
-                <select>
-                    ${processTypeOptions}
-                </select>
-            </td>
+                        <!-- Machine Type Dropdown -->
+                        <td>
+                            <select>
+                                ${processTypeOptions}
+                            </select>
+                        </td>
 
-            <td><input value="${proc.no_of_operations || ''}"></td>
-            <td><input value="${proc.parts_per_cycle || ''}"></td>
-            <td><input value="${proc.norms || ''}"></td>
-            <td><input value="${proc.process_cost_unit || ''}"></td>
-            <td><input value="${proc.uts || ''}"></td>
-            <td><input value="${proc.remarks || ''}"></td>
+                        <td><input value="${proc.no_of_operations || ''}"></td>
+                        <td><input value="${proc.parts_per_cycle || ''}"></td>
+                        <td><input value="${proc.norms || ''}"></td>
+                        <td><input value="${proc.process_cost_unit || ''}"></td>
+                        <td><input value="${proc.uts || ''}"></td>
+                        <td><input value="${proc.remarks || ''}"></td>
 
-            <td>
-                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
-            </td>
-        `;
+                        <td>
+                            <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
+                            <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
+                        </td>
+                    `;
 
-        tbody.appendChild(row);
-    });
-}
+                    tbody.appendChild(row);
+                });
+            }
