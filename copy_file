@@ -1,43 +1,59 @@
-sm_process_list = list(SMProcess.objects.filter(unique_csc_id = bom.unique_csc_id,part_no=bom.part_no).values())
-        process_base_list = Processbase.objects.all().values('process_description')
-        process_description_list = ['Shearing','2nd Shearing','Blanking','Laser cutting','Hole spotting','Piercing','Bending','Forming','Dressing','Block Setting','Setting, Assembly & Handling']
+function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist) {
+    const tbody = document.getElementById("processTableBody");
+    tbody.innerHTML = ""; // clear existing rows
 
-        return JsonResponse({"sm_process": sm_process_list,"sm_material_by_id":sm_material,"process_base":process_base_list,"process_desc":process_description_list}, status=200)
-function populateSMProcessTable(processList,selectprocesslist,selectprocessdesclist) {
-                const tbody = document.getElementById("processTableBody");
-                tbody.innerHTML = ""; // clear existing rows
+    processList.forEach(proc => {
+        const row = document.createElement("tr");
 
-                processList.forEach(proc => {
-                    const row = document.createElement("tr");
+        // Build Process Description Dropdown
+        let processDescOptions = `<option value="">Select</option>`;
+        selectprocessdesclist.forEach(desc => {
+            const selected = proc.process_description === desc ? "selected" : "";
+            processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+        });
 
-                    row.innerHTML = `
-                        <td><input value="${proc.part_no || ''}" style="width:110px"></td>
-                        <td><input value="${proc.process_type || ''}"></td>
-                        <td><input value="${proc.part_description || ''}"></td>
-                        <td>
-                            <select>
-                                <option value="proc.process_description">selectprocessdesclist</option>
-                            </select>
-                        </td>
-                        <td><input value="${proc.mechanical_hydraulic || ''}"></td>
-                        <td><input value="${proc.cutting_forminglength || ''}"></td>
-                        <td>
-                            <select>
-                                <option value="proc.machinetype">selectprocesslist</option>
-                            </select>
-                        </td>
-                        <td><input value="${proc.no_of_operations || ''}"></td>
-                        <td><input value="${proc.parts_per_cycle || ''}"></td>
-                        <td><input value="${proc.norms || ''}"></td>
-                        <td><input value="${proc.process_cost_unit || ''}"></td>
-                        <td><input value="${proc.uts || ''}"></td>
-                        <td><input value="${proc.remarks || ''}"></td>
-                        <td>
-                            <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                            <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
-                        </td>
-                    `;
+        // Build Machine Type Dropdown
+        let processTypeOptions = `<option value="">Select</option>`;
+        selectprocesslist.forEach(item => {
+            const selected = proc.machinetype === item.process_description ? "selected" : "";
+            processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
+        });
 
-                    tbody.appendChild(row);
-                });
-            }
+        row.innerHTML = `
+            <td><input value="${proc.part_no || ''}" style="width:110px"></td>
+            <td><input value="${proc.process_type || ''}"></td>
+            <td><input value="${proc.part_description || ''}"></td>
+
+            <!-- Process Description Dropdown -->
+            <td>
+                <select>
+                    ${processDescOptions}
+                </select>
+            </td>
+
+            <td><input value="${proc.mechanical_hydraulic || ''}"></td>
+            <td><input value="${proc.cutting_forminglength || ''}"></td>
+
+            <!-- Machine Type Dropdown -->
+            <td>
+                <select>
+                    ${processTypeOptions}
+                </select>
+            </td>
+
+            <td><input value="${proc.no_of_operations || ''}"></td>
+            <td><input value="${proc.parts_per_cycle || ''}"></td>
+            <td><input value="${proc.norms || ''}"></td>
+            <td><input value="${proc.process_cost_unit || ''}"></td>
+            <td><input value="${proc.uts || ''}"></td>
+            <td><input value="${proc.remarks || ''}"></td>
+
+            <td>
+                <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
+                <i class="bi bi-trash btn" onclick="processdeleteRow(this)"></i>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
