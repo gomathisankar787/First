@@ -1,2 +1,31 @@
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<td>
+                            <select class="process-desc" data-id="${proc.id}" >
+                                ${machineTypeOption}
+                            </select>
+                        </td>
+                        <td><input class="process-lenght" data-id="${proc.id}" value="${proc.cutting_forminglength || 0}"></td>
+
+                        <!-- Machine Type Dropdown -->
+                        <td>
+                            <select class="process-type-desc" data-id="${proc.id}">
+                                ${processTypeOptions}
+                            </select>
+                        </td>
+document.addEventListener("change", function(e){
+                const select = e.target.closest("select")
+                if (e.target.classList.contains("process-desc")){
+                    const rowId = e.target.dataset.id;
+                    const processdescvalue = select.value
+                    idfind(rowId,processdescvalue)
+                }
+                if (e.target.classList.contains("process-type-desc")){
+                    const rowId = e.target.dataset.id;
+                    const processtypedescvalue = select.value
+                    idfind(rowId,processtypedescvalue)
+                }
+                if (e.target.classList.contains("process-length")){
+                    const rowId = e.target.dataset.id;
+                    const processlength = e.target.value
+                    idfind(rowId,processlength)
+                }
+            })
