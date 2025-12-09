@@ -1,79 +1,61 @@
 def UpdateSmProcess(request):
-    try:
-        
+    try:  
         data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
         id = data.get('id')
         value = data.get('value')
         value_type = data.get('type')
 
+        process_base = Processbase.objects.all()
         sm_process = SMProcess.objects.filter(id=id).first()
+        sm = SMMaterial.objects.filter(
+                    part_no=sm_process.part_no,
+                    unique_csc_id=sm_process.unique_csc_id
+                ).values()
+        first = sm.first()
+        rm = RMbase.objects.filter(material_grade = first['material_grade']).first()
+        material_thickness = first['thickness']
         if value_type == "process-desc":
-            if sm_process.machinetype:
-                sm_process.mechanical_hydraulic = value
-                print('etst',sm_process.machinetype.split(" ")[0])
-                get_best_process
-                return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+            sm_process.mechanical_hydraulic = value
+            sm_process.save()
+            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+        if value_type == "process-length":
+            sm_process.cutting_forminglength = value
+            if sm_process.process_description.lower() == 'forming':
+                density = 0.75
             else:
-                sm_process.mechanical_hydraulic = value
-                sm_process.save()
+                density = 1
+            tonnage = (material_thickness * value * rm.UTS * density * 1.1) / 1000 / 9.81
+            qs = process_base.filter(process_description__icontains=sm_process.mechanical_hydraulic).values_list("process_description", flat=True)
+            best, norms = get_best_process(tonnage, qs, sm_process.mechanical_hydraulic)
+            if norms:
+                process_cost_unit = (norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
+            sm_process.machinetype = best
+            sm_process.norms = norms
+            sm_process.process_cost_unit = process_cost_unit
+            sm_process.save()
+            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+        if value_type == "process-type-desc":
+            sm_process.machinetype = value
+            obj = Processbase.objects.filter(process_description=value).first()
+            norms = obj.norms if obj else None
+            if norms:
+                process_cost_unit = (norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
+            sm_process.norms = norms
+            sm_process.process_cost_unit = process_cost_unit
+            sm_process.save()
+            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+        if value_type == "no_of_operation":
+            process_cost_unit = (sm_process.norms * value) / sm_process.parts_per_cycle
+            sm_process.no_of_operations = value
+            sm_process.process_cost_unit = process_cost_unit
+            sm_process.save()
+            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+        if value_type == "parts_per_cycle":
+            process_cost_unit = (sm_process.norms * sm_process.no_of_operations) / value
+            sm_process.parts_per_cycle = value
+            sm_process.process_cost_unit = process_cost_unit
+            sm_process.save()
+            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
         return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-def get_best_process(material_value, qs, mech_hyd=None):
-    best = pick_process_for_thickness(material_value, qs, mech_hyd)
-    obj = Processbase.objects.filter(process_description=best).first()
-    return best, (obj.norms if obj else None)
-def pick_process_for_thickness(material_thickness: float, process_list, mech_hyd_req=None):
-    """
-    material_thickness: numeric thickness (e.g. 6)
-    process_list: list/qs of descriptions like:
-        "4 mm Shearing", "10 T Mechanical press", "Laser Cutting 6 mm"
-    mech_hyd_req: for blanking → "mechanical" or "hydraulic"
-    """
-
-    candidates = []
-
-    # Regex for mm (shearing / laser)
-    rx_mm = re.compile(r'(\d+(?:\.\d+)?)\s*mm', re.IGNORECASE)
-
-    # Regex for tonnage (blanking Mechanical/Hydraulic)
-    rx_ton = re.compile(r'(\d+(?:\.\d+)?)\s*T', re.IGNORECASE)
-
-    for p in process_list:
-        desc = p.lower()
-
-        # ------- SHEARING / LASER (mm based) -------
-        if "shearing" in desc or "laser cutting" in desc:
-            mm_match = rx_mm.search(p)
-            if mm_match:
-                mm_value = float(mm_match.group(1))
-                candidates.append((mm_value, p))
-                continue
-
-        # ------- BLANKING (Tonnage) -------
-        if "mechanical" in desc or "hydraulic" in desc:
-
-            # filter by mechanical_hydraulic
-            if mech_hyd_req and mech_hyd_req.lower() not in desc:
-                continue
-
-            t_match = rx_ton.search(p)
-            if t_match:
-                t_value = float(t_match.group(1))
-                candidates.append((t_value, p))
-                continue
-
-    # No match found
-    if not candidates:
-        return None
-
-    # Sort by numeric value
-    candidates.sort(key=lambda x: x[0])
-
-    # Pick first >= required thickness/tonnage
-    for val, desc in candidates:
-        if val >= material_thickness:
-            return desc
-
-    # Otherwise return highest
-    return candidates[-1][1]
