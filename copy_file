@@ -1,61 +1,89 @@
-def UpdateSmProcess(request):
-    try:  
-        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
-        id = data.get('id')
-        value = data.get('value')
-        value_type = data.get('type')
+from django.http import JsonResponse
+import json
 
-        process_base = Processbase.objects.all()
+def UpdateSmProcess(request):
+    try:
+        data = json.loads(request.body.decode("utf-8")) if request.body else request.POST
+        
+        id = data.get("id")
+        value = data.get("value")
+        value_type = data.get("type")
+
         sm_process = SMProcess.objects.filter(id=id).first()
+        if not sm_process:
+            return JsonResponse({"error": "SM Process not found"}, status=404)
+
+        # Fetch related SM Material
         sm = SMMaterial.objects.filter(
-                    part_no=sm_process.part_no,
-                    unique_csc_id=sm_process.unique_csc_id
-                ).values()
-        first = sm.first()
-        rm = RMbase.objects.filter(material_grade = first['material_grade']).first()
-        material_thickness = first['thickness']
+            part_no=sm_process.part_no,
+            unique_csc_id=sm_process.unique_csc_id
+        ).values().first()
+
+        if not sm:
+            return JsonResponse({"error": "SM Material not found"}, status=404)
+
+        rm = RMbase.objects.filter(material_grade=sm.get("material_grade")).first()
+        material_thickness = sm.get("thickness")
+
+        # ---------- Helper functions ----------
+        def update_cost_using_norms(norms):
+            if norms:
+                return (norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
+            return None
+
+        def update_cost_using_ops_or_ppc():
+            if sm_process.norms:
+                return (sm_process.norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
+            return None
+        # --------------------------------------
+
+        # ---------------- Value Type Handlers ----------------
         if value_type == "process-desc":
             sm_process.mechanical_hydraulic = value
-            sm_process.save()
-            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
-        if value_type == "process-length":
+
+        elif value_type == "process-length":
             sm_process.cutting_forminglength = value
-            if sm_process.process_description.lower() == 'forming':
-                density = 0.75
-            else:
-                density = 1
-            tonnage = (material_thickness * value * rm.UTS * density * 1.1) / 1000 / 9.81
-            qs = process_base.filter(process_description__icontains=sm_process.mechanical_hydraulic).values_list("process_description", flat=True)
-            best, norms = get_best_process(tonnage, qs, sm_process.mechanical_hydraulic)
-            if norms:
-                process_cost_unit = (norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
+            density = 0.75 if sm_process.process_description.lower() == "forming" else 1
+
+            if not rm:
+                return JsonResponse({"error": "RM data missing"}, status=404)
+
+            tonnage = (
+                material_thickness * value * rm.UTS * density * 1.1
+            ) / 1000 / 9.81
+
+            process_base_qs = Processbase.objects.filter(
+                process_description__icontains=sm_process.mechanical_hydraulic
+            ).values_list("process_description", flat=True)
+
+            best, norms = get_best_process(tonnage, process_base_qs, sm_process.mechanical_hydraulic)
+
             sm_process.machinetype = best
             sm_process.norms = norms
-            sm_process.process_cost_unit = process_cost_unit
-            sm_process.save()
-            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
-        if value_type == "process-type-desc":
+            sm_process.process_cost_unit = update_cost_using_norms(norms)
+
+        elif value_type == "process-type-desc":
             sm_process.machinetype = value
             obj = Processbase.objects.filter(process_description=value).first()
+
             norms = obj.norms if obj else None
-            if norms:
-                process_cost_unit = (norms * sm_process.no_of_operations) / sm_process.parts_per_cycle
             sm_process.norms = norms
-            sm_process.process_cost_unit = process_cost_unit
-            sm_process.save()
-            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
-        if value_type == "no_of_operation":
-            process_cost_unit = (sm_process.norms * value) / sm_process.parts_per_cycle
+            sm_process.process_cost_unit = update_cost_using_norms(norms)
+
+        elif value_type == "no_of_operation":
             sm_process.no_of_operations = value
-            sm_process.process_cost_unit = process_cost_unit
-            sm_process.save()
-            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
-        if value_type == "parts_per_cycle":
-            process_cost_unit = (sm_process.norms * sm_process.no_of_operations) / value
+            sm_process.process_cost_unit = update_cost_using_ops_or_ppc()
+
+        elif value_type == "parts_per_cycle":
             sm_process.parts_per_cycle = value
-            sm_process.process_cost_unit = process_cost_unit
-            sm_process.save()
-            return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
-        return JsonResponse({"status":"success","message":"SM process Data Updated Successfully"})
+            sm_process.process_cost_unit = update_cost_using_ops_or_ppc()
+
+        else:
+            return JsonResponse({"error": "Invalid type"}, status=400)
+        # -------------------------------------------------------
+
+        sm_process.save()
+        return JsonResponse({"status": "success", "message": "SM process Data Updated Successfully"})
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
