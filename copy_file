@@ -1,37 +1,3 @@
-class OH_ProfitData(models.Model):
-    process_type = models.CharField(max_length=100)
-    icc_rm = models.FloatField()
-    icc_conv = models.FloatField()
-    icc_bof = models.FloatField()
-    rej_rm = models.FloatField()
-    rej_conv = models.FloatField()
-    rej_bof = models.FloatField()
-    inspection_rm = models.FloatField()
-    inspection_conv = models.FloatField()
-    inspection_bof = models.FloatField()
-    tmc_rm = models.FloatField()
-    tmc_conv = models.FloatField()
-    tmc_bof = models.FloatField()
-    design_cost_rm = models.FloatField()
-    design_cost_conv = models.FloatField()
-    design_cost_bof = models.FloatField()
-    oh_rm = models.FloatField()
-    oh_conv = models.FloatField()
-    oh_bof = models.FloatField()
-    profit_rm = models.FloatField()
-    profit_conv = models.FloatField()
-    profit_bof = models.FloatField()
-    warranty_cost = models.FloatField()
-    inbound_logistics = models.FloatField()
-    updated_on = models.DateField(auto_now=True)
-    effective_from = models.DateField()
-    source = models.CharField(max_length=100,default='default_value')
-    base = models.CharField(max_length=100, default='default_value')
-    remarks = models.TextField(null=True, blank=True)
-    updated_by = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.process_type
 class OhprofitSerializer(serializers.Serializer):
     input_excel = serializers.FileField()
     sheet_name = serializers.CharField()
@@ -39,6 +5,16 @@ class OhprofitSerializer(serializers.Serializer):
     source = serializers.CharField()
     base = serializers.CharField()
     remarks = serializers.CharField()
+
+    def clean_value(self, value):
+        if value is None:
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
+        val = str(value).strip()
+        if val.endswith("%"):
+            return float(val.rstrip("%")) / 100   # convert % to decimal
+        return float(val)
 
     def create(self, validated_data):
         try:
@@ -55,20 +31,19 @@ class OhprofitSerializer(serializers.Serializer):
                 file_path = xlsx_path
 
             book = load_workbook(file_path, data_only=True)
-            print('sheetname',book.sheetnames)
+
             if sheet_name not in book.sheetnames:
                 raise serializers.ValidationError(
                     {"sheet_name": f"Sheet '{sheet_name}' not found"}
                 )
 
             sheet = book[sheet_name]
-
-            final_data = []
-
             rows = list(sheet.rows)
 
             if not rows or len(rows) < 2:
                 raise serializers.ValidationError("Excel sheet is empty")
+
+            final_data = []
 
             for row in rows[1:]:
                 if all(cell.value is None for cell in row):
@@ -76,40 +51,54 @@ class OhprofitSerializer(serializers.Serializer):
 
                 args = [cell.value for cell in row]
 
-                OH_Type = args[0]
-                ICC_on_RM = args[1]
-                ICC_on_Conv = args[2]
-                ICC_on_BOF = args[3]
-                Rej_on_RM = args[4]
-                Rej_on_Conv = args[5]
-                Rej_on_BOF = args[6]
-                Inspection_on_RM = args[7]
-                Inspection_on_Conv = args[8]
-                Inspection_on_BOF = args[9]
-                TMC_on_RM = args[10]
-                TMC_on_Conv = args[11]
-                TMC_on_BOF = args[12]
-                Design_cost_on_RM = args[13]
-                Design_cost_on_Conv = args[14]
-                Design_cost_on_BOF = args[15]
-                OH_on_RM = args[16]
-                OH_on_Conv = args[17]
-                OH_on_BOF = args[18]
-                Profit_on_RM = args[19]
-                Profit_on_Conv = args[20]
-                Profit_on_BOF = args[21]
-                Warranty_Cost = args[22]
-                Inbound_logistics = args[23]
-
                 temp = {
-                    "process_type" : OH_Type,
-                    "icc_rm" : ICC_on_RM,
-                    "icc_conv" : ICC_on_Conv,
-                    "icc_bof" : ICC_on_BOF,
-                    "rej_rm" : Rej_on_RM,
-                    "rej_conv" : Rej_on_Conv,
-                    "rej_bof" : Rej_on_BOF,
-                    "inspection_rm" : Inspection_on_RM,
+                    "process_type": args[0],
+                    "icc_rm": self.clean_value(args[1]),
+                    "icc_conv": self.clean_value(args[2]),
+                    "icc_bof": self.clean_value(args[3]),
+                    "rej_rm": self.clean_value(args[4]),
+                    "rej_conv": self.clean_value(args[5]),
+                    "rej_bof": self.clean_value(args[6]),
+                    "inspection_rm": self.clean_value(args[7]),
+                    "inspection_conv": self.clean_value(args[8]),
+                    "inspection_bof": self.clean_value(args[9]),
+                    "tmc_rm": self.clean_value(args[10]),
+                    "tmc_conv": self.clean_value(args[11]),
+                    "tmc_bof": self.clean_value(args[12]),
+                    "design_cost_rm": self.clean_value(args[13]),
+                    "design_cost_conv": self.clean_value(args[14]),
+                    "design_cost_bof": self.clean_value(args[15]),
+                    "oh_rm": self.clean_value(args[16]),
+                    "oh_conv": self.clean_value(args[17]),
+                    "oh_bof": self.clean_value(args[18]),
+                    "profit_rm": self.clean_value(args[19]),
+                    "profit_conv": self.clean_value(args[20]),
+                    "profit_bof": self.clean_value(args[21]),
+                    "warranty_cost": self.clean_value(args[22]),
+                    "inbound_logistics": self.clean_value(args[23]),
+                    "effective_from": validated_data["effective_from"],
+                    "source": validated_data["source"],
+                    "base": validated_data["base"],
+                    "remarks": validated_data["remarks"],
+                    "updated_by": os.environ.get("USERNAME", "").lower(),
+                }
+
+                final_data.append(temp)
+
+            print("Parsed data:", final_data)
+
+            # Uncomment to save:
+            # with transaction.atomic():
+            #     for item in final_data:
+            #         OH_ProfitData.objects.create(**item)
+
+            return {
+                "total_rows": len(final_data),
+                "parsed_data": final_data,
+            }
+
+        except Exception as e:
+            raise serializers.ValidationError(str(e))                    "inspection_rm" : Inspection_on_RM,
                     "inspection_conv" : Inspection_on_Conv,
                     "inspection_bof" : Inspection_on_BOF,
                     "tmc_rm" : TMC_on_RM,
