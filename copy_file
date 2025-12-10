@@ -1,16 +1,38 @@
-sm = SMMaterial.objects.filter(
-            part_no=bom.part_no,
-            unique_csc_id=bom.unique_csc_id
-        ).values()
-        first = sm.first()
-        sm_material = list(sm)
+class OhprofitSerializer(serializers.Serializer):
+    input_excel = serializers.FileField()
+    sheet_name = serializers.CharField()
 
-        if not sm:
-            return JsonResponse({"error": "No SM Material found"}, status=404)
-        if first['cutting_process'].lower() == 'shearing':
-            process_desc = {'Shearing':1,'2nd Shearing':2,'Hole Spotting':3,'Piercing':4,'Bending':5,'Forming':6,'Dressing':7,'Block Setting':8,'Setting, Assembly & Handling':9}
-        if first['cutting_process'].lower() == 'blanking':
-            process_desc = {'Blanking':1,'Hole Spotting':2,'Piercing':3,'Bending':4,'Forming':5,'Dressing':6,'Block Setting':7,'Setting, Assembly & Handling':8}
-        if first['cutting_process'].lower() == 'shearing':
-            process_desc = {'Laser Cutting':1,'Hole Spotting':2,'Piercing':3,'Bending':4,'Forming':5,'Dressing':6,'Block Setting':7,'Setting, Assembly & Handling':8}    
-        sm_process_list = list(SMProcess.objects.filter(unique_csc_id = bom.unique_csc_id,part_no=bom.part_no).values().order_by('process_desc'))
+    def create(self,validated_data):
+        try:
+            excel_file = validated_data.pop('input_excel')
+            file_name = default_storage.save(excel_file.name,excel_file)
+            file_path = default_storage.path(file_name)
+            df = pd.read_csv(excel_file)
+            xlsx_path = file_path.replace(".csv",".xlsx")
+            df.to_excel(xlsx_path,index=False)
+            file_path = xlsx_path
+            book = load_workbook(file_path, data_only=True)
+            try:
+                sheet = book.get_sheet_by_name(validated_data.pop('sheet_name'))
+            except Exception as e:
+                print('Sheet not found: ', str(e))
+                raise serializers.ValidationError({'Invalid Sheet Name': str(e)})
+            with transaction.atomic():
+                claim_list = []
+                empty_filed = []
+                rows = sheet.rows
+                first_row = list(sheet.rows)[0]
+                claim_info = {}
+                for row in list(rows)[1:]:
+                    if all(cell.value is None for cell in row): #avoid empty appended row error
+                        break
+                    args_excel = [cell.value for cell in row]
+                    # print(args_excel, 'args_excel')
+                    if args_excel[2]==None or args_excel[3]==None:
+                        empty_filed.append(args_excel[1])
+                    claim_list.append(args_excel[1])
+                    temp_dict = {}
+                    temp_dict['claim_no'] = args_excel[1]
+                print('data',temp_dict)
+        except Exception as e:
+            raise Exception(str(e))
