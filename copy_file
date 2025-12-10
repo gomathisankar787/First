@@ -2,37 +2,82 @@ class OhprofitSerializer(serializers.Serializer):
     input_excel = serializers.FileField()
     sheet_name = serializers.CharField()
 
-    def create(self,validated_data):
+    def create(self, validated_data):
         try:
-            excel_file = validated_data.pop('input_excel')
-            file_name = default_storage.save(excel_file.name,excel_file)
+            excel_file = validated_data.pop("input_excel")
+            sheet_name = validated_data.pop("sheet_name")
+
+            # Save uploaded file
+            file_name = default_storage.save(excel_file.name, excel_file)
             file_path = default_storage.path(file_name)
-            df = pd.read_csv(excel_file)
-            xlsx_path = file_path.replace(".csv",".xlsx")
-            df.to_excel(xlsx_path,index=False)
-            file_path = xlsx_path
+
+            # If CSV → Convert to XLSX
+            if file_path.lower().endswith(".csv"):
+                df = pd.read_csv(file_path)
+                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
+                df.to_excel(xlsx_path, index=False)
+                file_path = xlsx_path
+
+            # Load workbook using openpyxl
             book = load_workbook(file_path, data_only=True)
-            try:
-                sheet = book.get_sheet_by_name(validated_data.pop('sheet_name'))
-            except Exception as e:
-                print('Sheet not found: ', str(e))
-                raise serializers.ValidationError({'Invalid Sheet Name': str(e)})
+
+            # Sheet selection (safe method)
+            if sheet_name not in book.sheetnames:
+                raise serializers.ValidationError(
+                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
+                )
+
+            sheet = book[sheet_name]
+
+            claim_list = []
+            empty_fields = []
+            final_data = []
+
+            rows = list(sheet.rows)
+
+            # Validate sheet has rows
+            if not rows or len(rows) < 2:
+                raise serializers.ValidationError("Excel sheet is empty")
+
+            # Skip header row
+            for row in rows[1:]:
+                # Skip fully empty rows (common in Excel)
+                if all(cell.value is None for cell in row):
+                    break
+
+                args = [cell.value for cell in row]
+
+                claim_no = args[1]
+                col2 = args[2]
+                col3 = args[3]
+
+                # Validation example
+                if col2 is None or col3 is None:
+                    empty_fields.append(claim_no)
+
+                claim_list.append(claim_no)
+
+                temp = {
+                    "claim_no": claim_no,
+                    "col2": col2,
+                    "col3": col3,
+                }
+                final_data.append(temp)
+
+            print("Parsed data:", final_data)
+
+            # DB insert inside transaction (if required)
             with transaction.atomic():
-                claim_list = []
-                empty_filed = []
-                rows = sheet.rows
-                first_row = list(sheet.rows)[0]
-                claim_info = {}
-                for row in list(rows)[1:]:
-                    if all(cell.value is None for cell in row): #avoid empty appended row error
-                        break
-                    args_excel = [cell.value for cell in row]
-                    # print(args_excel, 'args_excel')
-                    if args_excel[2]==None or args_excel[3]==None:
-                        empty_filed.append(args_excel[1])
-                    claim_list.append(args_excel[1])
-                    temp_dict = {}
-                    temp_dict['claim_no'] = args_excel[1]
-                print('data',temp_dict)
+                # Example insert loop
+                # for item in final_data:
+                #     ModelName.objects.create(**item)
+                pass
+
+            return {
+                "total_rows": len(final_data),
+                "empty_fields": empty_fields,
+                "parsed_data": final_data,
+            }
+
         except Exception as e:
-            raise Exception(str(e))
+            raise serializers.ValidationError(str(e))
