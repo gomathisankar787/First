@@ -1,22 +1,4 @@
-class OhprofitSerializer(serializers.Serializer):
-    input_excel = serializers.FileField()
-    sheet_name = serializers.CharField()
-    effective_from = serializers.DateField()
-    source = serializers.CharField()
-    base = serializers.CharField()
-    remarks = serializers.CharField()
-
-    def clean_value(self, value):
-        if value is None:
-            return 0.0
-        if isinstance(value, (int, float)):
-            return float(value)
-        val = str(value).strip()
-        if val.endswith("%"):
-            return float(val.rstrip("%")) / 100   # convert % to decimal
-        return float(val)
-
-    def create(self, validated_data):
+def create(self, validated_data):
         try:
             excel_file = validated_data.pop("input_excel")
             sheet_name = validated_data.pop("sheet_name")
@@ -26,12 +8,14 @@ class OhprofitSerializer(serializers.Serializer):
 
             if file_path.lower().endswith(".csv"):
                 df = pd.read_csv(file_path)
+                df = self.clean_frame(df)
                 xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
                 df.to_excel(xlsx_path, index=False)
                 file_path = xlsx_path
 
             book = load_workbook(file_path, data_only=True)
-
+            # default_storage.delete(file_name)
+            # print('sheetname',book.sheetnames)
             if sheet_name not in book.sheetnames:
                 raise serializers.ValidationError(
                     {"sheet_name": f"Sheet '{sheet_name}' not found"}
@@ -42,93 +26,107 @@ class OhprofitSerializer(serializers.Serializer):
 
             if not rows or len(rows) < 2:
                 raise serializers.ValidationError("Excel sheet is empty")
-
+            
             final_data = []
+            if sheet_name == "OH,Profit & Other Base":
+                
+                for row in rows[1:]:
+                    if all(cell.value is None for cell in row):
+                        break
 
-            for row in rows[1:]:
-                if all(cell.value is None for cell in row):
-                    break
+                    args = [cell.value for cell in row]
 
-                args = [cell.value for cell in row]
+                    temp = {
+                        "process_type": args[0],
+                        "icc_rm": self.clean_value(args[1]),
+                        "icc_conv": self.clean_value(args[2]),
+                        "icc_bof": self.clean_value(args[3]),
+                        "rej_rm": self.clean_value(args[4]),
+                        "rej_conv": self.clean_value(args[5]),
+                        "rej_bof": self.clean_value(args[6]),
+                        "inspection_rm": self.clean_value(args[7]),
+                        "inspection_conv": self.clean_value(args[8]),
+                        "inspection_bof": self.clean_value(args[9]),
+                        "tmc_rm": self.clean_value(args[10]),
+                        "tmc_conv": self.clean_value(args[11]),
+                        "tmc_bof": self.clean_value(args[12]),
+                        "design_cost_rm": self.clean_value(args[13]),
+                        "design_cost_conv": self.clean_value(args[14]),
+                        "design_cost_bof": self.clean_value(args[15]),
+                        "oh_rm": self.clean_value(args[16]),
+                        "oh_conv": self.clean_value(args[17]),
+                        "oh_bof": self.clean_value(args[18]),
+                        "profit_rm": self.clean_value(args[19]),
+                        "profit_conv": self.clean_value(args[20]),
+                        "profit_bof": self.clean_value(args[21]),
+                        "warranty_cost": self.clean_value(args[22]),
+                        "inbound_logistics": self.clean_value(args[23]),
+                        "effective_from": validated_data["effective_from"],
+                        "source": validated_data["source"],
+                        "base": validated_data["base"],
+                        "remarks": validated_data["remarks"],
+                        "updated_by": os.environ.get("USERNAME", "").lower(),
+                    }
 
-                temp = {
-                    "process_type": args[0],
-                    "icc_rm": self.clean_value(args[1]),
-                    "icc_conv": self.clean_value(args[2]),
-                    "icc_bof": self.clean_value(args[3]),
-                    "rej_rm": self.clean_value(args[4]),
-                    "rej_conv": self.clean_value(args[5]),
-                    "rej_bof": self.clean_value(args[6]),
-                    "inspection_rm": self.clean_value(args[7]),
-                    "inspection_conv": self.clean_value(args[8]),
-                    "inspection_bof": self.clean_value(args[9]),
-                    "tmc_rm": self.clean_value(args[10]),
-                    "tmc_conv": self.clean_value(args[11]),
-                    "tmc_bof": self.clean_value(args[12]),
-                    "design_cost_rm": self.clean_value(args[13]),
-                    "design_cost_conv": self.clean_value(args[14]),
-                    "design_cost_bof": self.clean_value(args[15]),
-                    "oh_rm": self.clean_value(args[16]),
-                    "oh_conv": self.clean_value(args[17]),
-                    "oh_bof": self.clean_value(args[18]),
-                    "profit_rm": self.clean_value(args[19]),
-                    "profit_conv": self.clean_value(args[20]),
-                    "profit_bof": self.clean_value(args[21]),
-                    "warranty_cost": self.clean_value(args[22]),
-                    "inbound_logistics": self.clean_value(args[23]),
-                    "effective_from": validated_data["effective_from"],
-                    "source": validated_data["source"],
-                    "base": validated_data["base"],
-                    "remarks": validated_data["remarks"],
-                    "updated_by": os.environ.get("USERNAME", "").lower(),
-                }
+                    final_data.append(temp)
 
-                final_data.append(temp)
+                print("Parsed data:", final_data)
 
-            print("Parsed data:", final_data)
+                with transaction.atomic():
+                    for item in final_data:
+                        OH_ProfitData.objects.create(**item)
+            if sheet_name == "RM Base":
+                for row in rows[2:]:
+                    if all(cell.value is None for cell in row):
+                        break
 
-            # Uncomment to save:
-            # with transaction.atomic():
-            #     for item in final_data:
-            #         OH_ProfitData.objects.create(**item)
+                    args = [cell.value for cell in row]
 
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
-            }
+                    temp ={
+                        "category": args[2],
+                        "material_grade": args[3],
+                        "rm_rate": args[4],
+                        "scrap_rate": args[10],
+                        "uom": args[5],
+                        "updated_on":args[8],
+                        "effective_from":args[7],
+                        "source": args[6],
+                        "remarks":args[9],
+                        "base":validated_data["base"],
+                        "updated_by": os.environ.get("USERNAME", "").lower()
+                    }
+                    final_data.append(temp)
+                print("Parsed data:", final_data)
 
-        except Exception as e:
-            raise serializers.ValidationError(str(e))                    "inspection_rm" : Inspection_on_RM,
-                    "inspection_conv" : Inspection_on_Conv,
-                    "inspection_bof" : Inspection_on_BOF,
-                    "tmc_rm" : TMC_on_RM,
-                    "tmc_conv" : TMC_on_Conv,
-                    "tmc_bof" : TMC_on_BOF,
-                    "design_cost_rm" : Design_cost_on_RM,
-                    "design_cost_conv" : Design_cost_on_Conv,
-                    "design_cost_bof" : Design_cost_on_BOF,
-                    "oh_rm" : OH_on_RM,
-                    "oh_conv" : OH_on_Conv,
-                    "oh_bof" : OH_on_BOF,
-                    "profit_rm" : Profit_on_RM,
-                    "profit_conv" : Profit_on_Conv,
-                    "profit_bof" : Profit_on_BOF,
-                    "warranty_cost" : Warranty_Cost,
-                    "inbound_logistics" : Inbound_logistics,
-                    "effective_from":validated_data["effective_from"],
-                    "source":validated_data["source"],
-                    "base":validated_data["base"],
-                    "remarks":validated_data["remarks"],
-                    "updated_by":os.environ.get('USERNAME', '').lower()
-                }
-                final_data.append(temp)
+                with transaction.atomic():
+                    for item in final_data:
+                        RMbase.objects.create(**item)
 
-            print("Parsed data:", final_data)
+            if sheet_name == 'Process Base':
+                for row in rows[2:]:
+                    if all(cell.value is None for cell in row):
+                        break
 
-            # with transaction.atomic():
-            #     # Example insert loop
-            #     for item in final_data:
-            #         OH_ProfitData.objects.create(**item)
+                    args = [cell.value for cell in row]
+
+                    temp ={
+                        "process_category": args[2],
+                        "process_description": args[3],
+                        "norms": args[5],
+                        "uom": args[6],
+                        "updated_on":args[9],
+                        "effective_from":args[8],
+                        "source": args[7],
+                        "remarks":validated_data["remarks"],
+                        "base":validated_data["base"],
+                        "updated_by": os.environ.get("USERNAME", "").lower()
+                    }
+                    final_data.append(temp)
+                print("Parsed data:", final_data)
+
+                with transaction.atomic():
+                    for item in final_data:
+                        Processbase.objects.create(**item)
 
             return {
                 "total_rows": len(final_data),
@@ -137,4 +135,4 @@ class OhprofitSerializer(serializers.Serializer):
 
         except Exception as e:
             raise serializers.ValidationError(str(e))
-Parsed data: [{'process_type': 'Sheet Metal-A', 'icc_rm': '2.25%', 'icc_conv': '0%', 'icc_bof': '1.50%', 'rej_rm': '0.50%', 'rej_conv': '1%', 'rej_bof': '0.50%', 'inspection_rm': '0%', 'inspection_conv': '0%', 'inspection_bof': '0%', 'tmc_rm': '0%', 'tmc_conv': '2%', 'tmc_bof': '0%', 'design_cost_rm': '0%', 'design_cost_conv': '0%', 'design_cost_bof': '0%', 'oh_rm': '0%', 'oh_conv': '15%', 'oh_bof': '0%', 'profit_rm': '8%', 'profit_conv': '8%', 'profit_bof': '3%', 'warranty_cost': '0%', 'inbound_logistics': '0%', 'effective_from': datetime.date(2025, 12, 10), 'source': 'test', 'base': 'Dec-2025', 'remarks': 'test', 'updated_by': 'parthiban.c1'}]
+Parsed_data:[{'category': 'Bus body SM', 'material_grade': '0.9mm pre painted GI sheet', 'rm_rate': 78.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 8, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': '0.55mm pre painted GI sheet', 'rm_rate': 84.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 8, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': '0.8mm PVC coated GI sheet(0.6+0.2)', 'rm_rate': '\xa0', 'scrap_rate': 30.5, 'uom': '\xa0', 'updated_on': '\xa0', 'effective_from': '\xa0', 'source': '\xa0', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': 'GI Sheet_2mm', 'rm_rate': 68.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 5, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': 'GI Sheet_3mm', 'rm_rate': 76.17, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 5, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}}
