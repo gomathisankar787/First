@@ -1,160 +1,27 @@
-    def con_user_production_report(self, user_info, prod_report, usr_biomet):
-        prod_info = {}
-        usr_info = {}
-        for usr in user_info:
-            try:
-                for wrktime in usr_biomet:
-                    usr_res = {}
-                    usr_res['shift_name'] = usr['shift_name']
-                    usr_res['shift_frm'] = usr['shift_frm']  #+ ' to ' + usr['shift_to']
-                    usr_res['shift_to'] = usr['shift_to']
-                    usr_res['user_id'] = usr['id']
-                    usr_res['dept_name'] = usr['dept_name']
-                    usr_res['user_name'] = usr['first_name'] + " " + usr['last_name']
-                    usr_res['user_fulname'] = usr['first_name'] + " " + usr['last_name']
-                    if wrktime["bio_id"] == usr['bm_usr_id']:
-                        if len(wrktime):
-                            if wrktime['work_time_hhmm'] is None or str(wrktime['work_time_hhmm']).startswith('0'):
-                                usr_res['bio_time'] = '0:00'
-                                usr_res['process_date'] = wrktime['process_date']
-                                usr_res['break_hours'] = '0:00'
-                                usr_res['gross_work_hours'] = '0:00'
-                                usr_res['less_hours'] = '0:00'
-                            else:
-                                b_time = wrktime['work_time_hhmm']
-                                if type(b_time)!=str:
-                                    bi_time = self.hrs_format(b_time)
-                                    usr_res['bio_time'] = datetime.strptime(bi_time, "%H:%M:%S").strftime("%H:%M")
-                                    usr_res['process_date'] = wrktime['process_date']
-                                    usr_res['break_hours'] = wrktime['break_hours']
-                                    usr_res['gross_work_hours'] = wrktime['gross_work_hours']
-                                    usr_res['less_hours'] = wrktime['less_hours']
-                                else:
-                                    usr_res['bio_time'] = '0:00'
-                                    usr_res['process_date'] = wrktime['process_date']
-                                    usr_res['break_hours'] = '0:00'
-                                    usr_res['gross_work_hours'] = '0:00'
-                                    usr_res['less_hours'] = '0:00'
-                                    
-                        else:
-                            usr_res['bio_time'] = '0:00'
-                            usr_res['process_date'] = wrktime['process_date']
-                            usr_res['break_hours'] = '0:00'
-                            usr_res['gross_work_hours'] = '0:00'
-                            usr_res['less_hours'] = '0:00'
-                        usr_info[usr['id'], wrktime['process_date'].strftime('%m-%d-%Y')] = usr_res
-                        
-                        
-            except Exception as ex:
-                print('usr_biomet err: ',str(ex))
-        user_prod_info = {}
-        if prod_report:
-            for prod in prod_report:
-                try:
-                    prod_info[prod['user_id'], prod['task_date'].strftime('%m-%d-%Y')] = prod
-                    prod['user_name'] = prod['usr_fname'] + ' ' + prod['usr_lname']
-                    prod['user_fulname'] = prod['usr_fname'] + ' ' + prod['usr_lname']
-                    prod['task_date'] = prod['task_date'].strftime('%m-%d-%Y')
-                    prod['avg_prd_percent'] = round(prod['avg_prd_percent'], 2)
-                    prod['total_time'] = self.hour_to_min(prod['tsk_tot_time'])
-                    prod['gen_total_time'] = self.hour_to_min(prod['tsk_gen_time'])
-                    prod['down_time'] = self.hour_to_min(prod['tsk_down_time']) if prod['tsk_down_time'] != None else '0:00'
-                    try:
-                        usr_addon = usr_info[prod['user_id'], prod['task_date']]
-                        if usr_addon is None:
-                            prod['shift_name'] = ''
-                            prod['shift_frm'] = ''
-                            prod['shift_to'] = ''
-                            prod['bio_time'] = ''
-                            prod['bio_diff'] = ''
-                            prod['bio_diff_org'] = ''
-                            prod['bio_diff_flag'] = ''
-                        else:
-                            prod['shift_name'] = usr_addon['shift_name']
-                            prod['shift_frm'] = usr_addon['shift_frm']
-                            prod['shift_to'] = usr_addon['shift_to']
-                            prod['bio_time'] = usr_addon['bio_time']
-                            prod['bio_diff_org'] = usr_addon['bio_time']
-                            prod['bio_diff'], prod['bio_diff_flag'] = self.bio_time_diff(prod['total_time'], prod['bio_diff_org'])
-                    except Exception as e:
-                        print('error:', str(e))
-                        for usr in user_info:
-                            if usr['id'] == prod['user_id']:
-                                prod['shift_name'] = usr['shift_name']
-                                prod['shift_frm'] = usr['shift_frm']
-                                prod['shift_to'] = usr['shift_to']
-                                prod['bio_time'] = '0:00'
-                                prod['bio_diff_org'] = '0:00'
-                                prod['bio_diff'], prod['bio_diff_flag'] = self.bio_time_diff(prod['total_time'], prod['bio_diff_org'])
-                    user_prod_info[prod['user_id'], prod['task_date']] = prod 
-                    
-                except Exception as ex:
-                    print('Production time sheet e: ', ex)
-        usr_prod_info = {}
-        for user in usr_info:
-            if user not in prod_info:
-                if type(usr_info[user]['bio_time']) == str:
-                    time1 = datetime.strptime(usr_info[user]['bio_time'], "%H:%M")
-                    time2 = datetime(1900,1,1)
-                if (time1-time2).total_seconds() / 60.0 > 0:
-                    cur_prod = {}
-                    usr_prod_info[user] = cur_prod
-                    cur_prod['user_name'] = usr_info[user]['user_name']
-                    cur_prod['user_fulname'] = usr_info[user]['user_fulname']
-                    cur_prod['task_date'] = user[1] #.strftime("%m-%d-%Y")
-                    cur_prod['user_id'] = user[0] #usr_info[user]['user_id']
-                    cur_prod['inp_tsk_cnt'] = None
-                    cur_prod['hold_tsk_cnt'] = None
-                    cur_prod['cmp_tsk_cnt'] = None
-                    cur_prod['tot_tsk_cnt'] = None
-                    cur_prod['avg_prd_percent'] = None
-                    cur_prod['total_time'] = '0:00'
-                    cur_prod['down_time'] = '0:00'
-                    cur_prod['gen_total_time'] = '0:00'
-                    cur_prod['dept_name'] = usr_info[user]['dept_name']
-                    cur_prod['shift_name']= usr_info[user]['shift_name']
-                    cur_prod['shift_frm']= usr_info[user]['shift_frm']
-                    cur_prod['shift_to']= usr_info[user]['shift_to']
-                    cur_prod['bio_time']= usr_info[user]['bio_time']
-                    cur_prod['bio_diff_org']= usr_info[user]['bio_time']
-                    cur_prod['bio_diff'], cur_prod['bio_diff_flag'] = bio_time_diff('0:00', cur_prod['bio_diff_org'])
-            prod_info.update(usr_prod_info)
-        prod_info = OrderedDict(sorted(prod_info.items(),key = lambda x: getitem(x[1], 'task_date')))
-        return prod_info
+const isNestingNeeded = button.data('is_nesting_needed')
+            console.log('isdf',isNestingNeeded)
+            const noOfBlanksInput = document.querySelector('input[name="no_of_blanks"]');
 
-    def get_user_prod_report(self, start_date, end_date, filter_query, user_filter_query, active_flag):
-        try:
-            prod_report = ProdTimeSheet.objects.values(
-                'user_id', 'task_date').prefetch_related('user_id', 'task_status').filter(
-                filter_query, Q(user_id__is_active=active_flag),task_date__range=[start_date, end_date]).annotate(
-                usr_fname=F('user_id__first_name'), usr_lname=F('user_id__last_name'), dept_name=F('user__dept__name'),
-                inp_tsk_cnt=Count('id', filter=Q(task_status=1)), cmp_tsk_cnt=Count('id', filter=Q(task_status=3)),
-                hold_tsk_cnt=Count('id', filter=Q(task_status=2)), tot_tsk_cnt=Count('id'), tsk_tot_time=Sum('total_time'),
-                tsk_down_time=Sum('total_time', filter=Q(project__is_down_time=True)),
-                tsk_gen_time=Sum('total_time', filter=~Q(project__is_down_time=True)),
-                total_per=Sum('prod_percent'), avg_prd_percent=Avg('prod_percent')
-                ).order_by('task_date')
-            usr_info = User.objects.filter(user_filter_query, is_active=True).values(
-                'id','first_name', 'last_name','bm_usr_id','shift','shift_frm','shift_to',
-                shift_name = F('shift__shift_name'), usr_id = F('id'), dept_name=F('dept__name'))
-            ideal_hours = datetime.timedelta(hours=8, minutes=30)
+            if (isNestingNeeded === "Yes") {
+                // console.log('if worked')
+                // noOfBlanksInput.removeAttribute('readonly',false);
+                console.log('noofblanks',noOfBlanksInput)                
+                noOfBlanksInput.readOnly = false;           // preferred over set/removeAttribute
+                noOfBlanksInput.classList.remove('readonly');
 
-            usr_biomet = BiometricDetails.objects.prefetch_related('user_id').filter(
-                filter_query, Q(user_id__is_active=active_flag), process_date__range=[start_date, end_date]
-                ).values('bio_id', 'bio_name', 'process_date', 'work_time', 'work_time_hhmm', 'department_name', 'user_id','first_punch','out_punch').annotate(break_hours=(F('out_punch')-F('first_punch'))-F('work_time_hhmm'),gross_work_hours=F('out_punch')-F('first_punch'),less_hours=Case(
-        When(
-            work_time_hhmm__lte=ideal_hours,
-            then=ExpressionWrapper(
-                Value(ideal_hours) - F("work_time_hhmm"),
-                output_field=DurationField()
-            )
-        ),
-        default=Value(datetime.timedelta(0)),
-        output_field=DurationField()
-    )
-)
 
-            usr_prd_repport = self.con_user_production_report(usr_info, prod_report, usr_biomet)
-            return usr_prd_repport
-        except Exception as e:
-            print('Production Timesheet error :',e)
+            } else {
+                // noOfBlanksInput.setAttribute('readonly',true);
+                // document.querySelector('input[name="no_of_blanks"]').style.backgroundColor= "#e9ecef";
+                                
+                noOfBlanksInput.readOnly = true;
+                noOfBlanksInput.classList.add('readonly');
+                noOfBlanksInput.style.backgroundColor = "#e9ecef";
+                console.log('noofblanks',noOfBlanksInput)
+
+            }
+
+
+isdf No
+34/:7591 noofblanks <input type name=​"no_of_blanks" value=​"280" id=​"no_of_blanks" readonly class=​"readonly">​
+but didn't affect the ui
