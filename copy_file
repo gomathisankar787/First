@@ -4,13 +4,19 @@ function populateSMProcessTable(processList, selectprocesslist, selectprocessdes
 
                 processList.forEach(proc => {
                     const row = document.createElement("tr");
+                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting"]
+                    let rowColor = "";
                     // console.log('id',proc.id)
                     // Build Process Description Dropdown
                     let processDescOptions = `<option value="">Select</option>`;
                     selectprocessdesclist.forEach(desc => {
                         const selected = proc.process_description === desc ? "selected" : "";
                         processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+                        if (greyGroup.includes(proc.process_description)){
+                            rowCOlor = "background-color: #e6e6e6;"; 
+                        }
                     });
+                    row.setAttribute("style",rowColor)
 
                     // Build Machine Type Dropdown
                     let processTypeOptions = `<option value="">Select</option>`;
@@ -71,6 +77,3 @@ function populateSMProcessTable(processList, selectprocesslist, selectprocessdes
                     });
                 });
             }
-process_base = ['Shearing','2nd Shearing','Blanking','Laser Cutting','Hole Spotting','Piercing','Bending','Forming','Dressing','Block Setting','Setting, Assembly & Handling']
-for shearing, 2nd shearing, laser cutting full row background colour should light grey, for blanking, hole spotting , piercing, bending and forming full row background colour should light yellow and dressing, block setting and 
-setting assembly & handling full row background colour should light green. so i need these dynamic styling.
