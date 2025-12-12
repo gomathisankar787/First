@@ -1,141 +1,76 @@
-def create(self, validated_data):
-        try:
-            excel_file = validated_data.pop("input_excel")
-            sheet_name = validated_data.pop("sheet_name")
+function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type) {
+                const tbody = document.getElementById("processTableBody");
+                tbody.innerHTML = ""; // clear existing rows
 
-            file_name = default_storage.save(excel_file.name, excel_file)
-            file_path = default_storage.path(file_name)
+                processList.forEach(proc => {
+                    const row = document.createElement("tr");
+                    // console.log('id',proc.id)
+                    // Build Process Description Dropdown
+                    let processDescOptions = `<option value="">Select</option>`;
+                    selectprocessdesclist.forEach(desc => {
+                        const selected = proc.process_description === desc ? "selected" : "";
+                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+                    });
 
-            if file_path.lower().endswith(".csv"):
-                df = pd.read_csv(file_path)
-                df = self.clean_frame(df)
-                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
-                df.to_excel(xlsx_path, index=False)
-                file_path = xlsx_path
+                    // Build Machine Type Dropdown
+                    let processTypeOptions = `<option value="">Select</option>`;
+                    selectprocesslist.forEach(item => {
+                        const selected = proc.machinetype === item.process_description ? "selected" : "";
+                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
+                    });
 
-            book = load_workbook(file_path, data_only=True)
-            # default_storage.delete(file_name)
-            # print('sheetname',book.sheetnames)
-            if sheet_name not in book.sheetnames:
-                raise serializers.ValidationError(
-                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
-                )
+                    let machineTypeOption = `<option value="">Select</option>`;
+                    machine_type.forEach(item => {
+                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
+                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
+                    })
 
-            sheet = book[sheet_name]
-            rows = list(sheet.rows)
+                    row.innerHTML = `
+                        <td><input value="${proc.part_no || ''}" style="width:110px"></td>
+                        <td><input value="${proc.process_type || ''}"></td>
+                        <td><input value="${proc.part_description || ''}"></td>
 
-            if not rows or len(rows) < 2:
-                raise serializers.ValidationError("Excel sheet is empty")
-            
-            final_data = []
-            if sheet_name == "OH,Profit & Other Base":
-                
-                for row in rows[1:]:
-                    if all(cell.value is None for cell in row):
-                        break
+                        <!-- Process Description Dropdown -->
+                        <td>
+                            <select class="process_description" data-id="${proc.id}">
+                                ${processDescOptions}
+                            </select>
+                        </td>
 
-                    args = [cell.value for cell in row]
+                        <td>
+                            <select class="process-desc" data-id="${proc.id}" >
+                                ${machineTypeOption}
+                            </select>
+                        </td>
+                        <td><input class="process-length" data-id="${proc.id}" value="${proc.cutting_forminglength || ''}"></td>
 
-                    temp = {
-                        "process_type": args[0],
-                        "icc_rm": self.clean_value(args[1]),
-                        "icc_conv": self.clean_value(args[2]),
-                        "icc_bof": self.clean_value(args[3]),
-                        "rej_rm": self.clean_value(args[4]),
-                        "rej_conv": self.clean_value(args[5]),
-                        "rej_bof": self.clean_value(args[6]),
-                        "inspection_rm": self.clean_value(args[7]),
-                        "inspection_conv": self.clean_value(args[8]),
-                        "inspection_bof": self.clean_value(args[9]),
-                        "tmc_rm": self.clean_value(args[10]),
-                        "tmc_conv": self.clean_value(args[11]),
-                        "tmc_bof": self.clean_value(args[12]),
-                        "design_cost_rm": self.clean_value(args[13]),
-                        "design_cost_conv": self.clean_value(args[14]),
-                        "design_cost_bof": self.clean_value(args[15]),
-                        "oh_rm": self.clean_value(args[16]),
-                        "oh_conv": self.clean_value(args[17]),
-                        "oh_bof": self.clean_value(args[18]),
-                        "profit_rm": self.clean_value(args[19]),
-                        "profit_conv": self.clean_value(args[20]),
-                        "profit_bof": self.clean_value(args[21]),
-                        "warranty_cost": self.clean_value(args[22]),
-                        "inbound_logistics": self.clean_value(args[23]),
-                        "effective_from": validated_data["effective_from"],
-                        "source": validated_data["source"],
-                        "base": validated_data["base"],
-                        "remarks": validated_data["remarks"],
-                        "updated_by": os.environ.get("USERNAME", "").lower(),
-                    }
+                        <!-- Machine Type Dropdown -->
+                        <td>
+                            <select class="process-type-desc" data-id="${proc.id}">
+                                ${processTypeOptions}
+                            </select>
+                        </td>
 
-                    final_data.append(temp)
+                        <td><input class="process_no_of_operations" data-id="${proc.id}" value="${proc.no_of_operations || ''}"></td>
+                        <td><input class="process_parts_per_cycle" data-id="${proc.id}" value="${proc.parts_per_cycle || ''}"></td>
+                        <td><input value="${proc.norms || ''}"></td>
+                        <td><input value="${proc.process_cost_unit || ''}"></td>
+                        <td><input class="process_remarks" data-id="${proc.id}" value="${proc.remarks || ''}"></td>
 
-                print("Parsed data:", final_data)
+                        <td>
+                            <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
+                            <i class="bi bi-trash btn" onclick="processdeleteRow(this,${proc.id})"></i>
+                        </td>
+                    `;
 
-                with transaction.atomic():
-                    for item in final_data:
-                        OH_ProfitData.objects.create(**item)
-            if sheet_name == "RM Base":
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "category": args[2],
-                        "material_grade": args[3],
-                        "rm_rate": args[4],
-                        "scrap_rate": args[10],
-                        "uom": args[5],
-                        "updated_on":args[8],
-                        "effective_from":args[7],
-                        "source": args[6],
-                        "remarks":args[9],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        RMbase.objects.create(**item)
-
-            if sheet_name == 'Process Base':
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "process_category": args[2],
-                        "process_description": args[3],
-                        "norms": args[5],
-                        "uom": args[6],
-                        "updated_on":args[9],
-                        "effective_from":args[8],
-                        "source": args[7],
-                        "remarks":validated_data["remarks"],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        Processbase.objects.create(**item)
-
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
+                    tbody.appendChild(row);
+                    $(row).find('.process-type-desc').select2({
+                        dropdownParent: $('#updatecscModal'),
+                        width: '200px',
+                        placeholder: 'Select Machine Type',
+                    });
+                });
             }
-
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
-Parsed_data:[{'category': 'Bus body SM', 'material_grade': '0.9mm pre painted GI sheet', 'rm_rate': 78.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 8, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': '0.55mm pre painted GI sheet', 'rm_rate': 84.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 8, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': '0.8mm PVC coated GI sheet(0.6+0.2)', 'rm_rate': '\xa0', 'scrap_rate': 30.5, 'uom': '\xa0', 'updated_on': '\xa0', 'effective_from': '\xa0', 'source': '\xa0', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': 'GI Sheet_2mm', 'rm_rate': 68.06, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 5, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}, {'category': 'Bus body SM', 'material_grade': 'GI Sheet_3mm', 'rm_rate': 76.17, 'scrap_rate': 30.5, 'uom': 'Kg', 'updated_on': datetime.datetime(2024, 10, 4, 0, 0), 'effective_from': datetime.datetime(2024, 5, 1, 0, 0), 'source': 'Sourcing Input', 'remarks': '\xa0', 'base': 'Dec-25', 'updated_by': 'parthiban.c1'}]
-{
-  "Invalid Request": "[ErrorDetail(string=\"Field 'rm_rate' expected a number but got '\\\\xa0'.\", code='invalid')]"
-}
+process_base = ['Shearing','2nd Shearing','Blanking','Laser Cutting','Hole Spotting','Piercing','Bending','Forming','Dressing','Block Setting','Setting, Assembly & Handling']
+for shearing, 2nd shearing, laser cutting full row background colour should light grey, for blanking, hole spotting , piercing, bending and forming full row background colour should light yellow and dressing, block setting and 
+setting assembly & handling full row background colour should light green. so i need these dynamic styling.
