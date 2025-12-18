@@ -1,129 +1,16 @@
-function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type) {
-                const tbody = document.getElementById("processTableBody");
-                tbody.innerHTML = ""; // clear existing rows
-
-                processList.forEach(proc => {
-                    const row = document.createElement("tr");
-                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting","Hole Spotting"]
-                    const shearing = ["Shearing"]
-                    // const yellowGroup = ["Blanking","Hole Spotting","Piercing","Bending","Forming"]
-                    const greenGroup = ["Dressing","Block Setting","Setting, Assembly & Handling"]
-                    // let rowColor = "";
-                    // if (greyGroup.includes(proc.process_description)){
-                    //         rowColor = "background-color: #e6e6e6;"; 
-                    // } else if (yellowGroup.includes(proc.process_description)){
-                    //     rowColor = "background-color: #d7f7f7;"
-                    // }else if(greenGroup.includes(proc.process_description)){
-                    //     rowColor = "background-color:#f7f1d5;"
-                    // }
-                    
-                    // row.setAttribute("style",rowColor)
-                    // console.log('id',proc.id)
-                    // Build Process Description Dropdown
-                    let processDescOptions = `<option value="">Select</option>`;
-                    selectprocessdesclist.forEach(desc => {
-                        const selected = proc.process_description === desc ? "selected" : "";
-                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-                    });
-                    
-                    // Build Machine Type Dropdown
-                    let processTypeOptions = `<option value="">Select</option>`;
-                    selectprocesslist.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
-
-                    let machineTypeOption = `<option value="">Select</option>`;
-                    machine_type.forEach(item => {
-                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
-                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
-                    })
-
-                    row.innerHTML = `
-                        <td><input value="${proc.part_no || ''}" readonly style="background-color:e6e6e6;width:110px"></td>
-                        <td><input value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input value="${proc.part_description || ''}" readonly style="background-color:e6e6e6"></td>
-
-                        <!-- Process Description Dropdown -->
-                        <td>
-                            <select class="process_description" data-id="${proc.id}">
-                                ${processDescOptions}
-                            </select>
-                        </td>
-
-                        <td>
-                            <select class="process-desc" name="machine_type" data-id="${proc.id}" >
-                                ${machineTypeOption}
-                            </select>
-                        </td>
-                        <td><input class="process-length" name="cutting_length" data-id="${proc.id}" value="${proc.cutting_forminglength || ''}"></td>
-
-                        <!-- Machine Type Dropdown -->
-                        <td>
-                            <select class="process-type-desc" data-id="${proc.id}">
-                                ${processTypeOptions}
-                            </select>
-                        </td>
-
-                        <td><input class="process_no_of_operations" name="no_of_operation" data-id="${proc.id}" value="${proc.no_of_operations || ''}"></td>
-                        <td><input class="process_parts_per_cycle" name="parts_per_cycle" data-id="${proc.id}" value="${proc.parts_per_cycle || ''}"></td>
-                        <td><input value="${proc.norms || ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input value="${proc.process_cost_unit || ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input class="process_remarks" data-id="${proc.id}" value="${proc.remarks || ''}"></td>
-
-                        <td>
-                            <i class="bi bi-plus-circle btn" onclick="processaddRow(this)"></i>
-                            <i class="bi bi-trash btn" onclick="processdeleteRow(this,${proc.id})"></i>
-                        </td>
-                    `;
-
-                    tbody.appendChild(row);
-                    $(row).find('.process-type-desc').select2({
-                        dropdownParent: $('#updatecscModal'),
-                        width: '200px',
-                        placeholder: 'Select Machine Type',
-                    });
-
-                    if(shearing.includes(proc.process_description)){
-                        const no_of_operation = row.querySelector('input[name="no_of_operation"]');
-                        no_of_operation.readOnly = true;
-                        no_of_operation.style.backgroundColor = "#e6e6e6"
-
-                        const parts_per_cycle = row.querySelector('input[name="parts_per_cycle"]');
-                        parts_per_cycle.readOnly = true;
-                        parts_per_cycle.style.backgroundColor = "#e6e6e6"
-                    }
-
-                    if (greenGroup.includes(proc.process_description)){
-                        const Input = row.querySelectorAll("input");
-                        Input.forEach(input=>{
-                            input.readOnly = true;
-                            input.style.backgroundColor = "#d7f7f7";
-                        });
-                        const selects = row.querySelectorAll("select");
-                        selects.forEach(select=>{
-                            select.disabled = true;
-                            select.style.backgroundColor = "#d7f7f7"
-                        })
-                        
-                        let select2Element = $(row).find('.process-type-desc');
-                        if (select2Element.length && select2Element.data("select2")){
-                            select2Element.prop("disabled",true).trigger("change.select2");
-                            let select2Box = select2Element.next(".select2-container").find(".select2-selection");
-                            select2Box.css({"background-color":"#d7f7f7"})
-                        }
-
-                    }
-
-                    if (greyGroup.includes(proc.process_description)){
-                        const machine_type = row.querySelector('select[name="machine_type"]');
-                        machine_type.disabled = true;
-                        machine_type.style.backgroundColor = "#e6e6e6";
-
-                        const cutting_length = row.querySelector('input[name="cutting_length"]');
-                        cutting_length.readOnly = true;
-                        cutting_length.style.backgroundColor = "#e6e6e6"
-                    }
-                    
-                });
-            }
+class AssemblyCost(models.Model):
+    class labour:
+        SKILLED = 150
+        SEMI SKILLED = 125
+        UNSKILLED = 100
+    part_no = models.CharField(max_length=100)
+    process_description = models.CharField(null=True,blank=True)
+    cycle_time = models.FloatField(null=True,blank=True)
+    MHR = models.FloatField(null=True,blank=True)
+    machine_cost = models.FloatField(null=True,blank=True)
+    no_of_labour = models.IntegerField(null=True,blank=True)
+    labour_type = models.IntegerChoices()
+    labour_rates = models.IntegerChoices()
+    labour_cost = models.FloatField(null=True,blank=True)
+    assembly_cost_per_unit = models.FloatField(null=True,blank=True)
+    remarks = models.CharField(null=True,blank=True)
