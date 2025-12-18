@@ -1,86 +1,18 @@
-# url
-path('fetch_assembly',views.FetchAssemblyDetails.as_view())
-# serializer
-class FetchAssemblyDetailsSerializer(serializers.Serializer):
-    bom_id = serializers.IntegerField()
-#view
-class FetchAssemblyDetails(generics.GenericAPIView):
-    @swagger_auto_schema(request_body = FetchAssemblyDetailsSerializer)
-    def post(self,request):
-        bom_id = request.data.get('bom_id')
-        bom_obj = BOMSheet.objects.filter(id=bom_id).first()
-        welding_process = list(SMProcess.objects.filter(unique_csc_id=bom_obj.unique_csc_id,part_no=bom_obj.part_no,proess_description="Welding").first())
-        return Response(welding_process)
-# js
-$('#AssemblyModal').on('show.bs.modal',function (event){
-                var asbutton = $(event.relatedTarget);
-                var bomId = asbutton.data('id')
-                var partNo = asbutton.data('partno');
-                var place = asbutton.data('scope');
-                const response = fetch("/fetch_assembly/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body:{bom_id:bomId}
-                    })
-                    .then(response=>{
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data=>{
-                        populateWeldingValues(data);
-                    })
-                    .catch(err => {
-                        console.error("Failed to load process base:", err);
-                    });
-            })
-function populateWeldingValues(data){
-                const tbody = document.getElementById("weldingbody");
-                tbody.innerHTML = "";
-                const row = document.createElement("tr");
-                row.classList.add('rowdata');
-                const processOptionsHtml = `
+document.addEventListener("DOMContentLoaded", loadProcessBaseAndPopulate);
+            let process_description_list = []
+            async function loadProcessBaseAndPopulate() {
+                const response = await fetch("/process_base_list/", {
+                    method: "GET",
+                    headers: { "Accept": "application/json" },
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                process_description_list = data
+            }
+const processOptionsHtml = `
                     <option value="">Select Process Description</option>
                     ${process_description_list
                         .map(item => `<option data.machine_type === item value="${item}">${item}</option>`)
                         .join('')}
                     `;
-
-                row.innerHTML = `
-                <td><input class="assy_partNumber" value="${data.part_no}" disabled style="background-color: #e6e6e6;"></td>
-                <td><input class="assy_place" value="${data.process_type}" disabled style="background-color: #e6e6e6;"></td>
-                <td><select disabled style="background-color: #e6e6e6;">
-                        <option>Shearing</option>
-                        <option>2nd Shearing</option>
-                        <option>Blanking</option>
-                        <option>Laser Cutting</option>
-                        <option>Hole Spotting</option>
-                        <option>Piercing</option>
-                        <option>Bending</option>
-                        <option>Forming</option>
-                        <option selected>Welding</option>
-                        <option>Dressing</option>
-                        <option>Block_setting</option>
-                        <option>Setting_assy_handling</option>
-                    </select></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td>
-                    <select id="assy_process_description" name="process_description">
-                        ${processOptionsHtml}
-                    </select>
-                </td>
-                <td><input value="${data.no_of_operations}"></td>
-                <td><input value="${data.parts_per_cycle}"></td>
-                <td><input value="${data.norms}"></td>
-                <td><input value="${data.process_cost_unit}"></td>
-                <td><input value="${data.remarks}"></td>
-                `
-                tbody.appendChild(row)
-                $(row).find('#assy_process_description').select2({
-                        dropdownParent: $('#AssemblyModal'),
-                        width: '200px',
-                        placeholder: 'Select Process Description',
-                    });
-            }
