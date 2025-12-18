@@ -1,16 +1,67 @@
-class AssemblyCost(models.Model):
-    class labour:
-        SKILLED = 150
-        SEMI SKILLED = 125
-        UNSKILLED = 100
-    part_no = models.CharField(max_length=100)
-    process_description = models.CharField(null=True,blank=True)
-    cycle_time = models.FloatField(null=True,blank=True)
-    MHR = models.FloatField(null=True,blank=True)
-    machine_cost = models.FloatField(null=True,blank=True)
-    no_of_labour = models.IntegerField(null=True,blank=True)
-    labour_type = models.IntegerChoices()
-    labour_rates = models.IntegerChoices()
-    labour_cost = models.FloatField(null=True,blank=True)
-    assembly_cost_per_unit = models.FloatField(null=True,blank=True)
-    remarks = models.CharField(null=True,blank=True)
+$('#AssemblyModal').on('show.bs.modal',function (event){
+                console.log('function calling')
+                const response = fetch("/process_base_list/", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                    .then(response=>{
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data=>{
+                        populateWeldingValues(data.process_base);
+                    })
+                    .catch(err => {
+                        console.error("Failed to load process base:", err);
+                    });
+                var asbutton = $(event.relatedTarget);
+                var asmodal = $(this);
+                asmodal.find('#assy_partNumber').val(asbutton.data('partno'));
+                asmodal.find('#assy_place').val(asbutton.data('scope'));
+            })
+function populateWeldingValues(process_description){
+                const tbody = document.getElementById("weldingbody");
+                const row = document.createElement("tr");
+                row.classList.add('rowdata');
+                const processOptionsHtml = `
+                    <option value="">Select Process Description</option>
+                    ${process_description
+                        .map(item => `<option value="${item}">${item}</option>`)
+                        .join('')}
+                    `;
+
+                row.innerHTML = `
+                <td><input id="assy_partNumber"></td>
+                <td><input id="assy_place"></td>
+                <td><select>
+                        <option>Shearing</option>
+                        <option>2nd Shearing</option>
+                        <option>Blanking</option>
+                        <option>Laser Cutting</option>
+                        <option>Hole Spotting</option>
+                        <option>Piercing</option>
+                        <option>Bending</option>
+                        <option>Forming</option>
+                        <option selected>Welding</option>
+                        <option>Dressing</option>
+                        <option>Block_setting</option>
+                        <option>Setting_assy_handling</option>
+                    </select></td>
+                <td><input disabled style="background-color: #e6e6e6;"></td>
+                <td><input disabled style="background-color: #e6e6e6;"></td>
+                <td>
+                    <select id="process_description" name="process_description">
+                        ${processOptionsHtml}
+                    </select>
+                </td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                `
+                tbody.appendChild(row)
+            }
