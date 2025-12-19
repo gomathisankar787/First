@@ -1,193 +1,88 @@
-# Urls
-path('calculate_welding_value/',views.CacheUpdateWeldingValues.as_view())
 
-# Serializers
-class CacheUpdateWeldingValuesSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    process_description = serializers.CharField(required=False)
-    no_of_operations = serializers.CharField(required=False)
-    parts_per_cycle = serializers.CharField(required=False)
-    remarks = serializers.CharField(required=False)
-
-# Views
 class CacheUpdateWeldingValues(generics.GenericAPIView):
     @swagger_auto_schema(request_body=CacheUpdateWeldingValuesSerializer)
-    def post(self,request):
+    def post(self, request):
         try:
             id = request.data.get('id')
-            process_description = request.data.get('process_description')
-            no_of_operations = request.data.get('no_of_operations') if request.data.get('no_of_operations') != '' else 1
-            process_description = request.data.get('parts_per_cycle') if request.data.get('parts_per_cycle') != '' else 1
+
+            process_description = request.data.get('process_description') or ''
+            no_of_operations = int(request.data.get('no_of_operations') or 1)
+            parts_per_cycle = int(request.data.get('parts_per_cycle') or 1)
+            remarks = request.data.get('remarks') or ''
+
             norms = 0.0
             process_cost_unit = 0.0
-            remarks = request.data.get('remarks')
+
             sm_process = SMProcess.objects.filter(id=id).first()
+
             if sm_process:
-                process_description = process_description if process_description == '' else sm_process.process_description
-                no_of_operations = no_of_operations if sm_process.no_of_operations == 1 else sm_process.no_of_operations
-                parts_per_cycle = parts_per_cycle if sm_process.parts_per_cycle == 1 else sm_process.parts_per_cycle
-                norms = sm_process.norms if sm_process.norms else norms
-                process_cost_unit = sm_process.process_cost_unit if sm_process.process_cost_unit else process_cost_unit
-                remarks = remarks if sm_process.remarks == '' else sm_process.remarks
-            process_base = Processbase.objects.filter(process_description=process_description).first()
-            norms = process_base.norms
-            process_cost_unit = (no_of_operations * norms) / parts_per_cycle
-            return Response({'process_description':process_description,'no_of_operations':no_of_operations,'parts_per_cycle':parts_per_cycle,'norms':norms,'process_cost_unit':process_cost_unit,'remarks':remarks})
+                process_description = process_description or sm_process.process_description
+                no_of_operations = no_of_operations or sm_process.no_of_operations
+                parts_per_cycle = parts_per_cycle or sm_process.parts_per_cycle
+                remarks = remarks or sm_process.remarks
+
+            process_base = Processbase.objects.filter(
+                process_description=process_description
+            ).first()
+
+            if process_base:
+                norms = process_base.norms or 0
+
+            process_cost_unit = (no_of_operations * norms) / max(parts_per_cycle, 1)
+
+            return Response({
+                'process_description': process_description,
+                'no_of_operations': no_of_operations,
+                'parts_per_cycle': parts_per_cycle,
+                'norms': norms,
+                'process_cost_unit': round(process_cost_unit, 3),
+                'remarks': remarks
+            })
+
         except Exception as e:
-            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-# Js
-$('#AssemblyModal').on('show.bs.modal',function (event){
-                var asbutton = $(event.relatedTarget);
-                var bomId = asbutton.data('id')
-                var partNo = asbutton.data('partno');
-                var place = asbutton.data('scope');
-                const response = fetch("/fetch_assembly/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body:JSON.stringify({bom_id:bomId})
-                    })
-                    .then(response=>{
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data=>{
-                        populateWeldingValues(data);
-                    })
-                    .catch(err => {
-                        console.error("Failed to load process base:", err);
-                    });
-            })
-function populateWeldingValues(data){
-                const tbody = document.getElementById("weldingbody");
-                tbody.innerHTML = "";
-                const row = document.createElement("tr");
-                row.classList.add('rowdata');
-                const processOptionsHtml = `
-                    <option value="">Select Process Description</option>
-                    ${process_description_list
-                        .map(item => `<option value="${item}" ${item === data.machine_type ? 'selected': ''}>${item}</option>`)
-                        .join('')}
-                    `;
+function getRowPayload(row) {
+    return {
+        id: row.querySelector('.assy_process_description').dataset.id,
+        process_description: $(row).find('.assy_process_description').val(),
+        no_of_operations: row.querySelector('.assy_no_of_operations').value,
+        parts_per_cycle: row.querySelector('.assy_parts_per_cycle').value,
+        remarks: row.querySelector('.assy_remarks').value
+    };
+}
 
-                row.innerHTML = `
-                <td><input class="assy_partNumber" value="${data.part_no}" disabled style="background-color: #e6e6e6;"></td>
-                <td><input class="assy_place" value="${data.process_type}" disabled style="background-color: #e6e6e6;"></td>
-                <td><select disabled style="background-color: #e6e6e6;">
-                        <option>Shearing</option>
-                        <option>2nd Shearing</option>
-                        <option>Blanking</option>
-                        <option>Laser Cutting</option>
-                        <option>Hole Spotting</option>
-                        <option>Piercing</option>
-                        <option>Bending</option>
-                        <option>Forming</option>
-                        <option selected>Welding</option>
-                        <option>Dressing</option>
-                        <option>Block_setting</option>
-                        <option>Setting_assy_handling</option>
-                    </select></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td>
-                    <select class="assy_process_description" name="aasy_process_description" data-id="${data.id}">
-                        ${processOptionsHtml}
-                    </select>
-                </td>
-                <td><input class="assy_no_of_operations" name="assy_no_of_operations" value="${data.no_of_operations || 1}" data-id="${data.id}"></td>
-                <td><input class="assy_parts_per_cycle" name="assy_parts_per_cycle" value="${data.parts_per_cycle || 1}" data-id="${data.id}"></td>
-                <td><input value="${data.norms || ''}"></td>
-                <td><input value="${data.process_cost_unit || ''}"></td>
-                <td><input class="assy_remarks" name="assy_remarks" value="${data.remarks || ''}"></td>
-                <td>
-                    <i class="bi bi-plus-circle btn" id="showcsc" onclick="weldingaddRow(this)"></i>
-                    <i class="bi bi-trash btn" id="deletecsc" onclick="weldingdeleteRow(this)"></i>
-                </td>
-                `
-                tbody.appendChild(row)
-                $(row).find('.assy_process_description').select2({
-                        dropdownParent: $('#AssemblyModal'),
-                        width: '200px',
-                        placeholder: 'Select Process Description',
-                    });
-            }
-document.addEventListener("change", function(e){
-                if (e.target.classList.contains("assy_no_of_operations")){
-                    const rowId = e.target.dataset.id;
-                    $(document).on('select2:select','.assy_process_description',function(e){
-                    const val = $(this).val();})
-                    const parts_per_cycle = e.target.classList.contains("parts_per_cycle").value;
-                    const remarks = e.target.classList.contains("remarks").value;
-                    const payload = {}
-                    payload['id'] = rowId
-                    payload['process_description'] = val
-                    payload['no_of_operations'] = e.target.value
-                    payload['parts_per_cycle'] = parts_per_cycle
-                    payload['remarks'] = remarks
-                    assy_calculation(payload)
-                }
-                if (e.target.classList.contains("assy_parts_per_cycle")){
-                    const rowId = e.target.dataset.id;
-                    $(document).on('select2:select','.assy_process_description',function(e){
-                    const val = $(this).val();})
-                    const no_of_operations = e.target.classList.contains("assy_no_of_operations").value;
-                    const remarks = e.target.classList.contains("remarks").value;
-                    const payload = {}
-                    payload['id'] = rowId
-                    payload['process_description'] = val
-                    payload['no_of_operations'] = no_of_operations
-                    payload['parts_per_cycle'] = e.target.value
-                    payload['remarks'] = remarks
-                    assy_calculation(payload)
-                }
-                if (e.target.classList.contains("process_no_of_operations")){
-                    const rowId = e.target.dataset.id;
-                    $(document).on('select2:select','.assy_process_description',function(e){
-                    const val = $(this).val();})
-                    const no_of_operations = e.target.classList.contains("assy_no_of_operations").value;
-                    const parts_per_cycle = e.target.classList.contains("parts_per_cycle").value;
-                    const payload = {}
-                    payload['id'] = rowId
-                    payload['process_description'] = val
-                    payload['no_of_operations'] = no_of_operations
-                    payload['parts_per_cycle'] = parts_per_cycle
-                    payload['remarks'] = e.target.value
-                    assy_calculation(payload)
-                }
-            })
+document.addEventListener("input", function (e) {
+    if (
+        e.target.classList.contains("assy_no_of_operations") ||
+        e.target.classList.contains("assy_parts_per_cycle") ||
+        e.target.classList.contains("assy_remarks")
+    ) {
+        const row = e.target.closest("tr");
+        assy_calculation(getRowPayload(row), row);
+    }
+});
 
-            $(document).on('select2:select','.assy_process_description',function(e){
-                const id = $(this).data('id');
-                const val = $(this).val();
-                const payload ={};
-                const no_of_operations = e.target.classList.contains("assy_no_of_operations").value;
-                const parts_per_cycle = e.target.classList.contains("parts_per_cycle").value;
-                const remarks = e.target.classList.contains("remarks").value;
-                payload['id'] = id
-                payload['process_description'] = val
-                payload['no_of_operations'] = no_of_operations
-                payload['parts_per_cycle'] = parts_per_cycle
-                payload['remarks'] = remarks
-                assy_calculation(payload)
-            })
+$(document).on('select2:select', '.assy_process_description', function () {
+    const row = $(this).closest('tr')[0];
+    assy_calculation(getRowPayload(row), row);
+});
 
-            function assy_calculation(payload){
-            fetch("/calculate_welding_value/", {
-                method: 'POST',
-                headers: {
-                            "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.querySelector('input[name="assy_process_description"]').val(data.process_description)
-                document.querySelector('input[name="assy_no_of_operations"]').val(data.no_of_operations)
-                document.querySelector('input[name="assy_parts_per_cycle"]').val(data.parts_per_cycle)
-                document.querySelector('input[name="assy_norms"]').val(data.norms)
-                document.querySelector('input[name="assy_process_cost_unit"]').val(data.process_cost_unit)
-            })
-            .catch(err => console.log("Error Update sm process values", err));
-            }
+function assy_calculation(payload, row) {
+    fetch("/calculate_welding_value/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        row.querySelector('.assy_no_of_operations').value = data.no_of_operations;
+        row.querySelector('.assy_parts_per_cycle').value = data.parts_per_cycle;
+        row.querySelector('td:nth-child(9) input').value = data.norms;
+        row.querySelector('td:nth-child(10) input').value = data.process_cost_unit;
+    })
+    .catch(err => console.error("Calculation error", err));
+}
