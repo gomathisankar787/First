@@ -1,212 +1,185 @@
 class FetchAssemblyDetails(generics.GenericAPIView):
-    @swagger_auto_schema(request_body = FetchAssemblyDetailsSerializer)
-    def post(self,request):
+    @swagger_auto_schema(request_body=FetchAssemblyDetailsSerializer)
+    def post(self, request):
         try:
             bom_id = request.data.get('bom_id')
+
             bom_obj = BOMSheet.objects.filter(id=bom_id).first()
-            welding_process = SMProcess.objects.filter(unique_csc_id=bom_obj.unique_csc_id,part_no=bom_obj.part_no,process_description="Welding").first()
-            response_data = WeldingProcessSerializer(welding_process).data
+            if not bom_obj:
+                return Response([], status=status.HTTP_200_OK)
+
+            welding_qs = SMProcess.objects.filter(
+                unique_csc_id=bom_obj.unique_csc_id,
+                part_no=bom_obj.part_no,
+                process_description="Welding"
+            ).order_by('id')
+
+            response_data = WeldingProcessSerializer(
+                welding_qs, many=True
+            ).data
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
         except Exception as e:
-            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(response_data,status=status.HTTP_200_OK)
+            return Response(
+                {'Invalid Request': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+function populateWeldingValues(dataList){
+    const tbody = document.getElementById("weldingbody");
+    tbody.innerHTML = "";
 
-$('#AssemblyModal').on('show.bs.modal',function (event){
-                var asbutton = $(event.relatedTarget);
-                var bomId = asbutton.data('id')
-                var partNo = asbutton.data('partno');
-                var place = asbutton.data('scope');
-                const response = fetch("/fetch_assembly/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body:JSON.stringify({bom_id:bomId})
-                    })
-                    .then(response=>{
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data=>{
-                        populateWeldingValues(data);
-                    })
-                    .catch(err => {
-                        console.error("Failed to load process base:", err);
-                    });
-            })
-function populateWeldingValues(data){
-                const tbody = document.getElementById("weldingbody");
-                tbody.innerHTML = "";
-                const row = document.createElement("tr");
-                row.classList.add('rowdata');
-                const processOptionsHtml = `
-                    <option value="">Select Process Description</option>
-                    ${process_description_list
-                        .map(item => `<option value="${item}" ${item === data.machine_type ? 'selected': ''}>${item}</option>`)
-                        .join('')}
-                    `;
+    if (!dataList || dataList.length === 0) {
+        return;
+    }
 
-                row.innerHTML = `
-                <td><input class="assy_partNumber" value="${data.part_no}" disabled style="background-color: #e6e6e6;"></td>
-                <td><input class="assy_place" value="${data.process_type}" disabled style="background-color: #e6e6e6;"></td>
-                <td><select disabled style="background-color: #e6e6e6;">
-                        <option>Shearing</option>
-                        <option>2nd Shearing</option>
-                        <option>Blanking</option>
-                        <option>Laser Cutting</option>
-                        <option>Hole Spotting</option>
-                        <option>Piercing</option>
-                        <option>Bending</option>
-                        <option>Forming</option>
-                        <option selected>Welding</option>
-                        <option>Dressing</option>
-                        <option>Block_setting</option>
-                        <option>Setting_assy_handling</option>
-                    </select></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td><input disabled style="background-color: #e6e6e6;"></td>
-                <td>
-                    <select class="assy_process_description" name="aasy_process_description" data-id="${data.id}">
-                        ${processOptionsHtml}
-                    </select>
-                </td>
-                <td><input class="assy_no_of_operations" name="assy_no_of_operations" value="${data.no_of_operations || 1}" data-id="${data.id}"></td>
-                <td><input class="assy_parts_per_cycle" name="assy_parts_per_cycle" value="${data.parts_per_cycle || 1}" data-id="${data.id}"></td>
-                <td><input value="${data.norms || ''}"></td>
-                <td><input value="${data.process_cost_unit || ''}"></td>
-                <td><input class="assy_remarks" name="assy_remarks" value="${data.remarks || ''}"></td>
-                <td>
-                    <i class="bi bi-plus-circle btn" id="showcsc" onclick="weldingaddRow(this)"></i>
-                    <i class="bi bi-trash btn" id="deletecsc" onclick="weldingdeleteRow(this)"></i>
-                </td>
-                `
-                tbody.appendChild(row)
-                $(row).find('.assy_process_description').select2({
-                        dropdownParent: $('#AssemblyModal'),
-                        width: '200px',
-                        placeholder: 'Select Process Description',
-                    });
+    dataList.forEach(data => {
+        const row = document.createElement("tr");
+        row.classList.add('rowdata');
+
+        const processOptionsHtml = `
+            <option value="">Select Process Description</option>
+            ${process_description_list
+                .map(item =>
+                    `<option value="${item}" ${item === data.process_description ? 'selected' : ''}>
+                        ${item}
+                     </option>`
+                ).join('')
             }
+        `;
 
-            function weldingaddRow(el) {
-                const currentRow = el.closest('tr');
-                const tbody = document.getElementById("weldingbody");
+        row.innerHTML = `
+            <td><input class="assy_partNumber" value="${data.part_no}" disabled style="background-color:#e6e6e6;"></td>
+            <td><input class="assy_place" value="${data.process_type}" disabled style="background-color:#e6e6e6;"></td>
+            <td>
+                <select disabled style="background-color:#e6e6e6;">
+                    <option selected>Welding</option>
+                </select>
+            </td>
+            <td><input disabled></td>
+            <td><input disabled></td>
 
-                const newRow = document.createElement("tr");
-                newRow.classList.add('rowdata');
+            <td>
+                <select class="assy_process_description" data-id="${data.id}">
+                    ${processOptionsHtml}
+                </select>
+            </td>
 
-                const processOptionsHtml = `
-                    <option value="">Select Process Description</option>
-                    ${process_description_list
-                        .map(item => `<option value="${item}">${item}</option>`)
-                        .join('')}
-                `;
+            <td><input class="assy_no_of_operations" value="${data.no_of_operations || 1}"></td>
+            <td><input class="assy_parts_per_cycle" value="${data.parts_per_cycle || 1}"></td>
+            <td><input value="${data.norms || ''}"></td>
+            <td><input value="${data.process_cost_unit || ''}"></td>
+            <td><input class="assy_remarks" value="${data.remarks || ''}"></td>
 
-                newRow.innerHTML = `
-                    <td><input class="assy_partNumber" value="${currentRow.querySelector('.assy_partNumber').value}" disabled style="background-color: #e6e6e6;"></td>
-                    <td><input class="assy_place" value="${currentRow.querySelector('.assy_place').value}" disabled style="background-color: #e6e6e6;"></td>
-                    <td>
-                        <select disabled style="background-color: #e6e6e6;">
-                            <option>Shearing</option>
-                            <option>2nd Shearing</option>
-                            <option>Blanking</option>
-                            <option>Laser Cutting</option>
-                            <option>Hole Spotting</option>
-                            <option>Piercing</option>
-                            <option>Bending</option>
-                            <option>Forming</option>
-                            <option selected>Welding</option>
-                            <option>Dressing</option>
-                            <option>Block_setting</option>
-                            <option>Setting_assy_handling</option>
-                        </select>
-                    </td>
-                    <td><input disabled style="background-color: #e6e6e6;"></td>
-                    <td><input disabled style="background-color: #e6e6e6;"></td>
-                    <td>
-                        <select class="assy_process_description" name="process_description">
-                            ${processOptionsHtml}
-                        </select>
-                    </td>
-                    <td><input class="assy_no_of_operations" value="1"></td>
-                    <td><input class="assy_parts_per_cycle" value="1"></td>
-                    <td><input></td>
-                    <td><input></td>
-                    <td><input class="assy_remarks"></td>
-                    <td>
-                        <i class="bi bi-plus-circle btn" id="showcsc" onclick="weldingaddRow(this)"></i>
-                        <i class="bi bi-trash btn" id="deletecsc" onclick="weldingdeleteRow(this)"></i>
-                    </td>
-                `;
+            <td>
+                <i class="bi bi-plus-circle btn" onclick="weldingaddRow(this)"></i>
+                <i class="bi bi-trash btn" onclick="weldingdeleteRow(this)"></i>
+            </td>
+        `;
 
-                tbody.appendChild(newRow);
+        tbody.appendChild(row);
 
-                // Reinitialize select2
-                $(newRow).find('.assy_process_description').select2({
-                    dropdownParent: $('#AssemblyModal'),
-                    width: '200px',
-                    placeholder: 'Select Process Description',
-                });
-            }
-
-            function weldingdeleteRow(el) {
-                const row = el.closest('tr');
-                const tbody = document.getElementById("weldingbody");
-
-                // Prevent deleting the last row
-                if (tbody.rows.length === 1) {
-                    alert("At least one welding row must exist.");
-                    return;
-                }
-
-                row.remove();
-            }
+        $(row).find('.assy_process_description').select2({
+            dropdownParent: $('#AssemblyModal'),
+            width: '200px',
+            placeholder: 'Select Process Description'
+        });
+    });
+}
 
 function getRowPayload(row) {
-                return {
-                    id: row.querySelector('.assy_process_description').dataset.id,
-                    process_description: $(row).find('.assy_process_description').val(),
-                    no_of_operations: row.querySelector('.assy_no_of_operations').value,
-                    parts_per_cycle: row.querySelector('.assy_parts_per_cycle').value,
-                    remarks: row.querySelector('.assy_remarks').value
-                };
-            }
+    return {
+        id: row.querySelector('.assy_process_description').dataset.id || null,
+        process_description: $(row).find('.assy_process_description').val(),
+        no_of_operations: row.querySelector('.assy_no_of_operations').value,
+        parts_per_cycle: row.querySelector('.assy_parts_per_cycle').value,
+        remarks: row.querySelector('.assy_remarks').value
+    };
+}
 
-            document.addEventListener("input", function (e) {
-                if (
-                    e.target.classList.contains("assy_no_of_operations") ||
-                    e.target.classList.contains("assy_parts_per_cycle")
-                    // e.target.classList.contains("assy_remarks")
-                ) {
-                    const row = e.target.closest("tr");
-                    assy_calculation(getRowPayload(row), row);
-                }
-            });
+path('save_welding_rows/', views.SaveWeldingRows.as_view())
 
-            document.addEventListener("blur",function(e){
-                if (e.target.classList.contains("assy_remarks")){
-                    const row = e.target.closest("tr");
-                    assy_calculation(getRowPayload(row),row);
-                }
+class SaveWeldingRowSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+    unique_csc_id = serializers.CharField()
+    part_no = serializers.CharField()
+    process_description = serializers.CharField()
+    no_of_operations = serializers.IntegerField()
+    parts_per_cycle = serializers.IntegerField()
+    remarks = serializers.CharField(required=False, allow_blank=True)
+
+class SaveWeldingRows(generics.GenericAPIView):
+    serializer_class = SaveWeldingRowSerializer
+
+    def post(self, request):
+        try:
+            rows = request.data.get('rows', [])
+
+            saved_ids = []
+
+            for row in rows:
+                serializer = self.serializer_class(data=row)
+                serializer.is_valid(raise_exception=True)
+                data = serializer.validated_data
+
+                obj, created = SMProcess.objects.update_or_create(
+                    id=data.get('id'),
+                    defaults={
+                        'unique_csc_id': data['unique_csc_id'],
+                        'part_no': data['part_no'],
+                        'process_description': 'Welding',
+                        'no_of_operations': data['no_of_operations'],
+                        'parts_per_cycle': data['parts_per_cycle'],
+                        'remarks': data.get('remarks', '')
+                    }
+                )
+                saved_ids.append(obj.id)
+
+            return Response({
+                'status': 'success',
+                'saved_ids': saved_ids
             })
 
-            $(document).on('select2:select', '.assy_process_description', function () {
-                const row = $(this).closest('tr')[0];
-                assy_calculation(getRowPayload(row), row);
-            });
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+function collectAllWeldingRows() {
+    const rows = document.querySelectorAll('#weldingbody tr');
+    const payload = [];
 
-            function assy_calculation(payload, row) {
-                fetch("/calculate_welding_value/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    row.querySelector('.assy_no_of_operations').value = data.no_of_operations;
-                    row.querySelector('.assy_parts_per_cycle').value = data.parts_per_cycle;
-                    row.querySelector('td:nth-child(9) input').value = data.norms;
-                    row.querySelector('td:nth-child(10) input').value = data.process_cost_unit;
-                })
-                .catch(err => console.error("Calculation error", err));
-            }
-actually welding has also add row option it has multiple rows can you change the api for fetch multiple rows as well as the js code
+    rows.forEach(row => {
+        payload.push({
+            id: row.querySelector('.assy_process_description').dataset.id || null,
+            unique_csc_id: CURRENT_UNIQUE_CSC_ID,   // store globally from fetch
+            part_no: row.querySelector('.assy_partNumber').value,
+            process_description: $(row).find('.assy_process_description').val(),
+            no_of_operations: row.querySelector('.assy_no_of_operations').value,
+            parts_per_cycle: row.querySelector('.assy_parts_per_cycle').value,
+            remarks: row.querySelector('.assy_remarks').value
+        });
+    });
+
+    return payload;
+}
+<button class="btn btn-primary" onclick="saveWeldingRows()">Save Welding</button>
+
+function saveWeldingRows() {
+    const rows = collectAllWeldingRows();
+
+    fetch('/save_welding_rows/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('Welding rows saved successfully');
+        console.log(data);
+    })
+    .catch(err => {
+        console.error('Save failed', err);
+        alert('Save failed');
+    });
+}
