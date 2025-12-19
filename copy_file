@@ -1,111 +1,58 @@
-function populateWeldingValues(dataList,partno,place){
-                const tbody = document.getElementById("weldingbody");
-                tbody.innerHTML = "";
+function populateWeldingValues(dataList, partno, place) {
+    const tbody = document.getElementById("weldingbody");
+    tbody.innerHTML = "";
 
-                if (!dataList || dataList.length === 0) {
-                    const tbody = document.getElementById("weldingbody");
-                    tbody.innerHTML = "";
-                    const row = document.createElement("tr");
-                    row.classList.add('rowdata');
-                    const processOptionsHtml = `
-                        <option value="">Select Process Description</option>
-                        ${process_description_list
-                            .map(item => `<option value="${item}"}>${item}</option>`)
-                            .join('')}
-                        `;
+    const createRow = (data) => {
+        const row = document.createElement("tr");
+        row.classList.add('rowdata');
 
-                    row.innerHTML = `
-                    <td><input class="assy_partNumber" value="${partno}" disabled style="background-color: #e6e6e6;"></td>
-                    <td><input class="assy_place" value="${place}" disabled style="background-color: #e6e6e6;"></td>
-                    <td><select disabled style="background-color: #e6e6e6;">
-                            <option>Shearing</option>
-                            <option>2nd Shearing</option>
-                            <option>Blanking</option>
-                            <option>Laser Cutting</option>
-                            <option>Hole Spotting</option>
-                            <option>Piercing</option>
-                            <option>Bending</option>
-                            <option>Forming</option>
-                            <option selected>Welding</option>
-                            <option>Dressing</option>
-                            <option>Block_setting</option>
-                            <option>Setting_assy_handling</option>
-                        </select></td>
-                    <td><input disabled style="background-color: #e6e6e6;"></td>
-                    <td><input disabled style="background-color: #e6e6e6;"></td>
-                    <td>
-                        <select class="assy_process_description" name="process_description">
-                            ${processOptionsHtml}
-                        </select>
-                    </td>
-                    <td><input value="1"></td>
-                    <td><input value="1"></td>
-                    <td><input value=""></td>
-                    <td><input value=""></td>
-                    <td><input value=""></td>
-                    <td>
-                        <i class="bi bi-plus-circle btn" id="showcsc" onclick="weldingaddRow(this)"></i>
-                        <i class="bi bi-trash btn" id="deletecsc" onclick="weldingdeleteRow(this)"></i>
-                    </td>
-                    `
-                    tbody.appendChild(row)
-                    $(row).find('.assy_process_description').select2({
-                            dropdownParent: $('#AssemblyModal'),
-                            width: '200px',
-                            placeholder: 'Select Process Description',
-                        });
-                }
+        const processOptionsHtml = `
+            <option value="">Select Process Description</option>
+            ${process_description_list
+                .map(item => `<option value="${item}" ${data?.process_description === item ? 'selected' : ''}>${item}</option>`)
+                .join('')}
+        `;
 
-                dataList.forEach(data => {
-                    const row = document.createElement("tr");
-                    row.classList.add('rowdata');
+        row.innerHTML = `
+            <td><input class="assy_partNumber" value="${data?.part_no || partno}" disabled style="background-color:#e6e6e6;"></td>
+            <td><input class="assy_place" value="${data?.process_type || place}" disabled style="background-color:#e6e6e6;"></td>
+            <td>
+                <select disabled style="background-color:#e6e6e6;">
+                    <option selected>Welding</option>
+                </select>
+            </td>
+            <td><input disabled></td>
+            <td><input disabled></td>
+            <td>
+                <select class="assy_process_description" data-id="${data?.id || ''}">
+                    ${processOptionsHtml}
+                </select>
+            </td>
+            <td><input class="assy_no_of_operations" value="${data?.no_of_operations || 1}"></td>
+            <td><input class="assy_parts_per_cycle" value="${data?.parts_per_cycle || 1}"></td>
+            <td><input value="${data?.norms || ''}"></td>
+            <td><input value="${data?.process_cost_unit || ''}"></td>
+            <td><input class="assy_remarks" value="${data?.remarks || ''}"></td>
+            <td>
+                <i class="bi bi-plus-circle btn" onclick="weldingaddRow(this)"></i>
+                <i class="bi bi-trash btn" onclick="weldingdeleteRow(this)"></i>
+            </td>
+        `;
 
-                    const processOptionsHtml = `
-                        <option value="">Select Process Description</option>
-                        ${process_description_list
-                            .map(item =>
-                                `<option value="${item}" ${item === data.process_description ? 'selected' : ''}>
-                                    ${item}
-                                </option>`
-                            ).join('')
-                        }
-                    `;
+        tbody.appendChild(row);
 
-                    row.innerHTML = `
-                        <td><input class="assy_partNumber" value="${data.part_no}" disabled style="background-color:#e6e6e6;"></td>
-                        <td><input class="assy_place" value="${data.process_type}" disabled style="background-color:#e6e6e6;"></td>
-                        <td>
-                            <select disabled style="background-color:#e6e6e6;">
-                                <option selected>Welding</option>
-                            </select>
-                        </td>
-                        <td><input disabled></td>
-                        <td><input disabled></td>
+        // Initialize select2
+        $(row).find('.assy_process_description').select2({
+            dropdownParent: $('#AssemblyModal'),
+            width: '200px',
+            placeholder: 'Select Process Description'
+        });
+    }
 
-                        <td>
-                            <select class="assy_process_description" data-id="${data.id}">
-                                ${processOptionsHtml}
-                            </select>
-                        </td>
-
-                        <td><input class="assy_no_of_operations" value="${data.no_of_operations || 1}"></td>
-                        <td><input class="assy_parts_per_cycle" value="${data.parts_per_cycle || 1}"></td>
-                        <td><input value="${data.norms || ''}"></td>
-                        <td><input value="${data.process_cost_unit || ''}"></td>
-                        <td><input class="assy_remarks" value="${data.remarks || ''}"></td>
-
-                        <td>
-                            <i class="bi bi-plus-circle btn" onclick="weldingaddRow(this)"></i>
-                            <i class="bi bi-trash btn" onclick="weldingdeleteRow(this)"></i>
-                        </td>
-                    `;
-
-                    tbody.appendChild(row);
-
-                    $(row).find('.assy_process_description').select2({
-                        dropdownParent: $('#AssemblyModal'),
-                        width: '200px',
-                        placeholder: 'Select Process Description'
-                    });
-                });
-            }
+    // If no rows, create a default empty row
+    if (!dataList || dataList.length === 0) {
+        createRow(null);
+    } else {
+        dataList.forEach(data => createRow(data));
+    }
+}
