@@ -44,39 +44,23 @@ class SaveWeldingRows(generics.GenericAPIView):
                 machine_cost = data.get('MHR') / (3600 / data.get('cycle_time'))
                 labour_cost = data.get('labour_rates') / (3600 / data.get('cycle_time'))
                 assembly_cost_per_unit = labour_cost + machine_cost
-                if data.get('id'):
-                    obj = AssemblyCost.objects.update(
-                        id=data.get('id'),
-                        defaults={
-                            'bom': data.get('bom'),
-                            'process_description': data.get('process_description'),
-                            'cycle_time': data.get('cycle_time'),
-                            'MHR': data.get('MHR'),
-                            'machine_cost': machine_cost,
-                            'no_of_labour': data.get('no_of_labour'),
-                            'labour_type': data.get('labour_type'),
-                            'labour_rates': data.get('labour_rates'),
-                            'labour_cost': labour_cost,
-                            'assembly_cost_per_unit': assembly_cost_per_unit,
-                            'remarks': data.get('remarks')
-                        }
-                    )
-                    assembly_ids.append(obj.id)
-                else:
-                    obj = AssemblyCost.objects.create(
-                        id = data.get('id'),
-                        bom = data.get('bom'),
-                        process_description = data.get('process_description'),
-                        cycle_time = data.get('cycle_time'),
-                        MHR = data.get('MHR'),
-                        machine_cost = machine_cost,
-                        no_of_labour = data.get('no_of_labour'),
-                        labour_type = data.get('labour_type'),
-                        labour_rates = data.get('labour_rates'),
-                        labour_cost = labour_cost,
-                        assembly_cost_per_unit = assembly_cost_per_unit,
-                        remarks = data.get('remarks')
-                    )
+                obj,created = AssemblyCost.objects.update_or_create(
+                    id=data.get('id'),
+                    defaults={
+                        'bom': data.get('bom'),
+                        'process_description': data.get('process_description'),
+                        'cycle_time': data.get('cycle_time'),
+                        'MHR': data.get('MHR'),
+                        'machine_cost': machine_cost,
+                        'no_of_labour': data.get('no_of_labour'),
+                        'labour_type': data.get('labour_type'),
+                        'labour_rates': data.get('labour_rates'),
+                        'labour_cost': labour_cost,
+                        'assembly_cost_per_unit': assembly_cost_per_unit,
+                        'remarks': data.get('remarks')
+                    }
+                )
+                assembly_ids.append(obj.id)
 
             return Response({
                 'message': 'Welding & Assembly rows saved successfully',
@@ -89,4 +73,4 @@ class SaveWeldingRows(generics.GenericAPIView):
                 {'message': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-assembly always create even id is passed for update
+still created when id is passed for update
