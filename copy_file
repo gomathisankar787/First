@@ -1,42 +1,78 @@
-row.innerHTML = `
-                        <td><input class="assy_cost_partNumber" value="${partno}" disabled style="background-color:#e6e6e6;"></td>
-                        <td><input class="assy_cost_place" value="${place}" disabled style="background-color:#e6e6e6;"></td>
-                        <td>
-                            <select disabled style="background-color:#e6e6e6;">
-                                <option selected>Assembly</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select class="assy_cost_process_description" data-id="${data?.id || ''}">
-                                ${processOptionsHtml}
-                            </select>
-                        </td>
-                        <td><input class="assy_cost_cycle_time" value="${data?.cycle_time || 1}"></td>
-                        <td><input class="assy_cost_MHR" value="${data?.MHR || 1}"></td>
-                        <td><input class="assy_cost_machine_cost" value="${(data?.machine_cost ?? '') != '' ? Number(data.machine_cost).toFixed(2) : ''}"></td>
-                        <td><input class="assy_cost_no_of_labour" value="${(data?.no_of_labour ?? '') !== '' ? Number(data.no_of_labour).toFixed(2) : 1}"></td>
-                        <td>
-                            <select class="assy_cost_labour_type" data-id="${data?.id || ''}">
-                                ${labourType}
-                            </select>
-                        </td>
-                        <td><input class="assy_cost_labour_rates" value="${data?.labour_rates || ''}"></td>
-                        <td><input class="assy_cost_labour_cost" value="${(data?.labour_cost ?? '') !== '' ? Number(data.labour_cost).toFixed(2) : ''}"></td>
-                        <td><input class="assy_cost_assembly_cost_per_unit" value="${(data?.assembly_cost_per_unit ?? '') !== '' ? Number(data.assembly_cost_per_unit).toFixed(2) : ''}"></td>
-                        <td><input class="assy_cost_remarks" value="${data?.remarks || ''}"></td>
-                        <td>
-                            <i class="bi bi-plus-circle btn" id="showcsc" onclick="assemblyaddRow(this)"></i>
-                            <i class="bi bi-trash btn" id="deletecsc" onclick="assemblydeleteRow(this)"></i>
-                        </td>
-                    `;
+function saveWeldingRows() {
+                const rows = collectAllWeldingRows();
 
-                    tbody.appendChild(row);
+                fetch('/save_welding_rows/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rows })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    toastr.success(data.message);
+                    console.log(data);
+                })
+                .catch(err => {
+                    console.error('Save failed', err);
+                    alert('Save failed');
+                });
+            }
 
-                    // Initialize select2
-                    $(row).find('.assy_cost_process_description').select2({
-                        dropdownParent: $('#AssemblyModal'),
-                        width: '200px',
-                        placeholder: 'Select Process Description'
-                    });
-                }
-round value not working
+class SaveWeldingRows(generics.GenericAPIView):
+    serializer_class = SaveWeldingRowSerializer
+
+    def post(self, request):
+        try:
+            rows = request.data.get('rows', [])
+
+            saved_ids = []
+
+            for row in rows:
+                serializer = self.serializer_class(data=row)
+                serializer.is_valid(raise_exception=True)
+                data = serializer.validated_data
+
+                obj, created = SMProcess.objects.update_or_create(
+                    id=data.get('id'),
+                    defaults={
+                        'unique_csc_id': data['unique_csc_id'],
+                        'part_no': data['part_no'],
+                        'process_type':data['process_place'],
+                        'process_description': 'Welding',
+                        'machinetype':data['process_description'],
+                        'no_of_operations': data['no_of_operations'],
+                        'parts_per_cycle': data['parts_per_cycle'],
+                        'norms': data['norms'],
+                        'process_cost_unit': data['process_cost_unit'],
+                        'remarks': data.get('remarks', '')
+                    }
+                )
+                saved_ids.append(obj.id)
+
+            return Response({
+                'message': 'welding rows created successfully',
+                'saved_ids': saved_ids
+            })
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+class AssemblyCost(models.Model):
+    class LabourType(models.IntegerChoices):
+        SKILLED = 150, 'Skilled'
+        SEMI_SKILLED = 125, 'Semi Skilled'
+        UNSKILLED = 100, 'Unskilled'
+    bom = models.ForeignKey(BOMSheet, on_delete=models.CASCADE, null=True, blank=True)
+    process_description = models.CharField(max_length=255,null=True,blank=True)
+    cycle_time = models.FloatField(null=True,blank=True)
+    MHR = models.FloatField(null=True,blank=True)
+    machine_cost = models.FloatField(null=True,blank=True)
+    no_of_labour = models.IntegerField(null=True,blank=True)
+    labour_type = models.IntegerField(choices=LabourType.choices,null=True,blank=True)
+    labour_rates = models.IntegerField(choices=LabourType.choices,null=True,blank=True)
+    labour_cost = models.FloatField(null=True,blank=True)
+    assembly_cost_per_unit = models.FloatField(null=True,blank=True)
+    remarks = models.CharField(null=True,blank=True)
+
+i need save assembly cost also in this same api
