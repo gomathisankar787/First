@@ -1,64 +1,42 @@
-function getRowAssyPayload(row) {
-                return {
-                    id: row.querySelector('.assy_cost_process_description').dataset.id || null,
-                    process_description: $(row).find('.assy_cost_process_description').val(),
-                    cycle_time: row.querySelector('.assy_cost_cycle_time').value,
-                    MHR: row.querySelector('.assy_cost_MHR').value,
-                    no_of_labour: row.querySelector('.assy_cost_no_of_labour').value,
-                    labour_type: row.querySelector('.assy_cost_labour_type').value,
-                    remarks: row.querySelector('.assy_cost_remarks').value
-                };
-            }
+row.innerHTML = `
+                        <td><input class="assy_cost_partNumber" value="${partno}" disabled style="background-color:#e6e6e6;"></td>
+                        <td><input class="assy_cost_place" value="${place}" disabled style="background-color:#e6e6e6;"></td>
+                        <td>
+                            <select disabled style="background-color:#e6e6e6;">
+                                <option selected>Assembly</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="assy_cost_process_description" data-id="${data?.id || ''}">
+                                ${processOptionsHtml}
+                            </select>
+                        </td>
+                        <td><input class="assy_cost_cycle_time" value="${data?.cycle_time || 1}"></td>
+                        <td><input class="assy_cost_MHR" value="${data?.MHR || 1}"></td>
+                        <td><input class="assy_cost_machine_cost" value="${(data?.machine_cost ?? '') != '' ? Number(data.machine_cost).toFixed(2) : ''}"></td>
+                        <td><input class="assy_cost_no_of_labour" value="${(data?.no_of_labour ?? '') !== '' ? Number(data.no_of_labour).toFixed(2) : 1}"></td>
+                        <td>
+                            <select class="assy_cost_labour_type" data-id="${data?.id || ''}">
+                                ${labourType}
+                            </select>
+                        </td>
+                        <td><input class="assy_cost_labour_rates" value="${data?.labour_rates || ''}"></td>
+                        <td><input class="assy_cost_labour_cost" value="${(data?.labour_cost ?? '') !== '' ? Number(data.labour_cost).toFixed(2) : ''}"></td>
+                        <td><input class="assy_cost_assembly_cost_per_unit" value="${(data?.assembly_cost_per_unit ?? '') !== '' ? Number(data.assembly_cost_per_unit).toFixed(2) : ''}"></td>
+                        <td><input class="assy_cost_remarks" value="${data?.remarks || ''}"></td>
+                        <td>
+                            <i class="bi bi-plus-circle btn" id="showcsc" onclick="assemblyaddRow(this)"></i>
+                            <i class="bi bi-trash btn" id="deletecsc" onclick="assemblydeleteRow(this)"></i>
+                        </td>
+                    `;
 
+                    tbody.appendChild(row);
 
-            document.addEventListener("input", function (e) {
-                if (
-                    e.target.classList.contains("assy_cost_cycle_time") ||
-                    e.target.classList.contains("assy_cost_MHR") ||
-                    e.target.classList.contains("assy_cost_no_of_labour")
-                    // e.target.classList.contains("assy_remarks")
-                ) {
-                    const row = e.target.closest("tr");
-                    assy_cost_calculation(getRowAssyPayload(row), row);
+                    // Initialize select2
+                    $(row).find('.assy_cost_process_description').select2({
+                        dropdownParent: $('#AssemblyModal'),
+                        width: '200px',
+                        placeholder: 'Select Process Description'
+                    });
                 }
-            });
-
-            document.addEventListener("change",function(e){
-                const row = e.target.closest("select");
-                if (
-                    e.target.classList.contains("assy_cost_labour_type")
-                ) {
-                    console.log('working')
-                    assy_cost_calculation(getRowAssyPayload(row), row);
-                }
-            })
-
-            $(document).on('select2:select', '.assy_cost_process_description', function () {
-                const row = $(this).closest('tr')[0];
-                assy_cost_calculation(getRowAssyPayload(row), row);
-            });
-
-            function assy_cost_calculation(payload, row) {
-                fetch("/calculate_assembly_value/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    row.querySelector('.assy_cost_cycle_time').value = data.cycle_time;
-                    row.querySelector('.assy_cost_MHR').value = data.MHR;
-                    row.querySelector('.assy_cost_no_of_labour').value = data.no_of_labour;
-                    row.querySelector('.assy_cost_labour_type').value = data.labour_type;
-                    row.querySelector('.assy_cost_remarks').value = data.remarks;
-                    row.querySelector('td:nth-child(7) input').value = data.machine_cost;
-                    row.querySelector('td:nth-child(10) input').value = data.labour_rates;
-                    row.querySelector('td:nth-child(11) input').value = data.labour_cost;
-                    row.querySelector('td:nth-child(12) input').value = data.assembly_cost_per_unit;
-                })
-                .catch(err => console.error("Calculation error", err));
-            }
-working
-33/:4569 Uncaught TypeError: Cannot read properties of null (reading 'dataset')
-    at getRowAssyPayload (33/:4569:76)
-    at HTMLDocument.<anonymous> (33/:4598:43)
+round value not working
