@@ -1,76 +1,116 @@
-class SaveWeldingRows(generics.GenericAPIView):
-    serializer_class = SaveWeldingRowSerializer
+function populateWeldingValues(dataList, partno, place) {
+                const tbody = document.getElementById("weldingbody");
+                tbody.innerHTML = "";
 
-    def post(self, request):
-        try:
-            welding_rows = request.data.get('welding_rows', [])
-            assembly_rows = request.data.get('assembly_rows', [])
+                const createRow = (data) => {
+                    const row = document.createElement("tr");
+                    row.classList.add('rowdata');
 
-            welding_ids = []
-            assembly_ids = []
+                    const processOptionsHtml = `
+                        <option value="">Select Process Description</option>
+                        ${process_description_list
+                            .map(item => `<option value="${item}" ${data?.machinetype === item ? 'selected' : ''}>${item}</option>`)
+                            .join('')}
+                    `;
 
-            # -------------------------
-            # Save Welding Rows
-            # -------------------------
-            for row in welding_rows:
-                serializer = SaveWeldingRowSerializer(data=row)
-                serializer.is_valid(raise_exception=True)
-                data = serializer.validated_data
+                    row.innerHTML = `
+                        <td><input class="assy_partNumber" value="${data?.part_no || partno}" disabled style="background-color:#e6e6e6;"></td>
+                        <td><input class="assy_place" value="${data?.process_type || place}" disabled style="background-color:#e6e6e6;"></td>
+                        <td>
+                            <select disabled style="background-color:#e6e6e6;">
+                                <option selected>Welding</option>
+                            </select>
+                        </td>
+                        <td><input disabled style="background-color:#e6e6e6;"></td>
+                        <td><input disabled style="background-color:#e6e6e6;"></td>
+                        <td>
+                            <select class="assy_process_description" data-id="${data?.id || ''}">
+                                ${processOptionsHtml}
+                            </select>
+                        </td>
+                        <td><input class="assy_no_of_operations" value="${data?.no_of_operations || 1}"></td>
+                        <td><input class="assy_parts_per_cycle" value="${data?.parts_per_cycle || 1}"></td>
+                        <td><input class="assy_norms" disabled style="background-color:#e6e6e6;" value="${(data?.norms ?? '') != '' ? Number(data.norms).toFixed(2) : ''}"></td>
+                        <td><input class="assy_process_cost_unit" disabled style="background-color:#e6e6e6;" value="${(data?.process_cost_unit ?? '') !== '' ? Number(data.process_cost_unit).toFixed(2) : ''}"></td>
+                        <td><input class="assy_remarks" value="${data?.remarks || ''}"></td>
+                        <td>
+                            <i class="bi bi-plus-circle btn" id="showcsc" onclick="weldingaddRow(this)"></i>
+                            <i class="bi bi-trash btn delete-welding" id="deletecsc" data-toggle="modal" data-id="{{data.id}}" data-target="#deleteWeldingModal"></i>
+                        </td>
+                    `;
 
-                obj, created = SMProcess.objects.update_or_create(
-                    id=data.get('id'),
-                    defaults={
-                        'unique_csc_id': data['unique_csc_id'],
-                        'part_no': data['part_no'],
-                        'process_type': data['process_place'],
-                        'process_description': 'Welding',
-                        'machinetype': data['process_description'],
-                        'no_of_operations': data['no_of_operations'],
-                        'parts_per_cycle': data['parts_per_cycle'],
-                        'norms': data['norms'],
-                        'process_cost_unit': data['process_cost_unit'],
-                        'remarks': data.get('remarks', '')
-                    }
-                )
-                welding_ids.append(obj.id)
+                    tbody.appendChild(row);
 
-            # -------------------------
-            # Save Assembly Cost Rows
-            # -------------------------
-            for row in assembly_rows:
-                serializer = AssemblyCostSerializer(data=row)
-                serializer.is_valid(raise_exception=True)
-                data = serializer.validated_data
-                machine_cost = data.get('MHR') / (3600 / data.get('cycle_time'))
-                labour_cost = data.get('labour_rates') / (3600 / data.get('cycle_time'))
-                assembly_cost_per_unit = labour_cost + machine_cost
-                obj,created = AssemblyCost.objects.update_or_create(
-                    id=data.get('id'),
-                    defaults={
-                        'bom': data.get('bom'),
-                        'process_description': data.get('process_description'),
-                        'cycle_time': data.get('cycle_time'),
-                        'MHR': data.get('MHR'),
-                        'machine_cost': machine_cost,
-                        'no_of_labour': data.get('no_of_labour'),
-                        'labour_type': data.get('labour_type'),
-                        'labour_rates': data.get('labour_rates'),
-                        'labour_cost': labour_cost,
-                        'assembly_cost_per_unit': assembly_cost_per_unit,
-                        'remarks': data.get('remarks')
-                    }
-                )
-                assembly_ids.append(obj.id)
+                    // Initialize select2
+                    $(row).find('.assy_process_description').select2({
+                        dropdownParent: $('#AssemblyModal'),
+                        width: '200px',
+                        placeholder: 'Select Process Description'
+                    });
+                }
 
-            return Response({
-                'message': 'Welding & Assembly rows saved successfully',
-                'welding_ids': welding_ids,
-                'assembly_ids': assembly_ids
-            })
+                // If no rows, create a default empty row
+                if (!dataList || dataList.length === 0) {
+                    createRow(null);
+                } else {
+                    dataList.forEach(data => createRow(data));
+                }
+            }
+<div class="modal fade" id="deleteWeldingModal" tabindex="-1" role="dialog" aria-labelledby="deleteWeldingModalTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteWeldingModalLongTitle">Delete Bom</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure to delete this Welding ?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal" id="confirmWeldingDeleteBtn">Delete</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+document.addEventListener('click', function (e) {
+                // Match clicks on the delete icon
+                if (e.target && e.target.classList.contains('delete-bom')) {
+                // Find the TR containing this icon
+                const row = e.target.closest('tr');
+                bomIdToDelete = e.target.getAttribute('data-id');
+                rowToDelete = row; // store for modal confirm
+                }
 
-        except Exception as e:
-            return Response(
-                {'message': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-still created when id is passed for update
+                if (e.target && e.target.classList.contains('delete-welding')){
+                    const row = e.target.closest('tr');
+                    weldingrowdelete = row;
+                    weldingId = e.target.getAttribute('data-id');
+                }
+            });
+
+            // Confirm delete button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+                const res =fetch('/delete_bom_row/', {
+                    method: 'POST', // keep as POST since your view uses POST
+                    headers: {
+                    'Content-Type': 'application/json',
+                        // required for Django CSRF if not using JWT
+                    },
+                    body: JSON.stringify({ bom_id: Number(bomIdToDelete) })
+                }).then(response=>{
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    toastr.success("Bom row Deleted successfully");
+                })
+                .catch(err => {
+                    console.error("Failed to load process base:", err);
+                });
+                if (rowToDelete) {
+                    rowToDelete.remove();
+                    rowToDelete = null;
+                    bomIdToDelete = null;
+                    // updateSerialNumbers();
+                }
+            });
