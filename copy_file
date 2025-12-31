@@ -1,47 +1,44 @@
-const costData = [
-    { label: 'Direct RM Cost', value: 2213 },
-    { label: 'Allowance Cost', value: 106 },
-    { label: 'Process Cost', value: 545 },
-    { label: 'Overhead', value: 281 },
-    { label: 'Profit', value: 165 },
-    { label: 'Total Basic Cost', value: 3309, isTotal: true },
-    { label: 'Packing', value: 10 },
-    { label: 'Transport', value: 121 },
-    { label: 'Amortization', value: 0 },
-    { label: 'Total Cost', value: 3441, isTotal: true },
-];
+const waterfallConnectorPlugin = {
+    id: 'waterfallConnector',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
 
-let cumulative = 0;
+        ctx.save();
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
 
-const labels = [];
-const ranges = [];
-const backgroundColors = [];
-const borderWidths = [];
-const borderColors = [];
+        for (let i = 1; i < meta.data.length; i++) {
+            const prev = meta.data[i - 1];
+            const curr = meta.data[i];
 
-costData.forEach(item => {
-    let start, end;
+            if (!prev || !curr) continue;
 
-    if (item.isTotal) {
-        // Total bars start from 0
-        start = 0;
-        end = item.value;
-        cumulative = item.value; // reset baseline
-        backgroundColors.push('rgba(0, 102, 204, 0.8)'); // dark blue
-        borderColors.push('rgb(0, 102, 204)');
-        borderWidths.push(3);
-    } else {
-        start = cumulative;
-        end = cumulative + item.value;
-        cumulative = end;
-        backgroundColors.push('rgba(0, 102, 204, 0.35)'); // light blue
-        borderColors.push('rgba(0, 102, 204, 0.6)');
-        borderWidths.push(1);
+            const prevEndY = prev.y;
+            const currStartY = curr.base;
+
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prevEndY);
+            ctx.lineTo(curr.x, currStartY);
+            ctx.stroke();
+        }
+
+        ctx.restore();
     }
+};
 
-    labels.push(item.label);
-    ranges.push([start, end]);
-});
+const MIN_BAR = 0.5; // tiny value for hover
+
+if (item.isTotal) {
+    start = 0;
+    end = item.value || MIN_BAR;
+    cumulative = item.value;
+} else {
+    start = cumulative;
+    end = cumulative + (item.value || MIN_BAR);
+    cumulative += item.value;
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     const ctx = document.getElementById('bomFloatingBarH').getContext('2d');
@@ -51,9 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Cost Breakdown (₹)',
+                label: 'Cost (₹)',
                 data: ranges,
-                backgroundColor: backgroundColors,
+                backgroundColor: bgColors,
                 borderColor: borderColors,
                 borderWidth: borderWidths,
                 borderSkipped: false,
@@ -62,7 +59,6 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y',   // horizontal waterfall
             plugins: {
                 title: {
                     display: true,
@@ -71,28 +67,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 tooltip: {
                     callbacks: {
                         label: (ctx) => {
-                            const [start, end] = ctx.raw;
-                            return ` ₹${start} → ₹${end} (Δ ₹${end - start})`;
+                            const raw = ctx.raw;
+                            const start = raw[0];
+                            const end = raw[1];
+                            return `₹${start} → ₹${end} (Δ ₹${end - start})`;
                         }
                     }
                 }
             },
             scales: {
-                x: {
+                y: {
                     min: 0,
                     max: 4000,
-                    title: {
-                        display: true,
-                        text: 'Amount (₹)'
-                    }
+                    title: { display: true, text: 'Amount (₹)' }
                 },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Cost Head'
-                    }
+                x: {
+                    title: { display: true, text: 'Cost Head' }
                 }
             }
-        }
+        },
+        plugins: [waterfallConnectorPlugin]
     });
 });
