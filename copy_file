@@ -1,5 +1,98 @@
-if working
-33/:4594 modal t {_config: {…}, _element: div#deleteWeldingModal.modal.fade, _dialog: div.modal-dialog.modal-dialog-centered, _backdrop: null, _isShown: false, …}
-33/:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
-Element with focus: <div.modal fade show#deleteWeldingModal>
-Ancestor with aria-hidden: <div.modal fade show#deleteWeldingModal> <div class=​"modal fade show" id=​"deleteWeldingModal" tabindex=​"-1" aria-labelledby=​"deleteWeldingModalTitle" style=​"display:​ block;​" aria-hidden=​"true">​…​</div>​
+<div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                            {% csrf_token %}
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>COST HEAD</th>
+                                                    <th>DIRECT RM COST</th>
+                                                    <th>ALLOWANCE COST</th>
+                                                    <th>PROCESS COST</th>
+                                                    <th>OVERHEAD</th>
+                                                    <th>PROFIT</th>
+                                                    <th>TOTAL BASIC COST</th>
+                                                    <th>PACKING</th>
+                                                    <th>TRANSPORT</th>
+                                                    <th>AMORTIZATION</th>
+                                                    <th>TOTAL COST</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="bom_summary_graph_total">
+                                                    <td>Amount</td>
+                                                    <td>2213</td>
+                                                    <td>106</td>
+                                                    <td>545</td>
+                                                    <td>281</td>
+                                                    <td>165</td>
+                                                    <td style="font-weight: bold;">3309</td>
+                                                    <td>10</td>
+                                                    <td>121</td>
+                                                    <td>0</td>
+                                                    <td style="font-weight: bold;">3441</td>
+                                                </tr>
+                                                <tr class="bom_summary_graph_percent">
+                                                    <td>Ratio</td>
+                                                    <td>67%</td>
+                                                    <td>3%</td>
+                                                    <td>16%</td>
+                                                    <td>8%</td>
+                                                    <td>5%</td>
+                                                    <td style="font-weight: bold;">100%</td>
+                                                    <td>0%</td>
+                                                    <td>4%</td>
+                                                    <td>0%</td>
+                                                    <td style="font-weight: bold;">104%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="bomFloatingWrapperH" style="height: 420px; max-width: 1000px;">
+                                        <canvas id="bomFloatingBarH"></canvas>
+                                    </div>
+document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('bomFloatingBarH').getContext('2d');
+
+            const labels = ['Part A', 'Part B', 'Part C', 'Part D'];
+
+            // CPU ranges as [start, end]
+            const cpuRanges = [
+                [100, 160],
+                [80, 120],
+                [50, 140],
+                [130, 170],
+            ];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{
+                label: 'CPU range (₹)',
+                data: cpuRanges,
+                backgroundColor: 'rgba(255, 99, 132, 0.35)',
+                borderColor: 'rgb(255, 99, 132)',
+                borderWidth: 1,
+                borderSkipped: false,
+                }]},
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',               // <— horizontal bars
+                plugins: {
+                    title: { display: true, text: 'Floating Bar — CPU Range' },
+                    tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                        const [start, end] = ctx.raw;
+                        const span = end - start;
+                        return ` ${start.toFixed(2)} → ${end.toFixed(2)} (Δ ${span.toFixed(2)})`;
+                        }
+                    }
+                    }
+                },
+                scales: {
+                    x: { beginAtZero: true, title: { display: true, text: 'Amount (₹)' } },
+                    y: { title: { display: true, text: 'Part No' } }
+                }
+                }
+            });
+            });
+change the graph to waterfall graph that fit my temporary values like 0 to 4000 direct rmcost 2213 so one bar touch and next allowance cost 106 should start with 2213 and go 106 so the start end line should maintain remaining values also total basic cost and total cost are thick blue and others are light blue color
