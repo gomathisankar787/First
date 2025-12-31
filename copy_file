@@ -1,91 +1,36 @@
-const waterfallConnectorPlugin = {
-    id: 'waterfallConnector',
+const waterfallValueLabelPlugin = {
+    id: 'waterfallValueLabels',
     afterDatasetsDraw(chart) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
 
         ctx.save();
-        ctx.strokeStyle = '#666';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
 
-        for (let i = 1; i < meta.data.length; i++) {
-            const prev = meta.data[i - 1];
-            const curr = meta.data[i];
+        meta.data.forEach((bar, index) => {
+            if (!bar) return;
 
-            if (!prev || !curr) continue;
+            const raw = chart.data.datasets[0].data[index];
+            const start = raw[0];
+            const end = raw[1];
+            const value = end - start;
 
-            const prevEndY = prev.y;
-            const currStartY = curr.base;
+            // position above bar end
+            const x = bar.x;
+            const y = bar.y - 6;
 
-            ctx.beginPath();
-            ctx.moveTo(prev.x, prevEndY);
-            ctx.lineTo(curr.x, currStartY);
-            ctx.stroke();
-        }
+            // total bars (thick border)
+            const isTotal = chart.data.datasets[0].borderWidth[index] > 2;
+
+            const label = isTotal
+                ? `₹${Math.round(start)}`   // show cumulative total
+                : `+₹${Math.round(value)}`;
+
+            ctx.fillText(label, x, y);
+        });
 
         ctx.restore();
     }
 };
-
-const MIN_BAR = 0.5; // tiny value for hover
-
-if (item.isTotal) {
-    start = 0;
-    end = item.value || MIN_BAR;
-    cumulative = item.value;
-} else {
-    start = cumulative;
-    end = cumulative + (item.value || MIN_BAR);
-    cumulative += item.value;
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const ctx = document.getElementById('bomFloatingBarH').getContext('2d');
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Cost (₹)',
-                data: ranges,
-                backgroundColor: bgColors,
-                borderColor: borderColors,
-                borderWidth: borderWidths,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'BOM Cost Waterfall'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => {
-                            const raw = ctx.raw;
-                            const start = raw[0];
-                            const end = raw[1];
-                            return `₹${start} → ₹${end} (Δ ₹${end - start})`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    min: 0,
-                    max: 4000,
-                    title: { display: true, text: 'Amount (₹)' }
-                },
-                x: {
-                    title: { display: true, text: 'Cost Head' }
-                }
-            }
-        },
-        plugins: [waterfallConnectorPlugin]
-    });
-});
