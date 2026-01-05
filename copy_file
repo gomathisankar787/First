@@ -1,38 +1,62 @@
+<i class="bi bi-trash btn" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" onclick="processdeleteRow(this,${proc.id});openDeleteModal();"></i>
 <div class="modal fade"
-     id="deleteProcessModal"
-     tabindex="-1"
-     data-backdrop="static"
-     data-keyboard="false">
+                id="deleteProcessModal"
+                tabindex="-1"
+                data-backdrop="static"
+                data-keyboard="false">
 
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Delete Process</h5>
-                <button type="button" class="close" onclick="closeDeleteModal()">
-                    <span>&times;</span>
-                </button>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Delete Process</h5>
+                            <button type="button" class="close" onclick="closeDeleteModal()">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+
+                        <div class="modal-body text-center">
+                            Are you sure to delete this process?
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                            <button class="btn btn-danger" id="confirmProcessDeleteBtn">
+                                Delete
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
             </div>
+$('#confirmProcessDeleteBtn').on('click',function(){
+                $('#deleteProcessModal').modal('hide');
+                toastr.success("row Deleted successfully");
+            })
 
-            <div class="modal-body text-center">
-                Are you sure to delete this process?
-            </div>
+            function closeDeleteModal(){
+                $('#deleteProcessModal').modal('hide');
+            }
 
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button class="btn btn-danger" id="confirmProcessDeleteBtn">
-                    Delete
-                </button>
-            </div>
+            function openDeleteModal() {
+                $('#deleteProcessModal').modal('show');
 
-        </div>
-    </div>
-</div>
-function openDeleteModal() {
-    $('#deleteProcessModal').modal('show');
-
-    // Fix z-index stacking
-    $('#updatecscModal').css('z-index', 1040);
-    $('#deleteProcessModal').css('z-index', 1050);
-    $('.modal-backdrop').last().css('z-index', 1045);
-}
+                // Fix z-index stacking
+                $('#updatecscModal').css('z-index', 1040);
+                $('#deleteProcessModal').css('z-index', 1050);
+                $('.modal-backdrop').last().css('z-index', 1045);
+            }
+function processdeleteRow(button,procId) {
+      const row = button.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+      const payload = {id:procId}
+      fetch('/delete_single_sm_process/', {
+                method: 'DELETE',
+                headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .catch(err => console.log("Error Delete single sm process", err));
+    }
