@@ -1,36 +1,70 @@
-const waterfallValueLabelPlugin = {
-    id: 'waterfallValueLabels',
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
+def mycsc(request):
+    csc = CRCSCTBL.objects.all().order_by('-updated_on')
+    part_types = PARTTYPETBL.objects.all()
+    projects = PROJECTLISTTBL.objects.all()
+    rm_base = RMbase.objects.exists()
+    process_base = Processbase.objects.exists()
+    oh_profit_base = OH_ProfitData.objects.exists()
+    if rm_base:
+        rm_base_values = RMbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+        seen = set() # Remove duplicates while maintaining order
+        rm_base_values = [x for x in rm_base_values if not (x in seen or seen.add(x))]
+    else:
+        rm_base_values = None
+    if process_base:
+        process_base_values = list(Processbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct())
+        seen = set() # Remove duplicates while maintaining order
+        process_base_values = [x for x in process_base_values if not (x in seen or seen.add(x))]
+    else:
+        process_base_values = None
+    if oh_profit_base:
+        ohprofit_base_values = OH_ProfitData.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
+        seen = set() # Remove duplicates while maintaining order
+        ohprofit_base_values = [x for x in ohprofit_base_values if not (x in seen or seen.add(x))]
+    else:
+        ohprofit_base_values = None
+    
+    paginator = Paginator(csc, 15)
 
-        ctx.save();
-        ctx.font = '12px sans-serif';
-        ctx.fillStyle = '#000';
-        ctx.textAlign = 'center';
+    # Get current page number from query params
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    # print('page',page_obj)
 
-        meta.data.forEach((bar, index) => {
-            if (!bar) return;
+    return render(request,'test.html',{'page_obj': page_obj,
+                   'part_types':part_types,
+                   'projects':projects,
+                   'rm_base_values': rm_base_values,
+                    'process_base_values': process_base_values,
+                    'ohprofit_base_values': ohprofit_base_values}) #,
 
-            const raw = chart.data.datasets[0].data[index];
-            const start = raw[0];
-            const end = raw[1];
-            const value = end - start;
+<div class="form-group">
+                            <label for="rmmaster">Rm Base Date</label>
+                            <select id="rmmaster" name="rm_base">
+                                <option value="" disabled selected> ---Select RM Base--- </option>
+                                {% for base in rm_base_values %}
+                                <option value="{{ base }}">{{ base }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-            // position above bar end
-            const x = bar.x;
-            const y = bar.y - 6;
+                        <div class="form-group">
+                            <label for="processmaster">Process Base Date</label>
+                            <select id="processmaster" name="process_base">
+                                <option value="" disabled selected> ---Select Process Base--- </option>
+                                {% for base in process_base_values %}
+                                <option value="{{ base }}">{{ base }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-            // total bars (thick border)
-            const isTotal = chart.data.datasets[0].borderWidth[index] > 2;
-
-            const label = isTotal
-                ? `₹${Math.round(start)}`   // show cumulative total
-                : `+₹${Math.round(value)}`;
-
-            ctx.fillText(label, x, y);
-        });
-
-        ctx.restore();
-    }
-};
+                        <div class="form-group">
+                        <label for="ohprofit">OH Profit & Other Cost Base</label>
+                        <select id="ohprofit" name="oh_profit_base">
+                            <option value="" disabled selected> ---Select Oh Profit Base--- </option>
+                            {% for base in ohprofit_base_values %}
+                            <option value="{{ base }}">{{ base }}</option>
+                            {% endfor %}
+                        </select>
+                        </div>
+default should be recent month ; data is like Dec-25, Oct-25, Nov-25
