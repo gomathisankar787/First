@@ -1,62 +1,40 @@
-<i class="bi bi-trash btn" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" onclick="processdeleteRow(this,${proc.id});openDeleteModal();"></i>
-<div class="modal fade"
-                id="deleteProcessModal"
-                tabindex="-1"
-                data-backdrop="static"
-                data-keyboard="false">
+function openDeleteModal(button, procId) {
+    deleteRowRef = button.closest('tr');
+    deleteProcId = procId;
 
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
+    $('#deleteProcessModal').modal('show');
 
-                        <div class="modal-header">
-                            <h5 class="modal-title">Delete Process</h5>
-                            <button type="button" class="close" onclick="closeDeleteModal()">
-                                <span>&times;</span>
-                            </button>
-                        </div>
+    // Z-index fix for fullscreen parent
+    $('#updatecscModal').css('z-index', 1040);
+    $('#deleteProcessModal').css('z-index', 1050);
+    $('.modal-backdrop').last().css('z-index', 1045);
+}
 
-                        <div class="modal-body text-center">
-                            Are you sure to delete this process?
-                        </div>
+$('#confirmProcessDeleteBtn').on('click', function () {
 
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                            <button class="btn btn-danger" id="confirmProcessDeleteBtn">
-                                Delete
-                            </button>
-                        </div>
+    if (!deleteRowRef || !deleteProcId) return;
 
-                    </div>
-                </div>
-            </div>
-$('#confirmProcessDeleteBtn').on('click',function(){
-                $('#deleteProcessModal').modal('hide');
-                toastr.success("row Deleted successfully");
-            })
+    // 1️⃣ Remove row from UI
+    deleteRowRef.remove();
 
-            function closeDeleteModal(){
-                $('#deleteProcessModal').modal('hide');
-            }
+    // 2️⃣ Call backend delete
+    fetch('/delete_single_sm_process/', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ id: deleteProcId })
+    })
+    .then(res => res.json())
+    .then(() => {
+        toastr.success("Row deleted successfully");
+    })
+    .catch(err => {
+        console.error("Delete error", err);
+        toastr.error("Delete failed");
+    });
 
-            function openDeleteModal() {
-                $('#deleteProcessModal').modal('show');
-
-                // Fix z-index stacking
-                $('#updatecscModal').css('z-index', 1040);
-                $('#deleteProcessModal').css('z-index', 1050);
-                $('.modal-backdrop').last().css('z-index', 1045);
-            }
-function processdeleteRow(button,procId) {
-      const row = button.parentNode.parentNode;
-      row.parentNode.removeChild(row);
-      const payload = {id:procId}
-      fetch('/delete_single_sm_process/', {
-                method: 'DELETE',
-                headers: {
-                            'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .catch(err => console.log("Error Delete single sm process", err));
-    }
+    // 3️⃣ Close ONLY delete modal
+    $('#deleteProcessModal').modal('hide');
+});
