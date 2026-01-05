@@ -1,70 +1,95 @@
+from datetime import datetime
+from django.db.models import F
+
+def sort_month_year(values):
+    """
+    Sorts ['Dec-25', 'Oct-25', 'Nov-25'] → ['Dec-25', 'Nov-25', 'Oct-25']
+    """
+    return sorted(
+        values,
+        key=lambda x: datetime.strptime(x, "%b-%y"),
+        reverse=True
+    )
+
 def mycsc(request):
     csc = CRCSCTBL.objects.all().order_by('-updated_on')
     part_types = PARTTYPETBL.objects.all()
     projects = PROJECTLISTTBL.objects.all()
-    rm_base = RMbase.objects.exists()
-    process_base = Processbase.objects.exists()
-    oh_profit_base = OH_ProfitData.objects.exists()
-    if rm_base:
-        rm_base_values = RMbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
-        seen = set() # Remove duplicates while maintaining order
-        rm_base_values = [x for x in rm_base_values if not (x in seen or seen.add(x))]
-    else:
-        rm_base_values = None
-    if process_base:
-        process_base_values = list(Processbase.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct())
-        seen = set() # Remove duplicates while maintaining order
-        process_base_values = [x for x in process_base_values if not (x in seen or seen.add(x))]
-    else:
-        process_base_values = None
-    if oh_profit_base:
-        ohprofit_base_values = OH_ProfitData.objects.annotate(index=F('id')).order_by('-index').values_list('base', flat=True).distinct()
-        seen = set() # Remove duplicates while maintaining order
-        ohprofit_base_values = [x for x in ohprofit_base_values if not (x in seen or seen.add(x))]
-    else:
-        ohprofit_base_values = None
-    
-    paginator = Paginator(csc, 15)
 
-    # Get current page number from query params
+    # -------- RM BASE --------
+    rm_base_values = None
+    rm_latest = None
+    if RMbase.objects.exists():
+        rm_base_values = list(
+            RMbase.objects.order_by('-id')
+            .values_list('base', flat=True)
+            .distinct()
+        )
+        rm_base_values = list(dict.fromkeys(rm_base_values))  # remove duplicates
+        rm_base_values = sort_month_year(rm_base_values)
+        rm_latest = rm_base_values[0]
+
+    # -------- PROCESS BASE --------
+    process_base_values = None
+    process_latest = None
+    if Processbase.objects.exists():
+        process_base_values = list(
+            Processbase.objects.order_by('-id')
+            .values_list('base', flat=True)
+            .distinct()
+        )
+        process_base_values = list(dict.fromkeys(process_base_values))
+        process_base_values = sort_month_year(process_base_values)
+        process_latest = process_base_values[0]
+
+    # -------- OH PROFIT BASE --------
+    ohprofit_base_values = None
+    ohprofit_latest = None
+    if OH_ProfitData.objects.exists():
+        ohprofit_base_values = list(
+            OH_ProfitData.objects.order_by('-id')
+            .values_list('base', flat=True)
+            .distinct()
+        )
+        ohprofit_base_values = list(dict.fromkeys(ohprofit_base_values))
+        ohprofit_base_values = sort_month_year(ohprofit_base_values)
+        ohprofit_latest = ohprofit_base_values[0]
+
+    paginator = Paginator(csc, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    # print('page',page_obj)
 
-    return render(request,'test.html',{'page_obj': page_obj,
-                   'part_types':part_types,
-                   'projects':projects,
-                   'rm_base_values': rm_base_values,
-                    'process_base_values': process_base_values,
-                    'ohprofit_base_values': ohprofit_base_values}) #,
+    return render(request, 'test.html', {
+        'page_obj': page_obj,
+        'part_types': part_types,
+        'projects': projects,
+        'rm_base_values': rm_base_values,
+        'process_base_values': process_base_values,
+        'ohprofit_base_values': ohprofit_base_values,
+        'rm_latest': rm_latest,
+        'process_latest': process_latest,
+        'ohprofit_latest': ohprofit_latest,
+    })
+<select id="rmmaster" name="rm_base">
+    {% for base in rm_base_values %}
+        <option value="{{ base }}" {% if base == rm_latest %}selected{% endif %}>
+            {{ base }}
+        </option>
+    {% endfor %}
+</select>
 
-<div class="form-group">
-                            <label for="rmmaster">Rm Base Date</label>
-                            <select id="rmmaster" name="rm_base">
-                                <option value="" disabled selected> ---Select RM Base--- </option>
-                                {% for base in rm_base_values %}
-                                <option value="{{ base }}">{{ base }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+<select id="processmaster" name="process_base">
+    {% for base in process_base_values %}
+        <option value="{{ base }}" {% if base == process_latest %}selected{% endif %}>
+            {{ base }}
+        </option>
+    {% endfor %}
+</select>
 
-                        <div class="form-group">
-                            <label for="processmaster">Process Base Date</label>
-                            <select id="processmaster" name="process_base">
-                                <option value="" disabled selected> ---Select Process Base--- </option>
-                                {% for base in process_base_values %}
-                                <option value="{{ base }}">{{ base }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                        <label for="ohprofit">OH Profit & Other Cost Base</label>
-                        <select id="ohprofit" name="oh_profit_base">
-                            <option value="" disabled selected> ---Select Oh Profit Base--- </option>
-                            {% for base in ohprofit_base_values %}
-                            <option value="{{ base }}">{{ base }}</option>
-                            {% endfor %}
-                        </select>
-                        </div>
-default should be recent month ; data is like Dec-25, Oct-25, Nov-25
+<select id="ohprofit" name="oh_profit_base">
+    {% for base in ohprofit_base_values %}
+        <option value="{{ base }}" {% if base == ohprofit_latest %}selected{% endif %}>
+            {{ base }}
+        </option>
+    {% endfor %}
+</select>
