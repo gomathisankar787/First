@@ -1,51 +1,61 @@
-const excelInput = $('#updatecscModal').find('input[name="cutting_length"]')
-            // const pInput = document.getElementById("pInput");
+const excelInput = $('#updatecscModal').find('input[name="cutting_length"]');
 
-            let storedFormula = "";
+let storedFormula = "";
+let isEditing = false;
 
-            // Dynamic function like Excel variable
-            function p() {
-            return Math.floor(Date.now() / 1000) % 10;
-            }
+// 🔹 Dynamic function (example)
+function p() {
+  return Math.floor(Date.now() / 1000) % 10;
+}
 
-            // Formula evaluator
-            function evaluateFormula(formula) {
-            if (!formula.startsWith("=")) return formula;
+// 🔹 Formula evaluator
+function evaluateFormula(formula) {
+  if (!formula || !formula.startsWith("=")) return formula;
 
-            const expression = formula.slice(1);
+  const expression = formula.slice(1);
 
-            try {
-                const func = new Function("p", `return ${expression}`);
-                return func(p);
-            } catch (error) {
-                return "Error";
-            }
-            }
+  try {
+    const fn = new Function("p", `return ${expression}`);
+    return fn(p);
+  } catch (e) {
+    return "Error";
+  }
+}
 
-            // When user leaves input → calculate
-            excelInput.addEventListener("blur", () => {
-            const value = excelInput.value;
+// 🔹 Focus → show formula
+excelInput.on("focus", function () {
+  isEditing = true;
+  if (storedFormula) {
+    $(this).val(storedFormula);
+  }
+});
 
-            if (!value.startsWith("=")) return;
+// 🔹 Blur → calculate result
+excelInput.on("blur", function () {
+  isEditing = false;
 
-            storedFormula = value;
+  const value = $(this).val();
+  if (!value || !value.startsWith("=")) return;
 
-            const result = evaluateFormula(value);
+  storedFormula = value;
 
-            excelInput.title = storedFormula; // Tooltip
-            excelInput.value = result;
-            });
+  const result = evaluateFormula(storedFormula);
 
-            // When user clicks input → show formula back
-            excelInput.addEventListener("focus", () => {
-            if (storedFormula) {
-                excelInput.value = storedFormula;
-            }
-            });
+  $(this)
+    .val(result)
+    .attr("title", storedFormula); // Tooltip
+});
 
-            setInterval(()=>{
-                if(!storedFormula || document.activeElement === input) return;
+// 🔹 Auto recalc (Excel-like)
+setInterval(() => {
+  if (!storedFormula || isEditing) return;
 
-                const result = evaluateFormula(storedFormula);
-                input.value = result;
-            },1000);
+  excelInput.val(evaluateFormula(storedFormula));
+}, 1000);
+
+// 🔹 Modal open safety
+$('#updatecscModal').on('shown.bs.modal', function () {
+  if (storedFormula && !isEditing) {
+    excelInput.val(evaluateFormula(storedFormula));
+  }
+});
