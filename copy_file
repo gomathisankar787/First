@@ -1,331 +1,52 @@
-import React, { useState } from "react";
+const excelInput = document.getElementById("excelInput");
+const pInput = document.getElementById("pInput");
 
-interface BomRow {
-  level: number;
-  partNo: string;
-  revision: string;
-  description: string;
-  qty: number;
-  processType: string;
-  scope: string;
-  method: string;
-  nesting: string;
+let storedFormula = "";
+
+// Dynamic function like Excel variable
+function p() {
+  return Number(pInput.value || 0);
 }
 
-const BomPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("bom");
+// Formula evaluator
+function evaluateFormula(formula) {
+  if (!formula.startsWith("=")) return formula;
 
-  const [rows, setRows] = useState<BomRow[]>([
-    {
-      level: 1,
-      partNo: "",
-      revision: "",
-      description: "",
-      qty: 1,
-      processType: "",
-      scope: "",
-      method: "",
-      nesting: "",
-    },
-  ]);
+  const expression = formula.slice(1);
 
-  const addRow = () => {
-    setRows([
-      ...rows,
-      {
-        level: rows.length + 1,
-        partNo: "",
-        revision: "",
-        description: "",
-        qty: 1,
-        processType: "",
-        scope: "",
-        method: "",
-        nesting: "",
-      },
-    ]);
-  };
-
-  const updateRow = (index: number, field: keyof BomRow, value: any) => {
-    const updated = [...rows];
-    updated[index][field] = value;
-    setRows(updated);
-  };
-
-  return (
-    <>
-      {/* Navbar */}
-      <nav className="navbar app-navbar">
-        <div className="container-fluid">
-          <span className="navbar-brand fw-bold text-success">
-            BOM Costing
-          </span>
-        </div>
-      </nav>
-
-      {/* Sidebar */}
-      <div className="sidebar">
-        <a href="#">Home</a>
-        <a href="#">CSC</a>
-        <a href="#">BOM</a>
-        <a href="#">SM Material</a>
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Tabs */}
-        <ul className="nav nav-pills mb-3">
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === "bom" ? "active" : ""}`}
-              onClick={() => setActiveTab("bom")}
-            >
-              BOM
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === "summary" ? "active" : ""}`}
-              onClick={() => setActiveTab("summary")}
-            >
-              BOM Summary
-            </button>
-          </li>
-        </ul>
-
-        {/* BOM TAB */}
-        {activeTab === "bom" && (
-          <>
-            <div className="d-flex justify-content-between mb-2">
-              <h5>Create New BOM</h5>
-              <button className="btn primary-btn" onClick={addRow}>
-                <i className="bi bi-plus-circle me-1"></i>
-                Add Row
-              </button>
-            </div>
-
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>S.No</th>
-                  <th>Level</th>
-                  <th>Part No</th>
-                  <th>Rev</th>
-                  <th>Description</th>
-                  <th>Qty</th>
-                  <th>Process</th>
-                  <th>Scope</th>
-                  <th>Method</th>
-                  <th>Nesting</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={row.level}
-                        onChange={(e) =>
-                          updateRow(i, "level", Number(e.target.value))
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        value={row.partNo}
-                        onChange={(e) =>
-                          updateRow(i, "partNo", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        value={row.revision}
-                        onChange={(e) =>
-                          updateRow(i, "revision", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        value={row.description}
-                        onChange={(e) =>
-                          updateRow(i, "description", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={row.qty}
-                        onChange={(e) =>
-                          updateRow(i, "qty", Number(e.target.value))
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className="form-select"
-                        value={row.processType}
-                        onChange={(e) =>
-                          updateRow(i, "processType", e.target.value)
-                        }
-                      >
-                        <option value="">Select</option>
-                        <option value="Cutting">Cutting</option>
-                        <option value="Assembly">Assembly</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select
-                        className="form-select"
-                        value={row.scope}
-                        onChange={(e) =>
-                          updateRow(i, "scope", e.target.value)
-                        }
-                      >
-                        <option value="">Select</option>
-                        <option value="InHouse">InHouse</option>
-                        <option value="BOF">BOF</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        value={row.method}
-                        onChange={(e) =>
-                          updateRow(i, "method", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className="form-select"
-                        value={row.nesting}
-                        onChange={(e) =>
-                          updateRow(i, "nesting", e.target.value)
-                        }
-                      >
-                        <option value="">Select</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-
-        {/* SUMMARY TAB */}
-        {activeTab === "summary" && (
-          <h5>BOM Summary (API driven)</h5>
-        )}
-      </div>
-    </>
-  );
-};
-
-export default BomPage;
-
-
-
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f4f6f7;
-}
-
-/* Navbar */
-.app-navbar {
-  background: #ffffff;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-}
-
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  top: 60px;
-  left: 0;
-  width: 260px;
-  height: calc(100vh - 60px);
-  background: #f8f9fa;
-  padding: 20px;
-  box-shadow: 2px 0 6px rgba(0,0,0,0.1);
-}
-
-.sidebar a {
-  display: block;
-  padding: 12px;
-  color: #333;
-  text-decoration: none;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.sidebar a:hover {
-  background: #24968f;
-  color: #fff;
-}
-
-/* Main content */
-.main-content {
-  margin-left: 280px;
-  margin-top: 80px;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-}
-
-/* Tables */
-.table th {
-  background: #24968f;
-  color: #fff;
-  font-size: 14px;
-}
-
-.table td {
-  font-size: 13px;
-  text-align: center;
-  vertical-align: middle;
-}
-
-/* Buttons */
-.primary-btn {
-  background: #24968f;
-  border: none;
-  color: #fff;
-}
-
-.primary-btn:hover {
-  background: #006955;
-}
-
-/* Tabs */
-.nav-pills .nav-link.active {
-  background: #24968f;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-  .main-content {
-    margin-left: 0;
+  try {
+    const func = new Function("p", `return ${expression}`);
+    return func(p);
+  } catch (error) {
+    return "Error";
   }
 }
+
+// When user leaves input → calculate
+excelInput.addEventListener("blur", () => {
+  const value = excelInput.value;
+
+  if (!value.startsWith("=")) return;
+
+  storedFormula = value;
+
+  const result = evaluateFormula(value);
+
+  excelInput.title = storedFormula; // Tooltip
+  excelInput.value = result;
+});
+
+// When user clicks input → show formula back
+excelInput.addEventListener("focus", () => {
+  if (storedFormula) {
+    excelInput.value = storedFormula;
+  }
+});
+
+// Recalculate automatically when p changes
+pInput.addEventListener("input", () => {
+  if (!storedFormula) return;
+
+  const result = evaluateFormula(storedFormula);
+  excelInput.value = result;
+});
