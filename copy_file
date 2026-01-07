@@ -1,52 +1,51 @@
-const excelInput = document.getElementById("excelInput");
-const pInput = document.getElementById("pInput");
+const excelInput = $('#updatecscModal').find('input[name="cutting_length"]')
+            // const pInput = document.getElementById("pInput");
 
-let storedFormula = "";
+            let storedFormula = "";
 
-// Dynamic function like Excel variable
-function p() {
-  return Number(pInput.value || 0);
-}
+            // Dynamic function like Excel variable
+            function p() {
+            return Math.floor(Date.now() / 1000) % 10;
+            }
 
-// Formula evaluator
-function evaluateFormula(formula) {
-  if (!formula.startsWith("=")) return formula;
+            // Formula evaluator
+            function evaluateFormula(formula) {
+            if (!formula.startsWith("=")) return formula;
 
-  const expression = formula.slice(1);
+            const expression = formula.slice(1);
 
-  try {
-    const func = new Function("p", `return ${expression}`);
-    return func(p);
-  } catch (error) {
-    return "Error";
-  }
-}
+            try {
+                const func = new Function("p", `return ${expression}`);
+                return func(p);
+            } catch (error) {
+                return "Error";
+            }
+            }
 
-// When user leaves input → calculate
-excelInput.addEventListener("blur", () => {
-  const value = excelInput.value;
+            // When user leaves input → calculate
+            excelInput.addEventListener("blur", () => {
+            const value = excelInput.value;
 
-  if (!value.startsWith("=")) return;
+            if (!value.startsWith("=")) return;
 
-  storedFormula = value;
+            storedFormula = value;
 
-  const result = evaluateFormula(value);
+            const result = evaluateFormula(value);
 
-  excelInput.title = storedFormula; // Tooltip
-  excelInput.value = result;
-});
+            excelInput.title = storedFormula; // Tooltip
+            excelInput.value = result;
+            });
 
-// When user clicks input → show formula back
-excelInput.addEventListener("focus", () => {
-  if (storedFormula) {
-    excelInput.value = storedFormula;
-  }
-});
+            // When user clicks input → show formula back
+            excelInput.addEventListener("focus", () => {
+            if (storedFormula) {
+                excelInput.value = storedFormula;
+            }
+            });
 
-// Recalculate automatically when p changes
-pInput.addEventListener("input", () => {
-  if (!storedFormula) return;
+            setInterval(()=>{
+                if(!storedFormula || document.activeElement === input) return;
 
-  const result = evaluateFormula(storedFormula);
-  excelInput.value = result;
-});
+                const result = evaluateFormula(storedFormula);
+                input.value = result;
+            },1000);
