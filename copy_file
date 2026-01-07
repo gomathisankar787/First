@@ -1,4 +1,28 @@
-<td><input type="text" name="cutting_len_formula" value=""></td>
-<td><input class="process-length" name="cutting_length" data-id="${proc.id}" value="${proc.cutting_forminglength || ''}"></td>
-these is in updatecscModal
-so can you give the correct updated code if cuttinglen formula enter then the value should calculate and show
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+
+function evaluateFormula(formula) {
+  if (!formula || !formula.startsWith("=")) return "";
+
+  try {
+    // Remove '=' like Excel
+    const expr = formula.substring(1);
+
+    // math.js supports SUM, AVG, etc.
+    return math.evaluate(expr);
+  } catch (e) {
+    return "Error";
+  }
+}
+
+$('#updatecscModal').on('input', 'input[name="cutting_len_formula"]', function () {
+  const formula = $(this).val().trim();
+  const row = $(this).closest('tr');
+  const resultInput = row.find('input[name="cutting_length"]');
+
+  if (!formula.startsWith("=")) {
+    resultInput.val("");
+    return;
+  }
+
+  resultInput.val(evaluateFormula(formula));
+});
