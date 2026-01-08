@@ -1,128 +1,63 @@
-function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type, surface_process_base_list) {
-                const tbody = document.getElementById("processTableBody");
-                tbody.innerHTML = ""; // clear existing rows
+function hasSMProcessData() {
+    let hasValue = false;
 
-                processList.forEach(proc => {
-                    const row = document.createElement("tr");
-                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting","Hole Spotting"]
-                    const shearing = ["Shearing"]
-                    const surface = ["Surface Protection"]
-                    // const yellowGroup = ["Blanking","Hole Spotting","Piercing","Bending","Forming"]
-                    const greenGroup = ["Dressing","Block Setting","Setting, Assembly & Handling"]
-                    // let rowColor = "";
-                    // if (greyGroup.includes(proc.process_description)){
-                    //         rowColor = "background-color: #e6e6e6;"; 
-                    // } else if (yellowGroup.includes(proc.process_description)){
-                    //     rowColor = "background-color: #d7f7f7;"
-                    // }else if(greenGroup.includes(proc.process_description)){
-                    //     rowColor = "background-color:#f7f1d5;"
-                    // }
+    $('#processTableBody tr').each(function () {
+        const machineType = $(this).find('select[name="machine_type"]').val();
+        const cuttingFormula = $(this).find('.cutting_len_formula').val();
+        const cuttingLength = $(this).find('.process-length').val();
 
-                    // row.setAttribute("style",rowColor)
-                    // console.log('id',proc.id)
-                    // Build Process Description Dropdown
-                    let processDescOptions = `<option value="">Select</option>`;
-                    selectprocessdesclist.forEach(desc => {
-                        const selected = proc.process_description === desc ? "selected" : "";
-                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-                    });
-
-                    // Build Machine Type Dropdown
-                    let processTypeOptions = `<option value="">Select</option>`;
-                    selectprocesslist.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
-
-                    let surface_processTypeOptions = `<option value="">Select</option>`;
-                    surface_process_base_list.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        surface_processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
-
-                    let machineTypeOption = `<option value="">Select</option>`;
-                    machine_type.forEach(item => {
-                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
-                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
-                    })
-
-                    const isSurfaceProtection = (proc.process_description || "")
-                    .toLowerCase()
-                    .includes("surface protection");
-
-                    row.innerHTML = `
-                        <td><input value="${proc.part_no || ''}" readonly style="background-color:e6e6e6;width:110px"></td>
-                        <td><input value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input value="${proc.part_description || ''}" readonly style="background-color:e6e6e6"></td>
-
-                        <!-- Process Description Dropdown -->
-                        <td>
-                            <select class="process_description" name="process_description" data-id="${proc.id}">
-                                ${processDescOptions}
-                            </select>
-                        </td>
-
-                        <td>
-                            <select class="process-desc" name="machine_type" data-id="${proc.id}" >
-                                ${machineTypeOption}
-                            </select>
-                        </td>
-                        <td><input type="text" class="cutting_len_formula" name="cutting_len_formula" data-id="${proc.id}" value="${proc.cutting_formula || ''}" value=""></td>
-                        <td><input class="process-length" name="cutting_length" data-id="${proc.id}" value="${proc.cutting_forminglength || ''}"></td>
-
-                        <!-- Machine Type Dropdown -->
-                        <td>
-                            <select class="process-type-desc" data-id="${proc.id}">
-                            ${isSurfaceProtection ? surface_processTypeOptions : processTypeOptions}
-                            </select>
-                        </td>
-
-                        <td><input class="process_no_of_operations" name="no_of_operation" data-id="${proc.id}" value="${proc.no_of_operations ? parseFloat(proc.no_of_operations).toFixed(2) : ''}"></td>
-                        <td><input class="process_parts_per_cycle" name="parts_per_cycle" data-id="${proc.id}" value="${proc.parts_per_cycle || ''}"></td>
-                        <td><input value="${proc.norms ? parseFloat(proc.norms).toFixed(2) : ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input value="${proc.process_cost_unit ? parseFloat(proc.process_cost_unit).toFixed(2) : ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input class="process_remarks" data-id="${proc.id}" value="${proc.remarks || ''}"></td>
-
-                        <td>
-                            <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
-                            <i class="bi bi-trash btn" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" onclick="openDeleteModal(this,${proc.id});"></i>
-                        </td>
-                    `;
- $('#confirmUpdateBtn').on('click', function () {
-            let form = document.getElementById("sm_material_form"); // your modal form id
-            let formData = new FormData(form);
-            formData.append("save_material_data", "1"); // Required by your condition
-            formData.append("no_of_operations",strips);
-            id = document.getElementById("edit_id").value;
-            // console.log('formdata',formData)
-            fetch(`/bom_details/${id}/`, {
-                method: "POST",
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    toastr.success(data.message);  // show toaster
-                    // closeMaterialModal();          // clear + hide modal
-                    sm_materialById(bom_id)
-                } else {
-                    toastr.error(data.message);
-                }
-            })
-            .catch(err => {
-                toastr.error("Server error!");
-                console.error(err);
-            });
-            $('#updateConfirmModal').modal('hide');
-        })
-
-        let modalopen = false;
-        
-
-        function save_material_data(id) {
-            $('#updateConfirmModal').modal('show');
+        if (
+            (machineType && machineType.trim() !== '') ||
+            (cuttingFormula && cuttingFormula.trim() !== '') ||
+            (cuttingLength && cuttingLength.trim() !== '')
+        ) {
+            hasValue = true;
+            return false; // break loop
         }
-if any of machine_type, cutting_len_formula, cutting_length has values modal should open or else no need to modal open direct update  
+    });
+
+    return hasValue;
+}
+function save_material_data() {
+    if (hasSMProcessData()) {
+        // show confirm modal ONLY if data exists
+        $('#updateConfirmModal').modal('show');
+    } else {
+        // directly update
+        submitMaterialUpdate();
+    }
+}
+function submitMaterialUpdate() {
+    let form = document.getElementById("sm_material_form");
+    let formData = new FormData(form);
+
+    formData.append("save_material_data", "1");
+    formData.append("no_of_operations", strips);
+
+    const id = document.getElementById("edit_id").value;
+
+    fetch(`/bom_details/${id}/`, {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            toastr.success(data.message);
+            sm_materialById(bom_id);
+        } else {
+            toastr.error(data.message);
+        }
+    })
+    .catch(err => {
+        toastr.error("Server error!");
+        console.error(err);
+    });
+}
+$('#confirmUpdateBtn').on('click', function () {
+    submitMaterialUpdate();
+    $('#updateConfirmModal').modal('hide');
+});
