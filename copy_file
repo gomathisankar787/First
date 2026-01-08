@@ -1,203 +1,27 @@
-function evaluateFormula(formula) {
-                if (!formula || !formula.startsWith("=")) return "";
+function bindFormula(modal, formulaName, targetName, calculateFn) {
+    modal.on('input', `input[name="${formulaName}"]`, function () {
+        const formula = $(this).val().trim();
+        const targetInput = modal.find(`input[name="${targetName}"]`);
 
-                try {
-                    // Remove '=' like Excel
-                    const expr = formula.substring(1);
+        if (!formula.startsWith("=")) {
+            targetInput.val("");
+            calculateFn();
+            return;
+        }
 
-                    // math.js supports SUM, AVG, etc.
-                    return math.evaluate(expr);
-                } catch (e) {
-                    return "Error";
-                }
-                }
+        const result = evaluateFormula(formula);
 
-                $('#AssemblyModal').on('input', 'input[name="assy_cutting_len_formula"]', function () {
-                const formula = $(this).val().trim();
-                const row = $(this).closest('tr');
-                const resultInput = row.find('input[name="assy_no_of_operations"]');
+        if (result === "Error" || isNaN(result)) {
+            targetInput.val("");
+        } else {
+            targetInput.val(Number(result).toFixed(3));
+        }
 
-                if (!formula.startsWith("=")) {
-                    resultInput.val("");
-                    return;
-                }
-
-                resultInput.val(evaluateFormula(formula));
-                });
-
-<div class="table" style="padding: 10px;">
-                                <div class="row formula-inputs">
-                                    <div class="col-3">
-                                        <h6>LENGTH FORMULA: <span><input name="length_formula" type="number"></span></h6>
-                                    </div>
-                                    <div class="col-3">
-                                        <h6>WIDTH FORMULA: <span><input name="width_formula" type="number"></span></h6>
-                                    </div>
-                                    <div class="col-3">
-                                        <h6>FINISH WEIGHT FORMULA: <span><input name="finish_weight_formula" type="number"></span></h6>
-                                    </div>
-                                </div>
-                            </div>
-
-$('#updatecscModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var modal = $(this);
-
-            // Extract data attributes
-            partId = partId === null ? button.data('id') : partId;
-            partNo = partNo === '' ? button.data('partno') : partNo;
-            part_description = part_description === '' ? button.data('description') : part_description;
-            scope = scope === '' ? button.data('scope') : scope;
-            method = method === '' ? button.data('method') : method;
-            process_description = process_description === '' ? button.data('process_description') : process_description;
-            modal.find('#edit_id').val(partId);
-            modal.find('#editpartNumber').val(partNo);
-            modal.find('#editdescription').val(part_description);
-            modal.find('#editmethod').val(method);
-            modal.find('#process_partnumber').val(partNo);
-            modal.find('#process_part_description').val(part_description)
-            modal.find('#process_place').val(scope)
-
-            const isNestingNeeded = button.data('is_nesting_needed')
-            const noOfBlanksInput = document.getElementById('no_of_blanks');
-            const viewNoOfBlanksInput = document.getElementById('viewnoofblanks');
-
-            if (isNestingNeeded === "Yes") {
-                viewNoOfBlanksInput.readOnly = false
-                viewNoOfBlanksInput.classList.remove('readonly');
-                viewNoOfBlanksInput.style.backgroundColor = "#faffff";
-
-            } else {
-                viewNoOfBlanksInput.readOnly = true;
-                viewNoOfBlanksInput.classList.add('readonly');
-                viewNoOfBlanksInput.style.backgroundColor = "#e9ecef";
-            }
-
-            function calculate() {
-                const length = parseFloat(modal.find('input[name="length"]').val()) || 0;
-                const width = parseFloat(modal.find('input[name="width"]').val()) || 0;
-                const thickness = parseFloat(modal.find('input[name="thickness"]').val()) || 0;
-                const finishWeight = parseFloat(modal.find('input[name="finish_weight"]').val()) || 0;
-                const rmPrice = parseFloat(modal.find('input[name="rm_price"]').val()) || 0;
-                const scrapPrice = parseFloat(modal.find('input[name="scrap_price"]').val()) || 0;
-                const cuttingProcess = modal.find('select[name="process"]').val() //document.querySelector('select[name="process"]').value;
-                let sheetLength = 2500;
-                let sheetWidth = 1250;
-
-                // Calculate sheet length and width based on the cutting process
-                if (cuttingProcess != null) {
-                    const processLower = cuttingProcess.toLowerCase();
-                    if (processLower === "shearing") {
-                        sheetLength = length >= 2500 ? length : 2500;
-                        sheetWidth = width >= 1250 ? width : 1250;
-                    } else if (processLower === "blanking") {
-                        sheetLength = length + (thickness * 3) >= 2500 ? length + (thickness * 3) : 2500;
-                        sheetWidth = width + (thickness * 3) >= 1250 ? width + (thickness * 3) : 1250;
-                    } else if (processLower === "laser cutting" || cuttingProcess.toLowerCase() === "plasma cutting") {
-                        sheetLength = length + 4 >= 2500 ? length + 4 : 2500;
-                        sheetWidth = width + 4 >= 1250 ? width + 4 : 1250;
-                    }
-                }
-
-                sheetLength = Math.ceil(sheetLength / 5) * 5;
-                sheetWidth = Math.ceil(sheetWidth / 5) * 5;
-
-                modal.find('input[name="sheet_length"]').val(sheetLength);
-                modal.find('input[name="sheet_width"]').val(sheetWidth);
-
-                // Calculate blank length and width based on the cutting process
-                let blankLength, blankWidth;
-                let rm_length = parseFloat(sheetLength)
-                let rm_width = parseFloat(sheetWidth)
-
-                // Orientation 1
-                blankLength = length + thickness * 1.5
-                blankWidth = width + thickness * 3
-
-                // Orientation 2 (swapped allowances)
-                let blankLength1 = length + thickness * 3
-                let blankWidth1 = width + thickness * 1.5
-
-                function calcOrientation(rmLength, rmWidth, blLen, blWid) {
-                    // Base count
-                    const base = Math.floor(rmLength / blWid) * Math.floor(rmWidth / blLen);
-
-                    // Remaining strips
-                    const remainingLength = rmLength - (blWid * Math.floor(rmLength / blWid));
-                    const remainingWidth = rmWidth - (blLen * Math.floor(rmWidth / blLen));
-
-                    // Extra parts from remaining strips
-                    const extra1 = Math.floor(remainingLength / blLen) * Math.floor(rmWidth / blWid);
-                    const extra2 = Math.floor(rmLength / blLen) * Math.floor(remainingWidth / blWid);
-                    strips = Math.floor(rmLength / blWid)
-                    const strips1 = Math.floor(remainingLength / blLen)
-                    const strips2 = Math.floor(rmLength / blLen)
-                    if (extra1 >= extra2){strips = strips + strips1;}
-                    else{strips = strips + strips2;}
-                    return base + Math.max(extra1, extra2);
-
-
-                }
-                // console.log('strip',strips)
-                const blanksOrientation1 = calcOrientation(rm_length, rm_width, blankLength, blankWidth);
-                const blanksOrientation2 = calcOrientation(rm_length, rm_width, blankLength1, blankWidth1);
-
-                let noOfBlanks = Math.max(blanksOrientation1, blanksOrientation2);
-
-                tem_no_of_modal = modal.find('input[name="no_of_blanks"]').val()
-                const viewNoOfBlanksInput = document.getElementById('viewnoofblanks');
-                viewNoOfBlanksInput.readOnly === true ? noOfBlanks = noOfBlanks : noOfBlanks = tem_no_of_modal;
-                modal.find('input[name="no_of_blanks"]').val(noOfBlanks);
-                // Calculate sheet weight
-                const sheetWeight = (sheetLength * sheetWidth * thickness * 7.86 / 10**6).toFixed(0);
-                modal.find('input[name="sheet_weight"]').val(sheetWeight);
-
-                // Calculate blank weight
-                const blankWeight = (length * width * thickness * 7.86 / 10**6).toFixed(3);
-                modal.find('input[name="blank_weight"]').val(blankWeight);
-
-                // Calculate input weight
-                const inputWeight = (sheetWeight / noOfBlanks).toFixed(3);
-                modal.find('input[name="input_weight"]').val(inputWeight);
-
-                // Calculate yield value
-                const yieldValue = ((finishWeight / inputWeight) * 100).toFixed();
-                modal.find('input[name="yield"]').val(yieldValue);
-                if (yieldValue < 50) {
-                    document.querySelector('input[name="yield"]').style.backgroundColor= "#faa682";
-                } else {
-                    document.querySelector('input[name="yield"]').style.backgroundColor = "#e9ecef";
-                }
-
-                // Calculate surface area per part
-                const surfaceAreaPart = ((finishWeight / thickness / 7.86) * 2).toFixed(3);
-                modal.find('input[name="surface_area"]').val(surfaceAreaPart);
-
-                // Calculate scrap weight
-                const scrapWeight = (inputWeight - finishWeight).toFixed(2);
-                modal.find('input[name="scrap_weight"]').val(scrapWeight);
-
-                // Calculate price per unit
-                const pricePerUnit = ((rmPrice * inputWeight) - (scrapPrice * scrapWeight * 0.95)).toFixed(2);
-                modal.find('input[name="price_per_unit"]').val(pricePerUnit)
-
-                // Calculate direct RM cost
-                const directRmCost = (finishWeight * rmPrice).toFixed(2);
-                modal.find('input[name="direct_rm_cost"]').val(directRmCost)
-
-                // Calculate allowance cost
-                const allowanceCost = (pricePerUnit - directRmCost).toFixed(2);
-                modal.find('input[name="allowance_cost"]').val(allowanceCost)
-                modal.find('input[name="recovery"]').val(95)
-            }
-
-            modal.find('input[name="length"],input[name="width"],input[name="thickness"],input[name="finish_weight"],select[name="process"],select[name="material_grade"]').each(function(){
-                $(this).on('input change',calculate);
-            });
-            modal.find('input[name="no_of_blanks"]').on('change',calculate);
-
-            // Initial calculation
-            calculate();
-                })
-
-like first assemblymodal in updatecscmodal i include three new varaible length_formula, width_formula and finish_weight_formula so set same logic for apply formula value in corresponded variable and result in corresponded lenght, width and finishweight and also calculate function should also work because length or widht or finish weight change because of formula
+        // 🔥 Trigger recalculation
+        calculateFn();
+    });
+}
+// Bind formulas to real fields
+bindFormula(modal, "length_formula", "length", calculate);
+bindFormula(modal, "width_formula", "width", calculate);
+bindFormula(modal, "finish_weight_formula", "finish_weight", calculate);
