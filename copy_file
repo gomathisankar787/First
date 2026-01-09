@@ -1,5 +1,15 @@
- <style>
-   html, body {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Know My Cost - BOM</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+    <style>
+        html, body {
             height: 100%;
             margin: 0;
             overflow: hidden;
@@ -18,7 +28,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Page wrapper below navbar */
+        /* Main content below navbar */
         .page-wrapper {
             position: fixed;
             top: 70px;
@@ -29,7 +39,12 @@
             overflow: hidden;
         }
 
-        /* Tabs + buttons row */
+        /* Header card */
+        .page-header {
+            margin-bottom: 10px;
+        }
+
+        /* Flex row */
         .flex-container {
             display: flex;
             justify-content: space-between;
@@ -38,18 +53,19 @@
             margin-bottom: 10px;
         }
 
-        /* Tab content layout */
+        /* Tab content height */
         .tab-content {
-            height: calc(100vh - 280px);
+            height: calc(100vh - 300px);
             display: flex;
             flex-direction: column;
         }
 
-        /* Scrollable table container */
+        /* Table scroll */
         .table-container {
             flex: 1;
             overflow-y: auto;
             border: 1px solid #ddd;
+            background: #fff;
         }
 
         /* Sticky table header */
@@ -73,7 +89,6 @@
             z-index: 3;
         }
 
-        /* Input height */
         table input,
         table select {
             height: 60px;
@@ -81,292 +96,163 @@
 
         @media (max-width: 768px) {
             .tab-content {
-                height: calc(100vh - 240px);
+                height: calc(100vh - 260px);
             }
             table {
                 font-size: 12px;
             }
         }
-</style>
+    </style>
+</head>
+
 <body>
-    <!-- top navbar -->
-    <nav class="navbar navbar-expand-lg
-            navbar-light" id="nav">
-        <a class="navbar-brand" href="#">KNOW MY COST</a>
-        <!-- hamburger button that toggles the navbar-->
-        <button class="navbar-toggler" type="button"
-            data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon">
-            </span>
-        </button>
-        <!-- navbar links -->
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link
-                    active" href="#">
-                  Home
-                  </a>
-                <a class="nav-item nav-link" href="/mycsc">CSC</a>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light" id="nav">
+    <a class="navbar-brand" href="#">KNOW MY COST</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarNavAltMarkup">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="#">Home</a>
+            <a class="nav-item nav-link" href="/mycsc">CSC</a>
+        </div>
+    </div>
+</nav>
+
+<!-- PAGE CONTENT -->
+<div class="page-wrapper">
+
+    <!-- HEADER INFO -->
+    <div class="page-header">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-3">CSC UNIQUE ID : <b>{{csc_values.unique_csc_id}}</b></div>
+                    <div class="col-3">PART NUMBER : <b>{{csc_values.part_num}}</b></div>
+                    <div class="col-2">REVISION : <b>{{csc_values.rev}}</b></div>
+                    <div class="col-4">DESCRIPTION : <b>{{csc_values.desc}}</b></div>
+                </div>
+                <div class="row">
+                    <div class="col-3">ESTIMATED BY : <b>{{csc_values.updated_by}}</b></div>
+                    <div class="col-3">RM BASE : <b>{{csc_values.rm_base}}</b></div>
+                    <div class="col-3">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                    <div class="col-3">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                </div>
             </div>
         </div>
-    </nav>
-    <div class="main-content">
-        <div class="page-header">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
-                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
-                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
-                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
-                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2" style="margin-left: 125px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
-                        </div>
-                    </div>
+    </div>
+
+    <!-- TABS + COST -->
+    <div class="flex-container">
+        <ul class="nav nav-pills">
+            <li class="nav-item mr-2">
+                <button class="nav-link active" data-toggle="pill" data-target="#bomTab">BOM</button>
+            </li>
+            <li class="nav-item mr-2">
+                <button class="nav-link" data-toggle="pill" data-target="#bomSummary">BOM SUMMARY</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-toggle="pill" data-target="#graphview">GRAPH VIEW</button>
+            </li>
+        </ul>
+
+        <div>
+            Total Estimated Cost :
+            <b>{{totals.total_cpa|default:0|floatformat:2}}</b>
+        </div>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content">
+
+        <!-- BOM TAB -->
+        <div class="tab-pane fade show active" id="bomTab">
+
+            <div class="flex-container">
+                <h4>Create New BOM</h4>
+                <div>
+                    <button class="btn btn-primary mr-2" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
+                    <button class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
                 </div>
-                <!-- <div class="form-container"> --><br>
-                    <!-- <div class="row"> -->
-                    <div class="page-wrapper">
-                        <div class="table flex-container">
-                        <div class="flex-item button-container1">
-                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
-                        </li>
-                        <!-- <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-profile-tab" data-toggle="pill" data-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">SM MATERIAL</button>
-                        </li>
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-contact-tab" data-toggle="pill" data-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">SM PROCESS</button>
-                        </li> -->
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
-                        </li>
-                        </ul></div>
-                        <div class="flex-item button-container2">
-                            Total Estimated Cost : <b>{{totals.total_cpa|default:0|floatformat:2}}</b>
-                        </div>
-                        </div>
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-                                <div class="table flex-container">
-                                    <div class="flex-item title">
-                                        <h2>Create New BOM</h2>
-                                    </div>
+            </div>
 
-                                    <!-- {% if page_obj.paginator.count > 1 %}
-                                    <div class="flex-item button-container3">
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#AssemblyModal"
-                                        data-id="{{csc_values.id}}">Assembly Cost</button>
-                                    </div>
-                                    {% endif %} -->
-                                    <div class="flex-item button-container1">
-                                        <button type="button" class="btn btn-primary" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
-                                    </div>
-                                    <div class="flex-item button-container2">
-                                        <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
-                                    </div>
-                                </div>
+            {% csrf_token %}
 
-                                {% csrf_token %}
-                                <div class="table-container">
-                                    <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                        <th style="background-color: #24948f;">S.No</th>
-                                        <th style="background-color: #24968f;">Level</th>
-                                        <th style="background-color: #24968f;">Part No.</th>
-                                        <th style="background-color: #24968f;">Rev</th>
-                                        <th style="background-color: #24968f;">Parts Description</th>
-                                        <th style="background-color: #24968f;">Qty</th>
-                                        <th style="background-color: #24968f;">Process Type</th>
-                                        <th style="background-color: #24968f;">Scope</th>
-                                        <th style="background-color: #24968f;">Method</th>
-                                        <th style="background-color: #24968f;">Is Nesting Needed</th>
-                                        <th style="background-color: #24968f;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bomdata" id="bom-table-body">
-                                        {% if page_obj %}
-                                        {% for values in page_obj %}
-                                        <tr draggable="true">
-                                            <td class="sno" style="align-content: center;">{{ forloop.counter }}</td>
-                                            <input type="hidden" name="editid[]" value="{{values.id}}">
-                                            <input type="hidden" name="order_index[]" value="{{ values.order_index }}" class="order-index">
-                                            <td><input type="number" class="form-control" name="editlevel[]"
-                                                    value="{{ values.level }}" style="height:60px;"></td>
+            <!-- TABLE -->
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Level</th>
+                            <th>Part No</th>
+                            <th>Rev</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Process Type</th>
+                            <th>Scope</th>
+                            <th>Method</th>
+                            <th>Nesting</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bom-table-body">
+                        {% for values in page_obj %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td><input class="form-control" value="{{values.level}}"></td>
+                            <td><input class="form-control" value="{{values.part_no}}"></td>
+                            <td><input class="form-control" value="{{values.revision}}"></td>
+                            <td><input class="form-control" value="{{values.part_description}}"></td>
+                            <td><input class="form-control" value="{{values.qty}}"></td>
+                            <td>{{values.process_type}}</td>
+                            <td>{{values.scope}}</td>
+                            <td>{{values.method}}</td>
+                            <td>{{values.is_nesting_needed}}</td>
+                            <td>
+                                <i class="bi bi-plus-circle btn"></i>
+                                <i class="bi bi-pencil-square btn"></i>
+                                <i class="bi bi-trash btn"></i>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-                                            <td><input type="text" class="form-control" name="editpartno[]"
-                                                    value="{{ values.part_no }}" style="height:60px;"></td>
+            <!-- PAGINATION -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                {% else %}
+                    <span>Previous</span>
+                {% endif %}
 
-                                            <td><input type="text" class="form-control" name="editrevision[]"
-                                                    value="{{ values.revision }}" style="height:60px;"></td>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <strong>{{num}}</strong>
+                    {% else %}
+                        <a href="?page={{num}}">{{num}}</a>
+                    {% endif %}
+                {% endfor %}
 
-                                            <td><input type="text" class="form-control" name="editdesc[]"
-                                                    value="{{ values.part_description }}" style="height:60px;"></td>
+                {% if page_obj.has_next %}
+                    <a href="?page={{page_obj.next_page_number}}">Next</a>
+                {% else %}
+                    <span>Next</span>
+                {% endif %}
+            </div>
 
-                                            <td><input type="number" class="form-control" name="editqty[]"
-                                                    value="{{ values.qty }}" style="height:60px;"></td>
+        </div>
+    </div>
+</div>
 
-                                            <!-- PROCESS TYPE -->
-                                            <td>
-                                                <select class="form-control" name="editprocess_type[]" onchange="toggleProcessType(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
-                                                    {% for process in process_types %}
-                                                        <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
-                                                            {{ process }}
-                                                        </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-                                            <!-- SCOPE -->
-                                            <td>
-                                                <select class="form-control" name="editscope[]" style="height:60px;">
-                                                    <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
-                                                    <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
-                                                    <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
-                                                    <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
-                                                </select>
-                                            </td>
-
-                                            <!-- METHOD -->
-                                            <td>
-                                                <select class="form-control" name="editmethod[]" onchange="toggleMethod(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-                                                    {% for m in method_list %}
-                                                        <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-
-                                            <!-- NESTING -->
-                                            <td>
-                                                <select class="form-control" name="editis_nesting_needed[]" onchange="toggleNoOfBlanks(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
-                                                    <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
-                                                    <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
-                                                </select>
-                                            </td>
-
-                                            <!-- ACTIONS -->
-                                            <td>
-                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
-                                                {% if values.process_type == "Assembly" %}
-                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#AssemblyModal"
-                                                data-id="{{values.id}}"
-                                                data-partno="{{values.part_no}}"
-                                                data-description="{{values.part_description}}"
-                                                data-scope="{{values.scope}}"
-                                                data-process_description="{{values.cutting_process}}"
-                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
-                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                {% else %}
-                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
-                                                data-id="{{values.id}}"
-                                                data-partno="{{values.part_no}}"
-                                                data-description="{{values.part_description}}"
-                                                data-scope="{{values.scope}}"
-                                                data-process_description="{{values.cutting_process}}"
-                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                {% endif %}
-                                                <!-- <i class="bi bi-grip-vertical drag-handle" title="Drag to reorder"></i> -->
-                                                <i class="bi bi-trash btn delete-bom" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" data-target="#deleteBomModal"></i>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                        {% else %}
-                                        <tr>
-                                            <td class="sno" style="align-content: center;">1</td>
-                                            <input type="hidden" name="order_index[]" value="1" class="order-index">
-                                            <td><input type="number" name="level[]" class="form-control"style="height:60px;" value="1.0"></td>
-                                            <td><input type="text" name="part_num[]" class="form-control"style="height:60px;" value="{{csc_values.part_num}}"></td>
-                                            <td><input type="text" name="rev[]" class="form-control" style="height:60px;" value="{{csc_values.rev}}"></td>
-                                            <td><input type="text" name="desc[]" class="form-control" style="height:60px;"></td>
-                                            <td><input type="number" name="qty[]" class="form-control" style="height:60px;"></td>
-
-                                            <!-- PROCESS TYPE -->
-                                            <td>
-                                                <select class="form-control" name="process_type[]" onchange="toggleProcessType(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
-                                                    {% for process in process_types %}
-                                                        <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
-                                                            {{ process }}
-                                                        </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-
-                                            <!-- SCOPE -->
-                                            <td>
-                                                <select class="form-control" name="scope[]" style="height:60px;">
-                                                    <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
-                                                    <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
-                                                    <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
-                                                    <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
-                                                </select>
-                                            </td>
-
-                                            <!-- METHOD -->
-                                            <td>
-                                                <select class="form-control" name="method[]" onchange="toggleMethod(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
-                                                    {% for m in method_list %}
-                                                        <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-
-                                            <!-- NESTING -->
-                                            <td>
-                                                <select class="form-control" name="is_nesting_needed[]" onchange="toggleNoOfBlanks(this)" style="height:60px;">
-                                                    <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
-                                                    <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
-                                                    <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
-                                                </select>
-                                            </td>
-
-                                            <!-- ACTIONS -->
-                                            <td>
-                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
-                                                <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
-                                            </td>
-                                        </tr>
-                                        {% endif %}
-                                    </tbody>
-                                    </table>
-                                </div>
-                                <div class="pagination" style="display: flex; gap: 15px;margin-left: 15px;">
-                                    <!-- previous button -->
-                                    {% if page_obj.has_previous %}
-                                        <a href="?page={{page_obj.previous_page_number}}">Previous</a>
-                                    {% else %}
-                                        <span style="opacity: 0.5;">Previous</span>
-                                    {% endif %}
-                                    <!-- page numbers -->
-                                    {% for num in page_obj.paginator.page_range %}
-                                        {% if page_obj.number == num %}
-                                            <strong>{{ num }}</strong>
-                                        {% else %}
-                                            <a href="?page={{ num }}">{{num}}</a>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <!-- next button -->
-                                    {% if page_obj.has_next %}
-                                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
-                                    {% else %}
-                                        <span style="opacity:0.5;">Next</span>
-                                    {% endif %}
-                                </div>
-                            </div>
+</body>
+</html>
