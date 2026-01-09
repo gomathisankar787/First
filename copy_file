@@ -1,18 +1,12 @@
-<style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: linear-gradient(135deg, #f4f6f7, #e9ecef);
-    }
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* 🔒 Prevent page scroll */
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #f4f6f7, #e9ecef);
+}
 
-    /* Navbar */
-    /* #nav {
-        background: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 10px 20px;
-    } */
-    
+/* Navbar */
 #nav {
     background: #ffffff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -24,182 +18,60 @@
     z-index: 1000;
 }
 
-    .navbar-brand {
-        font-weight: 700;
-        color: #24968f !important;
-        font-size: 24px;
-    }
-    .navbar-nav .nav-link {
-        font-size: 16px;
-        color: #333 !important;
-        margin-right: 15px;
-        transition: color 0.3s ease;
-    }
-    .navbar-nav .nav-link:hover {
-        color: #24968f !important;
-    }
+/* Main content container */
+.main-content {
+    position: fixed;
+    top: 70px;                /* navbar height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
 
-    .main-content{
-        margin-top: 70px;
-        padding: 20px;
-        height: calc(100vh - 70px);
-        background: #fff;
-    }
+/* Page header (fixed) */
+.page-header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+}
 
-    .page-header{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #ddd;
-    }
+/* Table scroll area */
+.table-wrapper {
+    flex: 1;                  /* takes remaining height */
+    margin-top: 15px;
+    overflow-y: auto;         /* ✅ ONLY scroll here */
+}
 
-    .table-wrapper{
-        margin-top: 15px;
-        height: calc(100vh - 160px);
-        overflow-y: auto;
-    }
+/* Sticky table header */
+.table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 2;
+}
 
-    .table-wrapper thead th{
-        position: sticky;
-        top: 0;
-        background: #f8f9fa;
-        z-index: 1;
-    }
+/* Pagination fixed at bottom */
+.pagination {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 10px 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    border-top: 1px solid #ddd;
+    z-index: 3;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
-        #green {
-            display: none; /* Hide sidebar on small screens */
-        }
-        .col-12 {
-            width: 100%;
-            margin: 10px;
-            padding: 15px;
-        }
-        table {
-            font-size: 12px;
-        }
+    table {
+        font-size: 12px;
     }
-</style>
-<body>
-    <!-- top navbar -->
-    <nav class="navbar navbar-expand-lg
-            navbar-light" id="nav">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <!-- hamburger button that toggles the navbar-->
-        <button class="navbar-toggler" type="button" 
-            data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" 
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon">
-            </span>
-        </button>
-        <!-- navbar links -->
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link
-                    active" href="#">
-                  Home
-                  </a>
-                <a class="nav-item nav-link" href="/mycsc">CSC</a>
-                <!-- <a class="nav-item nav-link" href="#">Price</a>
-                <a class="nav-item nav-link" href="#">About</a> -->
-            </div>
-        </div>
-    </nav>
-    <!-- This container contains the sidebar
-            and main content of the page -->
-    <!-- h-100 takes the full height of the body-->
-    <div class="main-content">
-        <div class="page-header">
-            <h1>CSC List</h1>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
-        </div>
-        <div class="table-wrapper">
-            <!-- <div class="col-12" style="text-align: justify;">
-                <div class="row justify-content-between">
-                    <h1 class="col-auto">CSC List</h1>
-                    <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
-                </div> -->
-                <table class="table table-bordered table-stripped">
-                <thead>
-                    <tr>
-                        <th>Part Name</th>
-                        <th>Part Rev</th>
-                        <th>Part Description</th>
-                        <th>Part Type</th>
-                        <th>Estimated On</th>
-                        <th>Estimated By</th>
-                        <th>Unique CSC ID</th>
-                        <th>CSC Status</th>
-                        <!-- <th>View</th>
-                        <th>Edit</th> -->
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for values in page_obj %}
-                    <tr>
-                        <td>{{values.part_num}}</td>
-                        <td>{{values.rev}}</td>
-                        <td>{{values.desc}}</td>
-                        <td>{{values.part_typ.parttype_name}}</td>
-                        <td>{{values.rm_base}}</td>
-                        <td>{{values.updated_by}}</td>
-                        <td>{{values.unique_csc_id}}</td>
-                        <td>{{values.csc_status}}</td>
-                        <!-- <td><a href="#" class="btn btn-primary">View</a></td>
-                        <td><a class="btn btn-secondary" data-toggle="modal" data-target="#exampleModalCenter"
-                    data-id="{{ values.id }}"
-                    data-partnum="{{ values.part_num }}"
-                    data-rev="{{ values.rev }}"
-                    data-desc="{{ values.desc }}"
-                    data-parttyp="{{ values.part_typ_id }}"
-                    data-project="{{ values.projects_id}}"
-                    data-rmbase="{{ values.rm_base}}"
-                    data-processbase="{{ values.process_base }}"
-                    data-ohprofitbase="{{ values.oh_profit_base }}"
-                    data-remarks="{{ values.remarks }}">Edit</a></td> -->
-                    <td><i class="bi bi-eye btn" id="showcsc" onclick="uniquecscview({{values.id}})"></i> <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
-                    data-id="{{ values.id }}"
-                    data-partnum="{{ values.part_num }}"
-                    data-rev="{{ values.rev }}"
-                    data-desc="{{ values.desc }}"
-                    data-parttyp="{{ values.part_typ_id }}"
-                    data-project="{{ values.projects_id}}"
-                    data-rmbase="{{ values.rm_base}}"
-                    data-processbase="{{ values.process_base }}"
-                    data-ohprofitbase="{{ values.oh_profit_base }}"
-                    data-remarks="{{ values.remarks }}"></i> <i class="bi bi-trash btn" id="deletecsc" onclick="deleteCSC(this,{{ values.id }})"></i></td>
-                    </tr>
-                    {% endfor %}
-                <!-- Additional rows can be added here -->
-                </tbody>
-            </table>
-
-            <!-- Pagination Controls -->
-            <div class="pagination" style="display: flex; gap: 10px;">
-                <!-- previous button -->
-                {% if page_obj.has_previous %}
-                    <a href="?page={{page_obj.previous_page_number}}">Previous</a>
-                {% else %}
-                    <span style="opacity: 0.5;">Previous</span>
-                {% endif %}
-                <!-- page numbers -->
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <strong>{{ num }}</strong>
-                    {% else %}
-                        <a href="?page={{ num }}">{{num}}</a>
-                    {% endif %}
-                {% endfor %}
-                <!-- next button -->
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
-                {% else %}
-                    <span style="opacity:0.5;">Next</span>
-                {% endif %}
-            </div>
-            <!-- </div> -->
-        </div>
-    </div>
-give the perfect css. now it have two scrolling i need only scrolling for table and pagination should also absolute
+}
