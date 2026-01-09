@@ -1,4 +1,5 @@
-html, body {
+<style>
+    html, body {
         height: 100%;
         margin: 0;
         font-family: 'Segoe UI', Arial, sans-serif;
@@ -38,61 +39,32 @@ html, body {
         color: #24968f !important;
     }
 
-    /* Sidebar */
-    /* #green {
-        background: #f8f9fa;
+    .main-content{
+        margin-top: 70px;
         padding: 20px;
-        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
-        font-size: 16px;
-    } */
+        height: calc(100vh - 70px);
+        background: #fff;
+    }
 
-    
-    #green {
-        position: fixed;
-        top: 60px; /* Adjust based on nav height */
-        left: 0;
-        width: 265px; /* Sidebar width */
-        height: calc(100vh - 60px); /* Full height minus nav */
+    .page-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .table-wrapper{
+        margin-top: 15px;
+        height: calc(100vh - 160px);
+        overflow-y: auto;
+    }
+
+    .table-wrapper thead th{
+        position: sticky;
+        top: 0;
         background: #f8f9fa;
-        padding: 20px;
-        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
-        font-size: 16px;
-        overflow-y: auto; /* Sidebar scroll if needed */
-    }
-
-    #green a {
-        display: block;
-        padding: 12px 10px;
-        color: #333;
-        text-decoration: none;
-        border-radius: 6px;
-        transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    #green a:hover {
-        background-color: #24968f;
-        color: #fff;
-    }
-
-    /* Main Content */
-    /* .col-10 {
-        position: relative;
-        background: #fff;
-        padding: 30px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    } */
-
-    
-    .col-12 {
-        position: absolute;
-        top: 72px; /* Below nav */
-        left: 0px; /* Next to sidebar */
-        width: calc(335vh);
-        height: calc(100vh - 60px); 
-        background: #fff;
-        padding: 30px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        border-radius: 5px;
-        overflow-y: hidden; /* Scroll only main content */
+        z-index: 1;
     }
 @media (max-width: 768px) {
         #green {
@@ -108,8 +80,6 @@ html, body {
         }
     }
 </style>
-</head>
-  
 <body>
     <!-- top navbar -->
     <nav class="navbar navbar-expand-lg
@@ -139,27 +109,18 @@ html, body {
     <!-- This container contains the sidebar
             and main content of the page -->
     <!-- h-100 takes the full height of the body-->
-    <div class="container-fluid h-100">
-        <div class="row h-20">
-            <div class="col-12">
-                <h1 class="col-auto">CSC List</h1>
-                <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
-            </div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1>CSC List</h1>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
         </div>
-        <div class="row h-80">
-            <div class="col-12" style="text-align: justify;">
+        <div class="table-wrapper">
+            <!-- <div class="col-12" style="text-align: justify;">
                 <div class="row justify-content-between">
                     <h1 class="col-auto">CSC List</h1>
                     <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
-                </div>
-                <!-- <div class="row">
-                    <div class="col-5">
-
-                    </div>
-
-                    </div>
                 </div> -->
-                <table class="table table-bordered">
+                <table class="table table-bordered table-stripped">
                 <thead>
                     <tr>
                         <th>Part Name</th>
@@ -186,4 +147,59 @@ html, body {
                         <td>{{values.updated_by}}</td>
                         <td>{{values.unique_csc_id}}</td>
                         <td>{{values.csc_status}}</td>
-i need the table only relative i mean scrolling all others contents should absolute change ui component styles perfectly
+                        <!-- <td><a href="#" class="btn btn-primary">View</a></td>
+                        <td><a class="btn btn-secondary" data-toggle="modal" data-target="#exampleModalCenter"
+                    data-id="{{ values.id }}"
+                    data-partnum="{{ values.part_num }}"
+                    data-rev="{{ values.rev }}"
+                    data-desc="{{ values.desc }}"
+                    data-parttyp="{{ values.part_typ_id }}"
+                    data-project="{{ values.projects_id}}"
+                    data-rmbase="{{ values.rm_base}}"
+                    data-processbase="{{ values.process_base }}"
+                    data-ohprofitbase="{{ values.oh_profit_base }}"
+                    data-remarks="{{ values.remarks }}">Edit</a></td> -->
+                    <td><i class="bi bi-eye btn" id="showcsc" onclick="uniquecscview({{values.id}})"></i> <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
+                    data-id="{{ values.id }}"
+                    data-partnum="{{ values.part_num }}"
+                    data-rev="{{ values.rev }}"
+                    data-desc="{{ values.desc }}"
+                    data-parttyp="{{ values.part_typ_id }}"
+                    data-project="{{ values.projects_id}}"
+                    data-rmbase="{{ values.rm_base}}"
+                    data-processbase="{{ values.process_base }}"
+                    data-ohprofitbase="{{ values.oh_profit_base }}"
+                    data-remarks="{{ values.remarks }}"></i> <i class="bi bi-trash btn" id="deletecsc" onclick="deleteCSC(this,{{ values.id }})"></i></td>
+                    </tr>
+                    {% endfor %}
+                <!-- Additional rows can be added here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination Controls -->
+            <div class="pagination" style="display: flex; gap: 10px;">
+                <!-- previous button -->
+                {% if page_obj.has_previous %}
+                    <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                {% else %}
+                    <span style="opacity: 0.5;">Previous</span>
+                {% endif %}
+                <!-- page numbers -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <strong>{{ num }}</strong>
+                    {% else %}
+                        <a href="?page={{ num }}">{{num}}</a>
+                    {% endif %}
+                {% endfor %}
+                <!-- next button -->
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                {% else %}
+                    <span style="opacity:0.5;">Next</span>
+                {% endif %}
+            </div>
+            <!-- </div> -->
+        </div>
+    </div>
+give the perfect css. now it have two scrolling i need only scrolling for table and pagination should also absolute
