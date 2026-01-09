@@ -1,63 +1,189 @@
-function hasSMProcessData() {
-    let hasValue = false;
-
-    $('#processTableBody tr').each(function () {
-        const machineType = $(this).find('select[name="machine_type"]').val();
-        const cuttingFormula = $(this).find('.cutting_len_formula').val();
-        const cuttingLength = $(this).find('.process-length').val();
-
-        if (
-            (machineType && machineType.trim() !== '') ||
-            (cuttingFormula && cuttingFormula.trim() !== '') ||
-            (cuttingLength && cuttingLength.trim() !== '')
-        ) {
-            hasValue = true;
-            return false; // break loop
-        }
-    });
-
-    return hasValue;
-}
-function save_material_data() {
-    if (hasSMProcessData()) {
-        // show confirm modal ONLY if data exists
-        $('#updateConfirmModal').modal('show');
-    } else {
-        // directly update
-        submitMaterialUpdate();
+html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #f4f6f7, #e9ecef);
     }
+
+    /* Navbar */
+    /* #nav {
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 10px 20px;
+    } */
+    
+#nav {
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
-function submitMaterialUpdate() {
-    let form = document.getElementById("sm_material_form");
-    let formData = new FormData(form);
 
-    formData.append("save_material_data", "1");
-    formData.append("no_of_operations", strips);
+    .navbar-brand {
+        font-weight: 700;
+        color: #24968f !important;
+        font-size: 24px;
+    }
+    .navbar-nav .nav-link {
+        font-size: 16px;
+        color: #333 !important;
+        margin-right: 15px;
+        transition: color 0.3s ease;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #24968f !important;
+    }
 
-    const id = document.getElementById("edit_id").value;
+    /* Sidebar */
+    /* #green {
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+    } */
 
-    fetch(`/bom_details/${id}/`, {
-        method: "POST",
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "success") {
-            toastr.success(data.message);
-            sm_materialById(bom_id);
-        } else {
-            toastr.error(data.message);
+    
+    #green {
+        position: fixed;
+        top: 60px; /* Adjust based on nav height */
+        left: 0;
+        width: 265px; /* Sidebar width */
+        height: calc(100vh - 60px); /* Full height minus nav */
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+        overflow-y: auto; /* Sidebar scroll if needed */
+    }
+
+    #green a {
+        display: block;
+        padding: 12px 10px;
+        color: #333;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    #green a:hover {
+        background-color: #24968f;
+        color: #fff;
+    }
+
+    /* Main Content */
+    /* .col-10 {
+        position: relative;
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    } */
+
+    
+    .col-12 {
+        position: absolute;
+        top: 72px; /* Below nav */
+        left: 0px; /* Next to sidebar */
+        width: calc(335vh);
+        height: calc(100vh - 60px); 
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        overflow-y: hidden; /* Scroll only main content */
+    }
+@media (max-width: 768px) {
+        #green {
+            display: none; /* Hide sidebar on small screens */
         }
-    })
-    .catch(err => {
-        toastr.error("Server error!");
-        console.error(err);
-    });
-}
-$('#confirmUpdateBtn').on('click', function () {
-    submitMaterialUpdate();
-    $('#updateConfirmModal').modal('hide');
-});
+        .col-12 {
+            width: 100%;
+            margin: 10px;
+            padding: 15px;
+        }
+        table {
+            font-size: 12px;
+        }
+    }
+</style>
+</head>
+  
+<body>
+    <!-- top navbar -->
+    <nav class="navbar navbar-expand-lg
+            navbar-light" id="nav">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <!-- hamburger button that toggles the navbar-->
+        <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" 
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon">
+            </span>
+        </button>
+        <!-- navbar links -->
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link
+                    active" href="#">
+                  Home
+                  </a>
+                <a class="nav-item nav-link" href="/mycsc">CSC</a>
+                <!-- <a class="nav-item nav-link" href="#">Price</a>
+                <a class="nav-item nav-link" href="#">About</a> -->
+            </div>
+        </div>
+    </nav>
+    <!-- This container contains the sidebar
+            and main content of the page -->
+    <!-- h-100 takes the full height of the body-->
+    <div class="container-fluid h-100">
+        <div class="row h-20">
+            <div class="col-12">
+                <h1 class="col-auto">CSC List</h1>
+                <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
+            </div>
+        </div>
+        <div class="row h-80">
+            <div class="col-12" style="text-align: justify;">
+                <div class="row justify-content-between">
+                    <h1 class="col-auto">CSC List</h1>
+                    <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
+                </div>
+                <!-- <div class="row">
+                    <div class="col-5">
+
+                    </div>
+
+                    </div>
+                </div> -->
+                <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Part Name</th>
+                        <th>Part Rev</th>
+                        <th>Part Description</th>
+                        <th>Part Type</th>
+                        <th>Estimated On</th>
+                        <th>Estimated By</th>
+                        <th>Unique CSC ID</th>
+                        <th>CSC Status</th>
+                        <!-- <th>View</th>
+                        <th>Edit</th> -->
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for values in page_obj %}
+                    <tr>
+                        <td>{{values.part_num}}</td>
+                        <td>{{values.rev}}</td>
+                        <td>{{values.desc}}</td>
+                        <td>{{values.part_typ.parttype_name}}</td>
+                        <td>{{values.rm_base}}</td>
+                        <td>{{values.updated_by}}</td>
+                        <td>{{values.unique_csc_id}}</td>
+                        <td>{{values.csc_status}}</td>
+i need the table only relative i mean scrolling all others contents should absolute change ui component styles perfectly
