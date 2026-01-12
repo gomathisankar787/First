@@ -1,18 +1,419 @@
-<button className="icon-btn edit" title="Edit" onClick={() => navigate(`/open_bom_modal`)}>
-                    <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                    </svg>
-                    </button>
-give the modal code for bom_modal.tsx and css modal have three tables. first table title sm material contain one header and one row and variables are inputs, variables are: 
-Part No,	Description,	Estimation, Method,	Material Grade (select) ,	Length (mm),	Width (mm),	Thick (mm),	Shearing/ Blanking/ Laser cutting (select),	Finish weight (Kg),	RM Price / Kg (INR),	Sheet Length (mm),	Sheet Width (mm),	Sheet Weight (kg),	No of Blanks per sheet,	Blank weight (Kg),	Input Weight (Kg),	Yield (%),	Surface Area / Part	Scrap wt (kg)	Scrap mat.Price,	Recovery (%),	Price per unit (INR),	Direct RM Cost,	Allowance cost,	Remarks
-second table title sm process contain variables are: Part No,	Process Place,	Part Description,	Process Description(select),	Mechnical/Hydrlic (select),	Cutg Len Formula,	Cutg/Frmg Len,	Machine Type (select),	No of Ope,	Part per Cycle,	Norms,	Process Cost Unit,	Remarks,	Actions have( add row, delete row icons)
-and third table title oh profit contains one header and one row and variables are:
-Process Type,	ICC on RM,	ICC on Conv,	ICC on BOF,	Rej on RM,	Rej on Conv,	Rej on BOF,	Inspection on RM,	Inspection on Conv,	Inspection on BOF,	TMC on RM,	TMC on Conv,	TMC on BOF,	Design cost on RM,	Design cost on Conv,	Design cost on BOF,	OH on RM,	OH on Conv,	OH on BOF,	Profit on RM,	Profit on Conv,	Profit on BOF,	Warranty cost,	Inbound Logistics,	Effective from,	Base,	Source,	Remarks
+import React, { useState } from "react";
+import "./bom_modal.css";
+
+const BomModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  /** === Table 1: SM Material === */
+  const [smMaterial, setSmMaterial] = useState([
+    {
+      partNo: "",
+      description: "",
+      estimation: "",
+      method: "",
+      materialGrade: "",
+      length: "",
+      width: "",
+      thick: "",
+      cuttingType: "",
+      finishWeight: "",
+      rmPrice: "",
+      sheetLength: "",
+      sheetWidth: "",
+      sheetWeight: "",
+      blanksPerSheet: "",
+      blankWeight: "",
+      inputWeight: "",
+      yieldPct: "",
+      surfaceArea: "",
+      scrapWeight: "",
+      scrapPrice: "",
+      recovery: "",
+      pricePerUnit: "",
+      directRmCost: "",
+      allowanceCost: "",
+      remarks: "",
+    },
+  ]);
+
+  /** === Table 2: SM Process === */
+  const [smProcess, setSmProcess] = useState([
+    {
+      partNo: "",
+      processPlace: "",
+      partDesc: "",
+      processDesc: "",
+      mechHyd: "",
+      cutLenFormula: "",
+      cutFrmgLen: "",
+      machineType: "",
+      noOfOpe: "",
+      partPerCycle: "",
+      norms: "",
+      processCostUnit: "",
+      remarks: "",
+    },
+  ]);
+
+  /** === Table 3: OH Profit === */
+  const [ohProfit, setOhProfit] = useState([
+    {
+      processType: "",
+      iccRm: "",
+      iccConv: "",
+      iccBof: "",
+      rejRm: "",
+      rejConv: "",
+      rejBof: "",
+      inspRm: "",
+      inspConv: "",
+      inspBof: "",
+      tmcRm: "",
+      tmcConv: "",
+      tmcBof: "",
+      designRm: "",
+      designConv: "",
+      designBof: "",
+      ohRm: "",
+      ohConv: "",
+      ohBof: "",
+      profitRm: "",
+      profitConv: "",
+      profitBof: "",
+      warrantyCost: "",
+      inboundLogistics: "",
+      effectiveFrom: "",
+      base: "",
+      source: "",
+      remarks: "",
+    },
+  ]);
+
+  /** === Add/Delete Row for SM Process === */
+  const addSmProcessRow = () => {
+    setSmProcess([
+      ...smProcess,
+      {
+        partNo: "",
+        processPlace: "",
+        partDesc: "",
+        processDesc: "",
+        mechHyd: "",
+        cutLenFormula: "",
+        cutFrmgLen: "",
+        machineType: "",
+        noOfOpe: "",
+        partPerCycle: "",
+        norms: "",
+        processCostUnit: "",
+        remarks: "",
+      },
+    ]);
+  };
+
+  const deleteSmProcessRow = (index: number) => {
+    setSmProcess(smProcess.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="bom-modal-overlay">
+      <div className="bom-modal">
+        <div className="bom-modal-header">
+          <h2>Create / Edit BOM</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+
+        <div className="bom-modal-body">
+          {/* === SM Material Table === */}
+          <div className="bom-table-section">
+            <h3>SM Material</h3>
+            <div className="table-wrapper">
+              <table className="bom-table">
+                <thead>
+                  <tr>
+                    {Object.keys(smMaterial[0]).map((key) => (
+                      <th key={key}>{key.replace(/([A-Z])/g, " $1")}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {smMaterial.map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.entries(row).map(([k, val]) => (
+                        <td key={k}>
+                          {["materialGrade", "cuttingType"].includes(k) ? (
+                            <select
+                              value={val}
+                              onChange={(e) =>
+                                setSmMaterial((prev) => {
+                                  const newRows = [...prev];
+                                  newRows[idx][k] = e.target.value;
+                                  return newRows;
+                                })
+                              }
+                            >
+                              <option value="">Select</option>
+                              <option>Option 1</option>
+                              <option>Option 2</option>
+                            </select>
+                          ) : (
+                            <input
+                              value={val}
+                              onChange={(e) =>
+                                setSmMaterial((prev) => {
+                                  const newRows = [...prev];
+                                  newRows[idx][k] = e.target.value;
+                                  return newRows;
+                                })
+                              }
+                            />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* === SM Process Table === */}
+          <div className="bom-table-section">
+            <h3>SM Process</h3>
+            <div className="table-wrapper">
+              <table className="bom-table">
+                <thead>
+                  <tr>
+                    {Object.keys(smProcess[0]).map((key) => (
+                      <th key={key}>{key.replace(/([A-Z])/g, " $1")}</th>
+                    ))}
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {smProcess.map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.entries(row).map(([k, val]) => (
+                        <td key={k}>
+                          {["processDesc", "mechHyd", "machineType"].includes(k) ? (
+                            <select
+                              value={val}
+                              onChange={(e) => {
+                                const newRows = [...smProcess];
+                                newRows[idx][k] = e.target.value;
+                                setSmProcess(newRows);
+                              }}
+                            >
+                              <option value="">Select</option>
+                              <option>Option 1</option>
+                              <option>Option 2</option>
+                            </select>
+                          ) : (
+                            <input
+                              value={val}
+                              onChange={(e) => {
+                                const newRows = [...smProcess];
+                                newRows[idx][k] = e.target.value;
+                                setSmProcess(newRows);
+                              }}
+                            />
+                          )}
+                        </td>
+                      ))}
+                      <td className="action-cell">
+                        <button className="icon-btn add" onClick={addSmProcessRow}>+</button>
+                        <button className="icon-btn delete" onClick={() => deleteSmProcessRow(idx)}>−</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* === OH Profit Table === */}
+          <div className="bom-table-section">
+            <h3>OH Profit</h3>
+            <div className="table-wrapper">
+              <table className="bom-table">
+                <thead>
+                  <tr>
+                    {Object.keys(ohProfit[0]).map((key) => (
+                      <th key={key}>{key.replace(/([A-Z])/g, " $1")}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ohProfit.map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.entries(row).map(([k, val]) => (
+                        <td key={k}>
+                          <input
+                            value={val}
+                            onChange={(e) => {
+                              const newRows = [...ohProfit];
+                              newRows[idx][k] = e.target.value;
+                              setOhProfit(newRows);
+                            }}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="bom-modal-footer">
+          <button className="btn btn-primary" onClick={onClose}>Save</button>
+          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BomModal;
+
+
+/* Overlay */
+.bom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* Modal Container */
+.bom-modal {
+  width: 95%;
+  max-width: 1400px;
+  max-height: 95vh;
+  background: #fff;
+  border-radius: 12px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.bom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ddd;
+}
+
+.bom-modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Body */
+.bom-modal-body {
+  padding: 16px 24px;
+}
+
+.bom-table-section {
+  margin-bottom: 32px;
+}
+
+.bom-table-section h3 {
+  margin-bottom: 12px;
+}
+
+/* Table */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.bom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bom-table th,
+.bom-table td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: center;
+  min-width: 100px;
+}
+
+.bom-table input,
+.bom-table select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+
+.action-cell {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.icon-btn.add {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.icon-btn.delete {
+  background-color: #dc2626;
+  color: #fff;
+}
+
+/* Footer */
+.bom-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 24px;
+  border-top: 1px solid #ddd;
+  gap: 12px;
+}
+
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+}
