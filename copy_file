@@ -1,226 +1,74 @@
-/* Page wrapper */
-.csc-page {
-  padding: 24px;
-}
+const getPageNumbers = () => {
+  const pages: (number | string)[] = [];
 
-/* Card container */
-.csc-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-}
-
-/* Header row */
-.csc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.csc-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0;
-}
-
-/* Table wrapper for scroll */
-.csc-table-wrapper {
-  max-height: 420px;
-  overflow-y: auto;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-/* Table */
-.csc-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.csc-table th {
-  position: sticky;
-  top: 0;
-  background: #24968f;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px;
-  text-align: center;
-  z-index: 2;
-}
-
-.csc-table td {
-  font-size: 13px;
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.csc-table tbody tr:hover {
-  background: #f1f5f9;
-}
-
-/* Status badge */
-.status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.status.in-progress {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-/* Pagination */
-.pagination-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 14px;
-}
-
-.pagination {
-  display: flex;
-  gap: 6px;
-}
-
-.page-btn {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.page-btn.active {
-  background: #24968f;
-  color: #ffffff;
-  border-color: #24968f;
-}
-
-.page-btn:hover {
-  background: #e6fffa;
-}
-
-/* Button override */
-.btn-primary {
-  background-color: #24968f;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #006955;
-}
-
-import React, { useState } from "react";
-import "./csc.css";
-
-interface CscItem {
-  partName: string;
-  partRev: string;
-  desc: string;
-  type: string;
-  estimatedOn: string;
-  estimatedBy: string;
-  cscId: string;
-  status: string;
-}
-
-const Csc: React.FC = () => {
-  const data: CscItem[] = Array.from({ length: 23 }, (_, i) => ({
-    partName: `F4J0371${i}`,
-    partRev: "#",
-    desc: "BRACKET-AIR TANK - 276 mm Dia",
-    type: "Sheetmetal",
-    estimatedOn: "Dec-25",
-    estimatedBy: "parthiban.c1",
-    cscId: `F4J0371${i}-#-1-Jan-26`,
-    status: "In-progress",
-  }));
-
-  const itemsPerPage = 5;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentData = data.slice(startIndex, startIndex + itemsPerPage);
-
-  return (
-    <div className="csc-page">
-      <div className="csc-card">
-        <div className="csc-header">
-          <h1>CSC List</h1>
-          <button className="btn btn-primary">
-            Create New CSC
-          </button>
-        </div>
-
-        <div className="csc-table-wrapper">
-          <table className="csc-table">
-            <thead>
-              <tr>
-                <th>Part Name</th>
-                <th>Rev</th>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Estimated On</th>
-                <th>Estimated By</th>
-                <th>CSC ID</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentData.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.partName}</td>
-                  <td>{item.partRev}</td>
-                  <td>{item.desc}</td>
-                  <td>{item.type}</td>
-                  <td>{item.estimatedOn}</td>
-                  <td>{item.estimatedBy}</td>
-                  <td>{item.cscId}</td>
-                  <td>
-                    <span className="status in-progress">
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="pagination-bar">
-          <span>
-            Showing {startIndex + 1}–
-            {Math.min(startIndex + itemsPerPage, data.length)} of{" "}
-            {data.length}
-          </span>
-
-          <div className="pagination">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                className={`page-btn ${
-                  currentPage === i + 1 ? "active" : ""
-                }`}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  if (totalPages <= 5) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    if (currentPage <= 3) {
+      pages.push(1, 2, 3, "...", totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push(
+        1,
+        "...",
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        "...",
+        totalPages
+      );
+    }
+  }
+  return pages;
 };
+<div className="pagination-bar">
+  <span>
+    Showing {startIndex + 1}–
+    {Math.min(startIndex + itemsPerPage, data.length)} of {data.length}
+  </span>
 
-export default Csc;
+  <div className="pagination">
+    <button
+      className="page-btn"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(currentPage - 1)}
+    >
+      Prev
+    </button>
+
+    {getPageNumbers().map((page, index) =>
+      page === "..." ? (
+        <span key={index} className="page-dots">…</span>
+      ) : (
+        <button
+          key={index}
+          className={`page-btn ${
+            currentPage === page ? "active" : ""
+          }`}
+          onClick={() => setCurrentPage(page as number)}
+        >
+          {page}
+        </button>
+      )
+    )}
+
+    <button
+      className="page-btn"
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage(currentPage + 1)}
+    >
+      Next
+    </button>
+  </div>
+</div>
+.page-dots {
+  padding: 6px 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
