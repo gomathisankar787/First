@@ -1,290 +1,347 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>BOM Page</title>
+# app.css
+:root {
+  --header-height: 64px;
+  --radius: 10px;
+  --gap: 12px;
 
-    <!-- Bootstrap + Icons -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  --bg: #e7f7f7;
+  --surface: #f1f5f9; /* slate-100 */
+  --text: #0f172a;    /* slate-900 */
+  --muted: #334155;   /* slate-700 */
+  --primary: #2563eb; /* blue-600 */
+  --primary-hover: #1d4ed8; /* blue-700 */
+  --outline: #cbd5e1; /* slate-300 */
+}
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+/* App wrapper */
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-    <style>
-        /* ================= GLOBAL ================= */
-        html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden; /* 🔒 prevent page scroll */
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f6f7;
-        }
+/* Sticky header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-height);
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--gap);
+  padding: 0 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--outline);
+  backdrop-filter: saturate(180%) blur(6px);
+}
 
-        /* ================= NAVBAR ================= */
-        #nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background: #fff;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
+/* Left: brand */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        .navbar-brand {
-            font-weight: 700;
-            color: #24968f !important;
-            font-size: 22px;
-        }
+.logo {
+  width: 250px;
+  height: auto;
+}
 
-        /* ================= PAGE WRAPPER ================= */
-        .page-wrapper {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 15px;
-            overflow: hidden;
-        }
+.bg-logo{
+  width: 100%;
+  height: 93vh;
+}
 
-        /* ================= HEADER CARD ================= */
-        .info-card {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            margin-bottom: 10px;
-        }
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
 
-        /* ================= TAB HEADER ================= */
-        .top-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+/* Middle: nav */
+.header-nav {
+  display: none; /* hidden on small screens */
+  gap: 16px;
+  align-items: center;
+}
 
-        /* ================= TAB CONTENT ================= */
-        .tab-content {
-            height: calc(100vh - 250px);
-            display: flex;
-            flex-direction: column;
-        }
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
 
-        /* ================= TABLE SCROLL ================= */
-        .table-container {
-            flex: 1;
-            overflow-y: auto;   /* ✅ ONLY scroll here */
-            background: #fff;
-            border: 1px solid #ddd;
-        }
+.nav-link:hover {
+  background: var(--surface);
+  color: var(--text);
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+/* Right: actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        thead th {
-            position: sticky;
-            top: 0;
-            background: #24968f;
-            color: #fff;
-            z-index: 2;
-            text-align: center;
-        }
+.btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
 
-        th, td {
-            text-align: center;
-            font-size: 14px;
-            padding: 6px;
-            vertical-align: middle;
-        }
+.btn-outline {
+  background: transparent;
+  border-color: var(--outline);
+  color: var(--text);
+}
 
-        tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
+.btn-outline:hover {
+  background: var(--surface);
+}
 
-        tbody tr:hover {
-            background: #eafaf9;
-        }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
 
-        /* ================= PAGINATION ================= */
-        .pagination-wrapper {
-            position: sticky;
-            bottom: 0;
-            background: #fff;
-            border-top: 1px solid #ddd;
-            padding: 10px;
-            display: flex;
-            gap: 15px;
-            z-index: 3;
-        }
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
 
-        /* ================= BUTTONS ================= */
-        .btn-primary {
-            background: #24968f;
-            border: none;
-        }
+/* Main area (blank screen beneath header) */
+.app-main {
+  flex: 1;
+  background:
+    radial-gradient(900px 300px at 10% -20%, rgba(37, 99, 235, 0.08), transparent 60%),
+    radial-gradient(900px 300px at 90% -20%, rgba(147, 51, 234, 0.08), transparent 60%);
+}
 
-        .btn-primary:hover {
-            background: #006955;
-        }
+/* Responsive: show nav on >=768px */
+@media (min-width: 768px) {
+  .header-nav {
+    display: flex;
+  }
 
-        /* ================= MOBILE ================= */
-        @media (max-width: 768px) {
-            .tab-content {
-                height: calc(100vh - 280px);
-            }
-            table {
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
+  .app-header {
+    grid-template-columns: 1fr auto auto;
+    padding: 0 24px;
+  }
+}
 
-<body>
+# app.tsx
+import React from 'react';
+import { NavLink, Routes, Route } from 'react-router-dom';
+import './App.css';
+import logo from './assets/KMC_logo.png';
+import Home from './pages/Home/home';
+import Csc from './pages/Csc/csc';
 
-<!-- ================= NAVBAR ================= -->
-<nav class="navbar navbar-expand-lg navbar-light" id="nav">
-    <a class="navbar-brand" href="#">CSC</a>
-</nav>
+const App: React.FC = () => {
+  return (
+      <div className="app">
+        <header className="app-header">
+          <nav className="header-nav" aria-label="Primary">
+            <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              HOME
+            </NavLink>
+            <NavLink to="/csc" className={({ isActive }) =>`nav-link ${isActive ? 'active' : ''}`}>
+              CSC
+            </NavLink>
+          </nav>
 
-<!-- ================= PAGE ================= -->
-<div class="page-wrapper">
+          <div className="header-left">
+              <img alt="Company Logo" className="logo" src={String(logo)}></img>
+          </div>
 
-    <!-- CSC INFO -->
-    <div class="info-card">
-        <div class="row">
-            <div class="col-md-3">CSC ID: <b>{{ csc_values.unique_csc_id }}</b></div>
-            <div class="col-md-3">PART NO: <b>{{ csc_values.part_num }}</b></div>
-            <div class="col-md-2">REV: <b>{{ csc_values.rev }}</b></div>
-            <div class="col-md-4">DESC: <b>{{ csc_values.desc }}</b></div>
-        </div>
-    </div>
+        </header>
+        <main className="app-main" role="main">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/csc" element={<Csc />} />
+          </Routes>
+        </main>
+      </div>
+  );
+};
 
-    <!-- TABS + TOTAL -->
-    <div class="top-actions">
-        <ul class="nav nav-pills">
-            <li class="nav-item">
-                <button class="nav-link active" data-toggle="pill" data-target="#bomTab">BOM</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" data-toggle="pill" data-target="#summaryTab">SUMMARY</button>
-            </li>
-        </ul>
-        <div>
-            Total Estimated Cost: <b>{{ totals.total_cpa|default:0|floatformat:2 }}</b>
-        </div>
-    </div>
+export default App;
 
-    <!-- TAB CONTENT -->
-    <div class="tab-content">
 
-        <!-- ================= BOM TAB ================= -->
-        <div class="tab-pane fade show active" id="bomTab">
+# csc.css
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f6f7;
+}
 
-            <!-- ACTION BUTTONS -->
-            <div class="d-flex justify-content-between mb-2">
-                <h5>Create New BOM</h5>
-                <div>
-                    <button class="btn btn-primary">Update BOM</button>
-                    <button class="btn btn-primary">Save BOM</button>
-                </div>
+/* Navbar */
+.app-navbar {
+  background: #ffffff;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 260px;
+  height: calc(100vh - 60px);
+  background: #f8f9fa;
+  padding: 20px;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+}
+
+.sidebar a {
+  display: block;
+  padding: 12px;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.sidebar a:hover {
+  background: #24968f;
+  color: #fff;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+.btn-primary {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+}
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.flex-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Main content */
+.main-content {
+  /* margin-left: 280px;
+  margin-top: 80px; */
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* Tables */
+.table th {
+  background: #24968f;
+  color: #fff;
+  font-size: 14px;
+}
+
+.table td {
+  font-size: 13px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Buttons */
+.primary-btn {
+  background: #24968f;
+  border: none;
+  color: #fff;
+}
+
+.primary-btn:hover {
+  background: #006955;
+}
+
+/* Tabs */
+.nav-pills .nav-link.active {
+  background: #24968f;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+# csc.tsx
+import React, { useState } from "react";
+import './csc.css'
+
+const Csc: React.FC = () => {
+
+  return (
+    <>
+      <div className="container-fluid h-100">
+        <div className="row h-100">
+          <div className="col-10" style={{textAlign:"justify"}}>
+            <div className="flex-row">
+              <h1>CSC List</h1>
+              <button type="button" className="btn btn-primary" style={{margin:'25px'}} data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
             </div>
-
-            <!-- TABLE SCROLL -->
-            <div class="table-container">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>Level</th>
-                            <th>Part No</th>
-                            <th>Rev</th>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Process</th>
-                            <th>Scope</th>
-                            <th>Method</th>
-                            <th>Nesting</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for values in page_obj %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td><input class="form-control" value="{{ values.level }}"></td>
-                            <td><input class="form-control" value="{{ values.part_no }}"></td>
-                            <td><input class="form-control" value="{{ values.revision }}"></td>
-                            <td><input class="form-control" value="{{ values.part_description }}"></td>
-                            <td><input class="form-control" value="{{ values.qty }}"></td>
-                            <td>{{ values.process_type }}</td>
-                            <td>{{ values.scope }}</td>
-                            <td>{{ values.method }}</td>
-                            <td>{{ values.is_nesting_needed }}</td>
-                            <td>
-                                <i class="bi bi-pencil-square btn"></i>
-                                <i class="bi bi-trash btn"></i>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- PAGINATION -->
-            <div class="pagination-wrapper">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                {% else %}
-                    <span>Previous</span>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <strong>{{ num }}</strong>
-                    {% else %}
-                        <a href="?page={{ num }}">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
-                {% else %}
-                    <span>Next</span>
-                {% endif %}
-            </div>
-
+            <table className="table table-bordered">
+              <thead>
+                    <tr>
+                        <th>Part Name</th>
+                        <th>Part Rev</th>
+                        <th>Part Description</th>
+                        <th>Part Type</th>
+                        <th>Estimated On</th>
+                        <th>Estimated By</th>
+                        <th>Unique CSC ID</th>
+                        <th>CSC Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>F4J03714</td>
+                    <td>#</td>
+                    <td>BRACKET-AIR TANK - 276 mm Dia</td>
+                    <td>sheetmetalA</td>
+                    <td>Dec-25</td>
+                    <td>parthiban.c1</td>
+                    <td>F4J03714-#-1-Jan-26</td>
+                    <td>In-progress</td>
+                  </tr>
+                </tbody>
+            </table>
+          </div>
         </div>
+      </div>
+    </>
+  );
+};
 
-        <!-- ================= SUMMARY TAB ================= -->
-        <div class="tab-pane fade" id="summaryTab">
-            <div class="table-container">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Cost Head</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Total Cost</td>
-                            <td>{{ totals.total_cpa|default:0 }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+export default Csc;
 
-    </div>
-</div>
-
-</body>
-</html>
+give the better ui ux screen table with pagination for csc.css and csc.tsx
