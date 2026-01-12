@@ -1,18 +1,310 @@
-import Bom from "../Bom/bom.tsx";
-<button
-className="action-btn action-view"
-data-tooltip="Bom" onClick={Bom}>
-{/* onClick={() => console.log("View", item.cscId)} */}
-<svg viewBox="0 0 24 24" fill="none">
-  <path
-    d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"
-    stroke="currentColor"
-    strokeWidth="2"
-  />
-  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-</svg>
-</button>
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+import "./bom.css";
 
-give the bom tsx and css code it should contain item.cscId one card that contains details CSC UNIQUE ID, PART NUMBER, REVISION, DESCRIPTION, ESTIMATED BY, RM BASE, PROCESS BASE, OH PROFIT BASE  
-below left side have three tabs bom, bom summary, graph view right side Total estimated cost variable and value like Total Estimated Cost: 97.68 and below bom list table in first default one row should exist all table cell are inputs
-so direct save variables are s.no, level, part no, rev, parts description, qty, process type(select), scope(select), method(select), is nesting needed(selection), action (add row, edit, delete)icons with pagination and in upper title bom list in left side and right side two buttons save bom data and update bom data for bulk creation and bulk updation
+const Bom: React.FC = () => {
+  const { cscId } = useParams();
+
+  const [rows, setRows] = useState([
+    {
+      sno: 1,
+      level: "",
+      partNo: "",
+      rev: "",
+      desc: "",
+      qty: "",
+      processType: "",
+      scope: "",
+      method: "",
+      nesting: ""
+    }
+  ]);
+
+  const addRow = () => {
+    setRows([
+      ...rows,
+      {
+        sno: rows.length + 1,
+        level: "",
+        partNo: "",
+        rev: "",
+        desc: "",
+        qty: "",
+        processType: "",
+        scope: "",
+        method: "",
+        nesting: ""
+      }
+    ]);
+  };
+
+  const deleteRow = (index: number) => {
+    setRows(rows.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="bom-page">
+
+      {/* CSC CARD */}
+      <div className="bom-card">
+        <h3>CSC Details</h3>
+        <div className="bom-info-grid">
+          <div><b>CSC Unique ID:</b> {cscId}</div>
+          <div><b>Part Number:</b> F4J03714</div>
+          <div><b>Revision:</b> #</div>
+          <div><b>Description:</b> BRACKET-AIR TANK</div>
+          <div><b>Estimated By:</b> parthiban.c1</div>
+          <div><b>RM Base:</b> 2025</div>
+          <div><b>Process Base:</b> 2025</div>
+          <div><b>OH Profit Base:</b> 2025</div>
+        </div>
+      </div>
+
+      {/* BOM LAYOUT */}
+      <div className="bom-layout">
+
+        {/* LEFT */}
+        <div className="bom-left">
+          <div className="bom-tabs">
+            <button className="tab active">BOM</button>
+            <button className="tab">BOM Summary</button>
+            <button className="tab">Graph View</button>
+          </div>
+
+          <div className="bom-table-card">
+            <div className="bom-table-header">
+              <h3>BOM List</h3>
+              <div className="bom-actions">
+                <button className="btn btn-primary">Save BOM Data</button>
+                <button className="btn btn-outline">Update BOM Data</button>
+              </div>
+            </div>
+
+            <div className="bom-table-wrapper">
+              <table className="bom-table">
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Level</th>
+                    <th>Part No</th>
+                    <th>Rev</th>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Process Type</th>
+                    <th>Scope</th>
+                    <th>Method</th>
+                    <th>Nesting</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, index) => (
+                    <tr key={index}>
+                      <td>{row.sno}</td>
+                      <td><input /></td>
+                      <td><input /></td>
+                      <td><input /></td>
+                      <td><input /></td>
+                      <td><input /></td>
+
+                      <td>
+                        <select>
+                          <option>Select</option>
+                          <option>Laser</option>
+                          <option>Bending</option>
+                        </select>
+                      </td>
+
+                      <td>
+                        <select>
+                          <option>Select</option>
+                          <option>In Scope</option>
+                          <option>Out Scope</option>
+                        </select>
+                      </td>
+
+                      <td>
+                        <select>
+                          <option>Select</option>
+                          <option>Make</option>
+                          <option>Buy</option>
+                        </select>
+                      </td>
+
+                      <td>
+                        <select>
+                          <option>Select</option>
+                          <option>Yes</option>
+                          <option>No</option>
+                        </select>
+                      </td>
+
+                      <td className="action-cell">
+                        <button className="action-btn action-edit">✏️</button>
+                        <button
+                          className="action-btn action-delete"
+                          onClick={() => deleteRow(index)}
+                        >
+                          🗑️
+                        </button>
+                        <button
+                          className="action-btn action-add"
+                          onClick={addRow}
+                        >
+                          ➕
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT */}
+        <div className="bom-right">
+          <div className="cost-card">
+            <h4>Total Estimated Cost</h4>
+            <div className="cost-value">₹ 97.68</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default Bom;
+
+
+
+
+.bom-page {
+  padding: 24px;
+}
+
+/* CSC Card */
+.bom-card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.bom-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  font-size: 13px;
+}
+
+/* Layout */
+.bom-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+}
+
+/* Tabs */
+.bom-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #24968f;
+  color: #fff;
+}
+
+/* Table Card */
+.bom-table-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 14px;
+}
+
+.bom-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bom-table-wrapper {
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* Table */
+.bom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bom-table th {
+  background: #24968f;
+  color: #fff;
+  padding: 8px;
+  font-size: 12px;
+  position: sticky;
+  top: 0;
+}
+
+.bom-table td {
+  padding: 6px;
+  text-align: center;
+}
+
+.bom-table input,
+.bom-table select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+/* Right */
+.bom-right .cost-card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.cost-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+  color: #24968f;
+}
+
+/* Actions */
+.action-cell {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.action-btn {
+  border: none;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.action-add { background: #d1fae5; }
+.action-edit { background: #dbeafe; }
+.action-delete { background: #fee2e2; }
