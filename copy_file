@@ -1,121 +1,203 @@
-/* Action column */
-.action-cell {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
+{showModal && (
+  <div className="modal-backdrop">
+    <div className="modal-container">
+      
+      {/* Header */}
+      <div className="modal-header">
+        <h2>Create CSC</h2>
+        <button className="modal-close" onClick={closeModal}>×</button>
+      </div>
 
-/* Action buttons */
-.action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: none;
-  background: #f1f5f9;
+      {/* Body */}
+      <div className="modal-body">
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Part Number</label>
+            <input type="text" />
+          </div>
+
+          <div className="form-group">
+            <label>Revision</label>
+            <input type="text" />
+          </div>
+
+          <div className="form-group full">
+            <label>Description</label>
+            <textarea rows={3}></textarea>
+          </div>
+
+          <div className="form-group">
+            <label>Part Type</label>
+            <select>
+              <option>Select</option>
+              <option>Sheetmetal</option>
+              <option>Machining</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Project</label>
+            <select>
+              <option>Select</option>
+              <option>Project A</option>
+              <option>Project B</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>RM Base Date</label>
+            <input type="date" />
+          </div>
+
+          <div className="form-group">
+            <label>Process Base Date</label>
+            <input type="date" />
+          </div>
+
+          <div className="form-group">
+            <label>OH / Profit / Other Cost Base</label>
+            <select>
+              <option>Select</option>
+              <option>Base 2024</option>
+              <option>Base 2025</option>
+            </select>
+          </div>
+
+          <div className="form-group full">
+            <label>Remarks</label>
+            <textarea rows={2}></textarea>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="modal-footer">
+        <button className="btn btn-outline" onClick={closeModal}>
+          Cancel
+        </button>
+        <button className="btn btn-primary">
+          Save CSC
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2000;
+}
+
+/* Modal container */
+.modal-container {
+  background: #ffffff;
+  width: 720px;
+  max-width: 95%;
+  max-height: 90vh;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease;
+}
+
+/* Header */
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.action-btn svg {
-  width: 16px;
-  height: 16px;
+/* Body */
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
 }
 
-/* View */
-.action-view {
-  color: #2563eb;
-}
-.action-view:hover {
-  background: #dbeafe;
-}
-
-/* Edit */
-.action-edit {
-  color: #059669;
-}
-.action-edit:hover {
-  background: #d1fae5;
+/* Form layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
-/* Delete */
-.action-delete {
-  color: #dc2626;
-}
-.action-delete:hover {
-  background: #fee2e2;
+.form-group {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Tooltip */
-.action-btn {
-  position: relative;
+.form-group.full {
+  grid-column: span 2;
 }
 
-.action-btn::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: -32px;
-  background: #0f172a;
-  color: #ffffff;
-  padding: 4px 8px;
-  font-size: 11px;
-  border-radius: 4px;
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  transition: opacity 0.2s ease;
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #334155;
 }
 
-.action-btn:hover::after {
-  opacity: 1;
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
 }
 
-<td className="action-cell">
-  {/* View */}
-  <button
-    className="action-btn action-view"
-    data-tooltip="View"
-    onClick={() => console.log("View", item.cscId)}
-  >
-    <svg viewBox="0 0 24 24" fill="none">
-      <path
-        d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  </button>
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #24968f;
+}
 
-  {/* Edit */}
-  <button
-    className="action-btn action-edit"
-    data-tooltip="Edit"
-    onClick={() => console.log("Edit", item.cscId)}
-  >
-    <svg viewBox="0 0 24 24" fill="none">
-      <path
-        d="M4 20h4l10-10-4-4L4 16v4z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </svg>
-  </button>
+/* Footer */
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
 
-  {/* Delete */}
-  <button
-    className="action-btn action-delete"
-    data-tooltip="Delete"
-    onClick={() => console.log("Delete", item.cscId)}
-  >
-    <svg viewBox="0 0 24 24" fill="none">
-      <path
-        d="M3 6h18M8 6v12m8-12v12M5 6l1 14h12l1-14"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </svg>
-  </button>
-</td>
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
