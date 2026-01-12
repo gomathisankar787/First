@@ -1,2 +1,47 @@
-Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ partNo: string; description: string; estimation: string; method: string; materialGrade: string; length: string; width: string; thick: string; cuttingType: string; finishWeight: string; rmPrice: string; ... 14 more ...; remarks: string; }'.
-  No index signature with a parameter of type 'string' was found on type '{ partNo: string; description: string; estimation: string; method: string; materialGrade: string; length: string; width: string; thick: string; cuttingType: string; finishWeight: string; rmPrice: string; ... 14 more ...; remarks: string; }'
+bom_modal.tsx:122 In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <App>
+      <div className="app">
+        <header>
+        <main className="app-main" role="main">
+          <Routes>
+            <RenderedRoute match={{params:{...}, ...}} routeContext={{outlet:null, ...}}>
+              <Bom>
+                <div className="bom-page">
+                  <div>
+                  <div>
+                  <div className="bom-table-...">
+                    <div>
+                    <div className="bom-table-...">
+                      <table className="bom-table">
+                        <thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td>
+                            <td className="action-cell">
+                              <button>
+>                             <button className="icon-btn edit" title="Edit" onClick={function onClick}>
+                                <BomModal onClose={function onClose}>
+                                  <div className="bom-modal-...">
+                                    <div className="bom-modal">
+                                      <div className="bom-modal-...">
+                                        <h2>
+>                                       <button className="close-btn" onClick={function onClose}>
+                                      ...
+                                ...
+                              ...
+                          ...
+                    ...
+bom.tsx:252 <button> cannot contain a nested <button>.
+See this log for the ancestor stack trace.
