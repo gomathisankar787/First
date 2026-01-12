@@ -1,74 +1,121 @@
-const getPageNumbers = () => {
-  const pages: (number | string)[] = [];
-
-  if (totalPages <= 5) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
-  } else {
-    if (currentPage <= 3) {
-      pages.push(1, 2, 3, "...", totalPages);
-    } else if (currentPage >= totalPages - 2) {
-      pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
-    } else {
-      pages.push(
-        1,
-        "...",
-        currentPage - 1,
-        currentPage,
-        currentPage + 1,
-        "...",
-        totalPages
-      );
-    }
-  }
-  return pages;
-};
-<div className="pagination-bar">
-  <span>
-    Showing {startIndex + 1}–
-    {Math.min(startIndex + itemsPerPage, data.length)} of {data.length}
-  </span>
-
-  <div className="pagination">
-    <button
-      className="page-btn"
-      disabled={currentPage === 1}
-      onClick={() => setCurrentPage(currentPage - 1)}
-    >
-      Prev
-    </button>
-
-    {getPageNumbers().map((page, index) =>
-      page === "..." ? (
-        <span key={index} className="page-dots">…</span>
-      ) : (
-        <button
-          key={index}
-          className={`page-btn ${
-            currentPage === page ? "active" : ""
-          }`}
-          onClick={() => setCurrentPage(page as number)}
-        >
-          {page}
-        </button>
-      )
-    )}
-
-    <button
-      className="page-btn"
-      disabled={currentPage === totalPages}
-      onClick={() => setCurrentPage(currentPage + 1)}
-    >
-      Next
-    </button>
-  </div>
-</div>
-.page-dots {
-  padding: 6px 10px;
-  color: #64748b;
-  font-weight: 600;
+/* Action column */
+.action-cell {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Action buttons */
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* View */
+.action-view {
+  color: #2563eb;
+}
+.action-view:hover {
+  background: #dbeafe;
+}
+
+/* Edit */
+.action-edit {
+  color: #059669;
+}
+.action-edit:hover {
+  background: #d1fae5;
+}
+
+/* Delete */
+.action-delete {
+  color: #dc2626;
+}
+.action-delete:hover {
+  background: #fee2e2;
+}
+
+/* Tooltip */
+.action-btn {
+  position: relative;
+}
+
+.action-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -32px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.action-btn:hover::after {
+  opacity: 1;
+}
+
+<td className="action-cell">
+  {/* View */}
+  <button
+    className="action-btn action-view"
+    data-tooltip="View"
+    onClick={() => console.log("View", item.cscId)}
+  >
+    <svg viewBox="0 0 24 24" fill="none">
+      <path
+        d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  </button>
+
+  {/* Edit */}
+  <button
+    className="action-btn action-edit"
+    data-tooltip="Edit"
+    onClick={() => console.log("Edit", item.cscId)}
+  >
+    <svg viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4 20h4l10-10-4-4L4 16v4z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+    </svg>
+  </button>
+
+  {/* Delete */}
+  <button
+    className="action-btn action-delete"
+    data-tooltip="Delete"
+    onClick={() => console.log("Delete", item.cscId)}
+  >
+    <svg viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3 6h18M8 6v12m8-12v12M5 6l1 14h12l1-14"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+    </svg>
+  </button>
+</td>
