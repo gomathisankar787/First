@@ -1,4 +1,239 @@
-Give the bom summary and graph view tab code. bom summary have table with pagination only for view the variables are: s.no, parent part no, level, part no, rev, parts description, qty, process type, scope, method, direct rm, allowance,
-process cost, surface finish cost, oh & others, profit, CPU, CPA, weight, total weight, rate/kg. and for graph view contain one table that contain header and two rows, header variables are: cost head, direct rm cost, allowance cost, process cost, 
-surface protection, overhead, profit, total basic cost, packaging, transport, amortization, total cost. row one has values like Amount, 36.60,2.81,	53.27,	0.00,	1.73,	3.44,	97.86,	0,	0,	0,	98 and second row valus like 
-Ratio,	37%,	3%,	54%,	0%,	2%,	4%,	100%,	10%,	124%,	10%,	244% and below show graph for these values. graph should be waterfall floating bar chart.
+type TabType = "BOM" | "SUMMARY" | "GRAPH";
+const [activeTab, setActiveTab] = useState<TabType>("BOM");
+
+const summaryData = Array.from({ length: 26 }, (_, i) => ({
+  sno: i + 1,
+  parentPart: "F4J03714",
+  level: "1",
+  partNo: `PART-${i + 1}`,
+  rev: "#",
+  desc: "Bracket Assembly",
+  qty: 1,
+  processType: "Laser",
+  scope: "In",
+  method: "Make",
+  directRm: 36.6,
+  allowance: 2.81,
+  processCost: 53.27,
+  surfaceCost: 0,
+  oh: 1.73,
+  profit: 3.44,
+  cpu: 12.4,
+  cpa: 10.2,
+  weight: 2.3,
+  totalWeight: 5.6,
+  rateKg: 42.3
+}));
+
+const SUMMARY_PER_PAGE = 8;
+const [summaryPage, setSummaryPage] = useState(1);
+
+const summaryTotalPages = Math.ceil(summaryData.length / SUMMARY_PER_PAGE);
+const summaryStart = (summaryPage - 1) * SUMMARY_PER_PAGE;
+const currentSummary = summaryData.slice(
+  summaryStart,
+  summaryStart + SUMMARY_PER_PAGE
+);
+
+{activeTab === "SUMMARY" && (
+  <div className="bom-summary-card">
+    <h3>BOM Summary</h3>
+
+    <div className="bom-table-wrapper">
+      <table className="bom-table">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Parent Part No</th>
+            <th>Level</th>
+            <th>Part No</th>
+            <th>Rev</th>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Process</th>
+            <th>Scope</th>
+            <th>Method</th>
+            <th>Direct RM</th>
+            <th>Allowance</th>
+            <th>Process Cost</th>
+            <th>Surface Cost</th>
+            <th>OH & Others</th>
+            <th>Profit</th>
+            <th>CPU</th>
+            <th>CPA</th>
+            <th>Weight</th>
+            <th>Total Weight</th>
+            <th>Rate/Kg</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentSummary.map((row) => (
+            <tr key={row.sno}>
+              <td>{row.sno}</td>
+              <td>{row.parentPart}</td>
+              <td>{row.level}</td>
+              <td>{row.partNo}</td>
+              <td>{row.rev}</td>
+              <td>{row.desc}</td>
+              <td>{row.qty}</td>
+              <td>{row.processType}</td>
+              <td>{row.scope}</td>
+              <td>{row.method}</td>
+              <td>{row.directRm}</td>
+              <td>{row.allowance}</td>
+              <td>{row.processCost}</td>
+              <td>{row.surfaceCost}</td>
+              <td>{row.oh}</td>
+              <td>{row.profit}</td>
+              <td>{row.cpu}</td>
+              <td>{row.cpa}</td>
+              <td>{row.weight}</td>
+              <td>{row.totalWeight}</td>
+              <td>{row.rateKg}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="pagination-bar">
+      <button
+        className="page-btn"
+        disabled={summaryPage === 1}
+        onClick={() => setSummaryPage(summaryPage - 1)}
+      >
+        Prev
+      </button>
+
+      <span>
+        Page {summaryPage} / {summaryTotalPages}
+      </span>
+
+      <button
+        className="page-btn"
+        disabled={summaryPage === summaryTotalPages}
+        onClick={() => setSummaryPage(summaryPage + 1)}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
+
+const costData = [
+  { label: "Direct RM", amount: 36.6, ratio: "37%" },
+  { label: "Allowance", amount: 2.81, ratio: "3%" },
+  { label: "Process Cost", amount: 53.27, ratio: "54%" },
+  { label: "Surface Protection", amount: 0, ratio: "0%" },
+  { label: "Overhead", amount: 1.73, ratio: "2%" },
+  { label: "Profit", amount: 3.44, ratio: "4%" },
+  { label: "Total Basic Cost", amount: 97.86, ratio: "100%" },
+  { label: "Packaging", amount: 0, ratio: "10%" },
+  { label: "Transport", amount: 0, ratio: "124%" },
+  { label: "Amortization", amount: 0, ratio: "10%" },
+  { label: "Total Cost", amount: 98, ratio: "244%" }
+];
+
+
+{activeTab === "GRAPH" && (
+  <div className="graph-card">
+    <h3>Cost Breakdown</h3>
+
+    <table className="graph-table">
+      <thead>
+        <tr>
+          <th>Cost Head</th>
+          {costData.map((c) => (
+            <th key={c.label}>{c.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Amount</td>
+          {costData.map((c) => (
+            <td key={c.label}>{c.amount}</td>
+          ))}
+        </tr>
+        <tr>
+          <td>Ratio</td>
+          {costData.map((c) => (
+            <td key={c.label}>{c.ratio}</td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+
+    {/* WATERFALL GRAPH */}
+    <div className="waterfall-chart">
+      <svg viewBox="0 0 1200 300">
+        {costData.map((item, i) => {
+          const barHeight = item.amount * 2;
+          return (
+            <rect
+              key={i}
+              x={i * 105 + 40}
+              y={250 - barHeight}
+              width={60}
+              height={barHeight}
+              rx={6}
+              fill="#24968f"
+            />
+          );
+        })}
+      </svg>
+    </div>
+  </div>
+)}
+
+
+<div className="bom-tabs">
+  <button className={`tab ${activeTab === "BOM" ? "active" : ""}`} onClick={() => setActiveTab("BOM")}>BOM</button>
+  <button className={`tab ${activeTab === "SUMMARY" ? "active" : ""}`} onClick={() => setActiveTab("SUMMARY")}>BOM Summary</button>
+  <button className={`tab ${activeTab === "GRAPH" ? "active" : ""}`} onClick={() => setActiveTab("GRAPH")}>Graph View</button>
+</div>
+
+
+
+/* SUMMARY */
+.bom-summary-card,
+.graph-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* GRAPH */
+.graph-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.graph-table th,
+.graph-table td {
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.graph-table th {
+  background: #24968f;
+  color: #fff;
+}
+
+/* WATERFALL */
+.waterfall-chart {
+  overflow-x: auto;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.waterfall-chart svg {
+  width: 100%;
+  height: 280px;
+}
