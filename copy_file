@@ -1,14 +1,445 @@
-working
-csc.tsx?t=1770099388924:53 _Toast {_element: div#cscToast.toast.text-bg-success.border-0, _config: {…}, _timeout: null, _hasMouseInteraction: false, _hasKeyboardInteraction: false}_config: {animation: true, autohide: true, delay: 3000}_element: div#cscToast.toast.text-bg-success.border-0.fade.hide_hasKeyboardInteraction: false_hasMouseInteraction: false_timeout: 7[[Prototype]]: BaseComponent
- const showToast = (msg: string, type: "success" | "danger") => {
+import React, {useRef , useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getCscList,
+  createCsc,
+  updateCsc,
+  deleteCsc,
+  getPartTypes,
+  getProjects,
+} from "../../api/cscApi";
+import "./csc.css";
+import { Toast } from "bootstrap";
+
+interface Dropdown {
+  id: number;
+  name: string;
+}
+
+interface CscItem {
+  id: number;
+  part_num: string;
+  rev: string;
+  desc: string;
+  part_typ: number | null;
+  projects: number | null;
+  rm_base: string;
+  process_base: string;
+  oh_profit_base: string;
+  remarks: string;
+  unique_csc_id: string;
+  csc_status: string;
+}
+
+const Csc: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [data, setData] = useState<CscItem[]>([]);
+  const [partTypes, setPartTypes] = useState<Dropdown[]>([]);
+  const [projects, setProjects] = useState<Dropdown[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState<"success" | "danger">("success");
+  const toastRef = useRef<HTMLDivElement | null>(null);
+
+  const ITEMS_PER_PAGE = 15;
+
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentRows = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const [formData, setFormData] = useState({
+    part_num: "",
+    rev: "",
+    desc: "",
+    part_typ: "",
+    projects: "",
+    rm_base: "",
+    process_base: "",
+    oh_profit_base: "",
+    remarks: "",
+    updated_by: "parthiban.c1",
+  });
+
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  /* ---------------- Toast Helper ---------------- */
+  const showToast = (msg: string, type: "success" | "danger") => {
     setToastMsg(msg);
     setToastType(type);
-    const toastEl = document.getElementById("cscToast");
-    if (toastEl) {
-      const toast = new Toast(toastEl, {delay: 3000});
-      console.log('working')
-      console.log(toast)
-      toast.show();
+    // const toastEl = document.getElementById("cscToast");
+    // if (toastEl) {
+    //   const toast = new Toast(toastEl, {delay: 3000});
+    //   console.log('working')
+    //   console.log(toast)
+    //   toast.show();
+    // }
+  };
+
+  useEffect(()=>{
+    if(!toastMsg || !toastRef.current) return;
+
+    const toast = new Toast(toastRef.current,{delay:3000,autohide:true});
+    console.log(toast)
+    toast.show();
+  },[toastMsg, toastType])
+
+  const fetchAll = async () => {
+    try {
+      const [cscRes] = await Promise.all([
+        getCscList(),
+        // getPartTypes(),
+        // getProjects(),
+      ]); //, typeRes, projectRes
+      setData(cscRes);
+      // setPartTypes(typeRes.data);
+      // setProjects(projectRes.data);
+    } catch (err) {
+      showToast("Failed to load CSC list", "danger");
+      console.error("API error", err);
     }
   };
-but toastr didn't show
+
+  const openModal = () => {
+    setEditId(null);
+    setFormData({
+      part_num: "",
+      rev: "",
+      desc: "",
+      part_typ: "",
+      projects: "",
+      rm_base: "",
+      process_base: "",
+      oh_profit_base: "",
+      remarks: "",
+      updated_by: "parthiban.c1",
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => setShowModal(false);
+
+  const openEdit = (item: CscItem) => {
+    setEditId(item.id);
+    setFormData({
+      part_num: item.part_num,
+      rev: item.rev,
+      desc: item.desc,
+      part_typ: item.part_typ ? String(item.part_typ) : "",
+      projects: item.projects ? String(item.projects) : "",
+      rm_base: item.rm_base,
+      process_base: item.process_base,
+      oh_profit_base: item.oh_profit_base,
+      remarks: item.remarks,
+      updated_by: "parthiban.c1",
+    });
+    setShowModal(true);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    const payload = {
+      ...formData,
+      part_typ: formData.part_typ || null,
+      projects: formData.projects || null,
+    };
+
+    try {
+       if (editId) {
+        await updateCsc(editId, payload);
+        showToast("CSC updated successfully", "success");
+      } else {
+        await createCsc(payload);
+        showToast("CSC created successfully", "success");
+      }
+      closeModal();
+      fetchAll();
+    } catch (err) {
+      console.error("Save failed", err);
+    }
+  };
+
+  /* ---------------- Delete ---------------- */
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      await deleteCsc(deleteId);
+      showToast("CSC deleted successfully", "success");
+      fetchAll();
+    } catch {
+      showToast("Failed to delete CSC", "danger");
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  const getPages = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) pages.push(1, 2, 3, "...", totalPages);
+      else if (currentPage >= totalPages - 2)
+        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+      else
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
+    }
+    return pages;
+  };
+
+  return (
+    <div className="csc-page">
+      <div className="csc-card">
+        <div className="csc-header">
+          <h1>CSC List</h1>
+          <button className="btn btn-primary" onClick={openModal}>
+            Create New CSC
+          </button>
+        </div>
+
+        <div className="csc-table-wrapper">
+          <table className="csc-table">
+            <thead>
+              <tr>
+                <th>Part Name</th>
+                <th>Rev</th>
+                <th>Description</th>
+                <th>CSC ID</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentRows.map(item => (
+                <tr key={item.id}>
+                  <td>{item.part_num}</td>
+                  <td>{item.rev}</td>
+                  <td>{item.desc}</td>
+                  <td>{item.unique_csc_id}</td>
+                  <td>
+                    <span className="status in-progress">
+                      {item.csc_status || "In-progress"}
+                    </span>
+                  </td>
+                  <td className="action-cell">
+                    <button
+                      className="action-btn action-view"
+                      data-tooltip="Bom"
+                      onClick={() => navigate(`/bom/${item.unique_csc_id}`)}
+                    >
+                      👁
+                    </button>
+
+                    <button
+                      className="action-btn action-edit"
+                      data-tooltip="Edit"
+                      onClick={() => openEdit(item)}
+                    >
+                      ✎
+                    </button>
+
+                    <button
+                      className="action-btn action-delete"
+                      data-tooltip="Delete"
+                      onClick={() => setDeleteId(item.id)}
+                    >
+                      🗑
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* <div className="alert alert-success">Bootstrap CssTst</div> */}
+        {/* PAGINATION */}
+        <div className="bom-pagination-bar">
+          <button
+            className="page-btn"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+          >
+            Prev
+          </button>
+
+          {getPages().map((p, i) =>
+            p === "..." ? (
+              <span key={i} className="page-dots">…</span>
+            ) : (
+              <button
+                key={i}
+                className={`page-btn ${currentPage === p ? "active" : ""}`}
+                onClick={() => setCurrentPage(p as number)}
+              >
+                {p}
+              </button>
+            )
+          )}
+
+          <button
+            className="page-btn"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      {/* CREATE / EDIT CSC MODAL */}
+      {showModal && (
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2>{editId ? "Edit CSC" : "Create CSC"}</h2>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Part Number</label>
+                  <input name="part_num" value={formData.part_num} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Revision</label>
+                  <input name="rev" value={formData.rev} onChange={handleChange} />
+                </div>
+
+                <div className="form-group full">
+                  <label>Description</label>
+                  <textarea name="desc" rows={3} value={formData.desc} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Part Type</label>
+                  <select name="part_typ" value={formData.part_typ} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {partTypes.map(pt => (
+                      <option key={pt.id} value={pt.id}>{pt.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Project</label>
+                  <select name="projects" value={formData.projects} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>RM Base Date</label>
+                  <input name="rm_base" value={formData.rm_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Process Base Date</label>
+                  <input name="process_base" value={formData.process_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>OH / Profit / Other Cost Base</label>
+                  <input name="oh_profit_base" value={formData.oh_profit_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group full">
+                  <label>Remarks</label>
+                  <textarea name="remarks" rows={2} value={formData.remarks} onChange={handleChange} />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={closeModal}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleSave}>
+                {editId ? "Update CSC" : "Save CSC"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRM MODAL */}
+      {deleteId && (
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2>Confirm Delete</h2>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to delete this CSC?
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOOTSTRAP TOAST */}
+      {/* <div className="toast-container position-fixed top-0 end-0 p-3"> */}
+
+      <div className="toast align-items-center text-bg-primary border-0 top-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div className="d-flex">
+          <div className="toast-body">
+            Hello, world! This is a toast message.
+          </div>
+          <button type="button" className="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+        <div
+          ref={toastRef}
+          id="cscToast"
+          className={`toast fade text-bg-${toastType} border-0`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div className="d-flex">
+            <div className="toast-body">{toastMsg}</div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"
+            ></button>
+          </div>
+        </div>
+      </div>
+    // </div>
+  );
+};
+
+export default Csc;
