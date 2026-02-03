@@ -1,94 +1,87 @@
-/* ===== Custom Toast ===== */
+<div className="form-group">
+                  <label>Part Type</label>
+                  <select name="part_typ" value={formData.part_typ} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {partTypes.map(pt => (
+                      <option key={pt.id} value={pt.id}>{pt.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-.toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
-}
+                <div className="form-group">
+                  <label>Project</label>
+                  <select name="projects" value={formData.projects} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-.toast {
-  min-width: 280px;
-  max-width: 360px;
-  border-radius: 6px;
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  margin-bottom: 10px;
+                <div className="form-group">
+                  <label>RM Base Date</label>
+                  <input name="rm_base" value={formData.rm_base} onChange={handleChange} />
+                </div>
 
-  /* animation */
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
+                <div className="form-group">
+                  <label>Process Base Date</label>
+                  <input name="process_base" value={formData.process_base} onChange={handleChange} />
+                </div>
 
-/* Bootstrap JS toggles this */
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
+                <div className="form-group">
+                  <label>OH / Profit / Other Cost Base</label>
+                  <input name="oh_profit_base" value={formData.oh_profit_base} onChange={handleChange} />
+                </div>
 
-/* Types */
-.toast.success {
-  background-color: #198754;
-}
+def mycsc(request):
+    csc = CRCSCTBL.objects.all().order_by('-updated_on')
+    part_types = PARTTYPETBL.objects.all()
+    projects = PROJECTLISTTBL.objects.all()
 
-.toast.danger {
-  background-color: #dc3545;
-}
+    # -------- RM BASE --------
+    rm_base_values = None
+    rm_latest = None
+    if RMbase.objects.exists():
+        rm_base_values = list(
+            RMbase.objects.order_by('-id')
+            .values_list('base', flat=True)
+            .distinct()
+        )
+        rm_base_values = list(dict.fromkeys(rm_base_values))  # remove duplicates
+        rm_base_values = sort_month_year(rm_base_values)
+        rm_latest = rm_base_values[0]
 
-.toast-body {
-  padding: 12px 14px;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    # -------- PROCESS BASE --------
+    process_base_values = None
+    process_latest = None
+    if Processbase.objects.exists():
+        process_base_values = list(
+            Processbase.objects.order_by('-id')
+            .values_list('base', flat=True)
+            .distinct()
+        )
+        process_base_values = list(dict.fromkeys(process_base_values))
+        process_base_values = sort_month_year(process_base_values)
+        process_latest = process_base_values[0]
 
-.toast-close {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-}
+        ohprofit_base_values = list(dict.fromkeys(ohprofit_base_values))
+        ohprofit_base_values = sort_month_year(ohprofit_base_values)
+        ohprofit_latest = ohprofit_base_values[0]
 
+    paginator = Paginator(csc, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-useEffect(() => {
-  if (!toastMsg || !toastRef.current) return;
+    return render(request, 'test.html', {
+        'page_obj': page_obj,
+        'part_types': part_types,
+        'projects': projects,
+        'rm_base_values': rm_base_values,
+        'process_base_values': process_base_values,
+        'ohprofit_base_values': ohprofit_base_values,
+        'rm_latest': rm_latest,
+        'process_latest': process_latest,
+        'ohprofit_latest': ohprofit_latest,
+    })
 
-  const el = toastRef.current;
-
-  // 🔥 FORCE reset so animation works every time
-  el.classList.remove("show");
-  void el.offsetWidth; // force reflow
-
-  const existing = Toast.getInstance(el);
-  if (existing) existing.dispose();
-
-  const toast = new Toast(el, {
-    delay: 3000,
-    autohide: true,
-  });
-
-  toast.show();
-}, [toastMsg, toastType]);
-
-<div className="toast-container">
-  <div
-    ref={toastRef}
-    id="cscToast"
-    className={`toast ${toastType}`}
-    role="alert"
-    aria-live="assertive"
-  >
-    <div className="toast-body">
-      {toastMsg}
-      <button
-        className="toast-close"
-        onClick={() => setToastMsg("")}
-      >
-        ×
-      </button>
-    </div>
-  </div>
-</div>
+change this api for return response my needed fields
