@@ -1,52 +1,47 @@
-/* ===============================
-   Custom Toast (No Bootstrap CSS)
-   =============================== */
+/* ===== Custom Toast ===== */
 
 .toast-container {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 9999;
-  pointer-events: none;
 }
 
 .toast {
-  min-width: 260px;
+  min-width: 280px;
   max-width: 360px;
-  background-color: #333;
-  color: #fff;
   border-radius: 6px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   margin-bottom: 10px;
+
+  /* animation */
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  pointer-events: auto;
 }
 
+/* Bootstrap JS toggles this */
 .toast.show {
   opacity: 1;
   transform: translateY(0);
 }
 
-.toast.hide {
-  opacity: 0;
-}
-
+/* Types */
 .toast.success {
-  background-color: #198754; /* green */
+  background-color: #198754;
 }
 
 .toast.danger {
-  background-color: #dc3545; /* red */
+  background-color: #dc3545;
 }
 
 .toast-body {
   padding: 12px 14px;
   font-size: 14px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .toast-close {
@@ -55,5 +50,45 @@
   color: #fff;
   font-size: 16px;
   cursor: pointer;
-  margin-left: 10px;
 }
+
+
+useEffect(() => {
+  if (!toastMsg || !toastRef.current) return;
+
+  const el = toastRef.current;
+
+  // 🔥 FORCE reset so animation works every time
+  el.classList.remove("show");
+  void el.offsetWidth; // force reflow
+
+  const existing = Toast.getInstance(el);
+  if (existing) existing.dispose();
+
+  const toast = new Toast(el, {
+    delay: 3000,
+    autohide: true,
+  });
+
+  toast.show();
+}, [toastMsg, toastType]);
+
+<div className="toast-container">
+  <div
+    ref={toastRef}
+    id="cscToast"
+    className={`toast ${toastType}`}
+    role="alert"
+    aria-live="assertive"
+  >
+    <div className="toast-body">
+      {toastMsg}
+      <button
+        className="toast-close"
+        onClick={() => setToastMsg("")}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+</div>
