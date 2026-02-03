@@ -1,4 +1,14 @@
-Could not find a declaration file for module 'bootstrap'. 'd:/development-ui/my-app/node_modules/bootstrap/dist/js/bootstrap.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/bootstrap` if it exists or add a new declaration (.d.ts) file containing `declare module 'bootstrap';`
-this shows that's why i install and also i already import 'bootstrap/dist/js/bootstrap.bundle.min.js';
- like this in main.tsx
+working
+csc.tsx?t=1770099388924:53 _Toast {_element: div#cscToast.toast.text-bg-success.border-0, _config: {…}, _timeout: null, _hasMouseInteraction: false, _hasKeyboardInteraction: false}_config: {animation: true, autohide: true, delay: 3000}_element: div#cscToast.toast.text-bg-success.border-0.fade.hide_hasKeyboardInteraction: false_hasMouseInteraction: false_timeout: 7[[Prototype]]: BaseComponent
+ const showToast = (msg: string, type: "success" | "danger") => {
+    setToastMsg(msg);
+    setToastType(type);
+    const toastEl = document.getElementById("cscToast");
+    if (toastEl) {
+      const toast = new Toast(toastEl, {delay: 3000});
+      console.log('working')
+      console.log(toast)
+      toast.show();
+    }
+  };
+but toastr didn't show
