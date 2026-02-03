@@ -178,69 +178,83 @@ const [data, setData] = useState<CscItem[]>([]);
     return pages;
   };
 
-  return (
-    <div className="csc-page">
-      <div className="csc-card">
-        <div className="csc-header">
-          <h1>CSC List</h1>
-          <button className="btn btn-primary" onClick={openModal}>
-            Create New CSC
-          </button>
+  {showModal && (
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2>{editId ? "Edit CSC" : "Create CSC"}</h2>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Part Number</label>
+                  <input name="part_num" value={formData.part_num} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Revision</label>
+                  <input name="rev" value={formData.rev} onChange={handleChange} />
+                </div>
+
+                <div className="form-group full">
+                  <label>Description</label>
+                  <textarea name="desc" rows={3} value={formData.desc} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Part Type</label>
+                  <select name="part_typ" value={formData.part_typ} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {partTypes.map(pt => (
+                      <option key={pt.id} value={pt.id}>{pt.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Project</label>
+                  <select name="projects" value={formData.projects} onChange={handleChange}>
+                    <option value="">Select</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>RM Base Date</label>
+                  <input name="rm_base" value={formData.rm_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>Process Base Date</label>
+                  <input name="process_base" value={formData.process_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label>OH / Profit / Other Cost Base</label>
+                  <input name="oh_profit_base" value={formData.oh_profit_base} onChange={handleChange} />
+                </div>
+
+                <div className="form-group full">
+                  <label>Remarks</label>
+                  <textarea name="remarks" rows={2} value={formData.remarks} onChange={handleChange} />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={closeModal}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleSave}>
+                {editId ? "Update CSC" : "Save CSC"}
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        <div className="csc-table-wrapper">
-          <table className="csc-table">
-            <thead>
-              <tr>
-                <th>Part Name</th>
-                <th>Rev</th>
-                <th>Description</th>
-                <th>CSC ID</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {currentRows.map(item => (
-                <tr key={item.id}>
-                  <td>{item.part_num}</td>
-                  <td>{item.rev}</td>
-                  <td>{item.desc}</td>
-                  <td>{item.unique_csc_id}</td>
-                  <td>
-                    <span className="status in-progress">
-                      {item.csc_status || "In-progress"}
-                    </span>
-                  </td>
-                  <td className="action-cell">
-                    <button
-                      className="action-btn action-view"
-                      data-tooltip="Bom"
-                      onClick={() => navigate(`/bom/${item.unique_csc_id}`)}
-                    >
-                      👁
-                    </button>
-
-                    <button
-                      className="action-btn action-edit"
-                      data-tooltip="Edit"
-                      onClick={() => openEdit(item)}
-                    >
-                      ✎
-                    </button>
-
-                    <button
-                      className="action-btn action-delete"
-                      data-tooltip="Delete"
-                      onClick={() => setDeleteId(item.id)}
-                    >
-                      🗑
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
 set rmbase, processbase and ohprofit base also select and option
