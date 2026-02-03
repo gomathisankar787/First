@@ -1,100 +1,246 @@
-from django.core.paginator import Paginator
-from django.http import JsonResponse
+const [data, setData] = useState<CscItem[]>([]);
+  const [partTypes, setPartTypes] = useState<Dropdown[]>([]);
+  const [projects, setProjects] = useState<Dropdown[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState<"success" | "danger">("success");
+  // const toastRef = useRef<HTMLDivElement | null>(null);
 
-def mycsc(request):
-    # ---------------- CSC LIST ----------------
-    csc_qs = CRCSCTBL.objects.all().order_by('-updated_on')
+  const ITEMS_PER_PAGE = 15;
 
-    paginator = Paginator(csc_qs, 15)
-    page_number = request.GET.get("page", 1)
-    page_obj = paginator.get_page(page_number)
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentRows = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-    csc_list = list(
-        page_obj.object_list.values(
-            "id",
-            "part_num",
-            "rev",
-            "desc",
-            "part_typ",
-            "projects",
-            "rm_base",
-            "process_base",
-            "oh_profit_base",
-            "remarks",
-            "unique_csc_id",
-            "csc_status",
-        )
-    )
+  const [formData, setFormData] = useState({
+    part_num: "",
+    rev: "",
+    desc: "",
+    part_typ: "",
+    projects: "",
+    rm_base: "",
+    process_base: "",
+    oh_profit_base: "",
+    remarks: "",
+    updated_by: "parthiban.c1",
+  });
 
-    # ---------------- PART TYPES ----------------
-    part_types = list(
-        PARTTYPETBL.objects.values("id", "name")
-    )
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
-    # ---------------- PROJECTS ----------------
-    projects = list(
-        PROJECTLISTTBL.objects.values("id", "name")
-    )
+  /* ---------------- Toast Helper ---------------- */
+  const showToast = (msg: string, type: "success" | "danger") => {
+    setToastMsg("");
+    setToastType(type);
+    setTimeout(()=>{
+      setToastMsg(msg);
+    },10);
+    setTimeout(()=>{
+      setToastMsg("");
+    },3000);
 
-    # ---------------- RM BASE ----------------
-    rm_base_values = []
-    rm_latest = None
-    if RMbase.objects.exists():
-        rm_base_values = list(
-            dict.fromkeys(
-                RMbase.objects.order_by('-id')
-                .values_list('base', flat=True)
-            )
-        )
-        rm_base_values = sort_month_year(rm_base_values)
-        rm_latest = rm_base_values[0]
+  };
 
-    # ---------------- PROCESS BASE ----------------
-    process_base_values = []
-    process_latest = None
-    if Processbase.objects.exists():
-        process_base_values = list(
-            dict.fromkeys(
-                Processbase.objects.order_by('-id')
-                .values_list('base', flat=True)
-            )
-        )
-        process_base_values = sort_month_year(process_base_values)
-        process_latest = process_base_values[0]
 
-    # ---------------- OH / PROFIT BASE ----------------
-    ohprofit_base_values = []
-    ohprofit_latest = None
-    if OHProfitBase.objects.exists():
-        ohprofit_base_values = list(
-            dict.fromkeys(
-                OHProfitBase.objects.order_by('-id')
-                .values_list('base', flat=True)
-            )
-        )
-        ohprofit_base_values = sort_month_year(ohprofit_base_values)
-        ohprofit_latest = ohprofit_base_values[0]
+  const fetchAll = async () => {
+    try {
+      const [cscRes,typeRes] = await Promise.all([
+        getCscList(),
+        getCscValues(),
+        // getProjects(),
+      ]); //, typeRes, projectRes
+      setData(cscRes);
+      setPartTypes(typeRes.part_types);
+      setProjects(typeRes.projects);
+      setFormData(prev=>({
+        ...prev,
+        rm_base: typeRes.rm_base.latest || "",
+        process_base: typeRes.process_base.latest || "",
+        oh_profit_base: typeRes.ohprofit_base.latest || ""
+      }))
+    } catch (err) {
+      showToast("Failed to load CSC list", "danger");
+      console.error("API error", err);
+    }
+  };
 
-    # ---------------- RESPONSE ----------------
-    return JsonResponse({
-        "csc_list": csc_list,
-        "pagination": {
-            "page": page_obj.number,
-            "total_pages": paginator.num_pages,
-            "total_records": paginator.count,
-        },
-        "part_types": part_types,
-        "projects": projects,
-        "rm_base": {
-            "values": rm_base_values,
-            "latest": rm_latest,
-        },
-        "process_base": {
-            "values": process_base_values,
-            "latest": process_latest,
-        },
-        "ohprofit_base": {
-            "values": ohprofit_base_values,
-            "latest": ohprofit_latest,
-        },
-    }, safe=False)
+
+  const openModal = () => {
+    setEditId(null);
+    setFormData({
+      part_num: "",
+      rev: "",
+      desc: "",
+      part_typ: "",
+      projects: "",
+      rm_base: "",
+      process_base: "",
+      oh_profit_base: "",
+      remarks: "",
+      updated_by: "parthiban.c1",
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => setShowModal(false);
+
+  const openEdit = (item: CscItem) => {
+    setEditId(item.id);
+    setFormData({
+      part_num: item.part_num,
+      rev: item.rev,
+      desc: item.desc,
+      part_typ: item.part_typ ? String(item.part_typ) : "",
+      projects: item.projects ? String(item.projects) : "",
+      rm_base: item.rm_base,
+      process_base: item.process_base,
+      oh_profit_base: item.oh_profit_base,
+      remarks: item.remarks,
+      updated_by: "parthiban.c1",
+    });
+    setShowModal(true);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    const payload = {
+      ...formData,
+      part_typ: formData.part_typ || null,
+      projects: formData.projects || null,
+    };
+
+    try {
+       if (editId) {
+        await updateCsc(editId, payload);
+        showToast("CSC updated successfully", "success");
+      } else {
+        await createCsc(payload);
+        showToast("CSC created successfully", "success");
+      }
+      closeModal();
+      fetchAll();
+    } catch (err: any) {
+      const message =
+        Array.isArray(err?.remarks) ? err.remarks.join("\n")
+        : typeof err?.remarks === "string" ? err.remarks
+        : err?.message ?? "Save failed. Please try again.";
+
+      showToast(message, "danger");
+      console.error("Save failed", err);
+    }
+  };
+
+  /* ---------------- Delete ---------------- */
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      await deleteCsc(deleteId);
+      console.log('res',deleteCsc(deleteId))
+      showToast("CSC deleted successfully", "success");
+      fetchAll();
+    } catch {
+      showToast("Failed to delete CSC", "danger");
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  const getPages = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) pages.push(1, 2, 3, "...", totalPages);
+      else if (currentPage >= totalPages - 2)
+        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+      else
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
+    }
+    return pages;
+  };
+
+  return (
+    <div className="csc-page">
+      <div className="csc-card">
+        <div className="csc-header">
+          <h1>CSC List</h1>
+          <button className="btn btn-primary" onClick={openModal}>
+            Create New CSC
+          </button>
+        </div>
+
+        <div className="csc-table-wrapper">
+          <table className="csc-table">
+            <thead>
+              <tr>
+                <th>Part Name</th>
+                <th>Rev</th>
+                <th>Description</th>
+                <th>CSC ID</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentRows.map(item => (
+                <tr key={item.id}>
+                  <td>{item.part_num}</td>
+                  <td>{item.rev}</td>
+                  <td>{item.desc}</td>
+                  <td>{item.unique_csc_id}</td>
+                  <td>
+                    <span className="status in-progress">
+                      {item.csc_status || "In-progress"}
+                    </span>
+                  </td>
+                  <td className="action-cell">
+                    <button
+                      className="action-btn action-view"
+                      data-tooltip="Bom"
+                      onClick={() => navigate(`/bom/${item.unique_csc_id}`)}
+                    >
+                      👁
+                    </button>
+
+                    <button
+                      className="action-btn action-edit"
+                      data-tooltip="Edit"
+                      onClick={() => openEdit(item)}
+                    >
+                      ✎
+                    </button>
+
+                    <button
+                      className="action-btn action-delete"
+                      data-tooltip="Delete"
+                      onClick={() => setDeleteId(item.id)}
+                    >
+                      🗑
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+set rmbase, processbase and ohprofit base also select and option
