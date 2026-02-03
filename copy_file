@@ -1,13 +1,14 @@
-csc.tsx?t=1770098414749:122 Save failed TypeError: Cannot read properties of undefined (reading 'Toast')
-    at showToast (csc.tsx?t=1770098414749:51:42)
-    at handleSave (csc.tsx?t=1770098414749:114:9)
-const showToast = (msg, type) => {
-        setToastMsg(msg);
-        setToastType(type);
-        const toastEl = document.getElementById("cscToast");
-        if (toastEl) {
-            console.log("function worked");
-            const toast = new window.bootstrap.Toast(toastEl);
-            toast.show();
-        }
-    }
+
+D:\development-ui\my-app>npm i react-toastify
+npm error code SELF_SIGNED_CERT_IN_CHAIN
+npm error errno SELF_SIGNED_CERT_IN_CHAIN
+npm error request to https://registry.npmjs.org/react-toastify failed, reason: self-signed certificate in certificate chain
+npm error A complete log of this run can be found in: C:\Users\Parthiban.C1\AppData\Local\npm-cache\_logs\2026-02-03T05_22_54_904Z-debug-0.log
+
+D:\development-ui\my-app>npm i --save-dev @types/bootstrap
+npm error code SELF_SIGNED_CERT_IN_CHAIN
+npm error errno SELF_SIGNED_CERT_IN_CHAIN
+npm error request to https://registry.npmjs.org/@types%2fbootstrap failed, reason: self-signed certificate in certificate chain
+npm error A complete log of this run can be found in: C:\Users\Parthiban.C1\AppData\Local\npm-cache\_logs\2026-02-03T06_07_07_381Z-debug-0.log
+
+what this mean
