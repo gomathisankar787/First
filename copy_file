@@ -5,15 +5,8 @@ import {
   createCsc,
   updateCsc,
   deleteCsc,
-  getPartTypes,
-  getProjects,
 } from "../../api/cscApi";
 import "./csc.css";
-
-interface Dropdown {
-  id: number;
-  name: string;
-}
 
 interface CscItem {
   id: number;
@@ -30,14 +23,20 @@ interface CscItem {
   csc_status: string;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 const Csc: React.FC = () => {
   const navigate = useNavigate();
 
   const [data, setData] = useState<CscItem[]>([]);
-  const [partTypes, setPartTypes] = useState<Dropdown[]>([]);
-  const [projects, setProjects] = useState<Dropdown[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState<"success" | "danger">("success");
 
   const [formData, setFormData] = useState({
     part_num: "",
@@ -56,22 +55,34 @@ const Csc: React.FC = () => {
     fetchAll();
   }, []);
 
-  const fetchAll = async () => {
-    try {
-      const [cscRes] = await Promise.all([
-        getCscList(),
-        // getPartTypes(),
-        // getProjects(),
-      ]); //, typeRes, projectRes
-      console.log('data',cscRes)
-      setData(cscRes);
-      // setPartTypes(typeRes.data);
-      // setProjects(projectRes.data);
-    } catch (err) {
-      console.error("API error", err);
+  /* ---------------- Toast Helper ---------------- */
+  const showToast = (msg: string, type: "success" | "danger") => {
+    setToastMsg(msg);
+    setToastType(type);
+
+    const toastEl = document.getElementById("cscToast");
+    if (toastEl && (window as any).bootstrap) {
+      const toast = new (window as any).bootstrap.Toast(toastEl);
+      toast.show();
     }
   };
 
+  /* ---------------- API Calls ---------------- */
+  const fetchAll = async () => {
+    try {
+      const res = await getCscList();
+      setData(res);
+    } catch {
+      showToast("Failed to load CSC list", "danger");
+    }
+  };
+
+  /* ---------------- Pagination ---------------- */
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedData = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  /* ---------------- Modal Handlers ---------------- */
   const openModal = () => {
     setEditId(null);
     setFormData({
@@ -88,8 +99,6 @@ const Csc: React.FC = () => {
     });
     setShowModal(true);
   };
-
-  const closeModal = () => setShowModal(false);
 
   const openEdit = (item: CscItem) => {
     setEditId(item.id);
@@ -108,8 +117,11 @@ const Csc: React.FC = () => {
     setShowModal(true);
   };
 
+  const closeModal = () => setShowModal(false);
+
+  /* ---------------- Form ---------------- */
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -125,23 +137,30 @@ const Csc: React.FC = () => {
     try {
       if (editId) {
         await updateCsc(editId, payload);
+        showToast("CSC updated successfully", "success");
       } else {
         await createCsc(payload);
+        showToast("CSC created successfully", "success");
       }
       closeModal();
       fetchAll();
-    } catch (err) {
-      console.error("Save failed", err);
+    } catch {
+      showToast("Failed to save CSC", "danger");
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this CSC?")) return;
+  /* ---------------- Delete ---------------- */
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
     try {
-      await deleteCsc(id);
+      await deleteCsc(deleteId);
+      showToast("CSC deleted successfully", "success");
       fetchAll();
-    } catch (err) {
-      console.error("Delete failed", err);
+    } catch {
+      showToast("Failed to delete CSC", "danger");
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -169,7 +188,7 @@ const Csc: React.FC = () => {
             </thead>
 
             <tbody>
-              {data.map(item => (
+              {paginatedData.map(item => (
                 <tr key={item.id}>
                   <td>{item.part_num}</td>
                   <td>{item.rev}</td>
@@ -183,24 +202,19 @@ const Csc: React.FC = () => {
                   <td className="action-cell">
                     <button
                       className="action-btn action-view"
-                      data-tooltip="Bom"
                       onClick={() => navigate(`/bom/${item.unique_csc_id}`)}
                     >
                       👁
                     </button>
-
                     <button
                       className="action-btn action-edit"
-                      data-tooltip="Edit"
                       onClick={() => openEdit(item)}
                     >
                       ✎
                     </button>
-
                     <button
                       className="action-btn action-delete"
-                      data-tooltip="Delete"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => setDeleteId(item.id)}
                     >
                       🗑
                     </button>
@@ -210,9 +224,30 @@ const Csc: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <div className="pagination">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => p - 1)}
+          >
+            Prev
+          </button>
+
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
-      {/* CREATE / EDIT CSC MODAL */}
+      {/* CREATE / EDIT MODAL */}
       {showModal && (
         <div className="modal-backdrop">
           <div className="modal-container">
@@ -222,62 +257,9 @@ const Csc: React.FC = () => {
             </div>
 
             <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Part Number</label>
-                  <input name="part_num" value={formData.part_num} onChange={handleChange} />
-                </div>
-
-                <div className="form-group">
-                  <label>Revision</label>
-                  <input name="rev" value={formData.rev} onChange={handleChange} />
-                </div>
-
-                <div className="form-group full">
-                  <label>Description</label>
-                  <textarea name="desc" rows={3} value={formData.desc} onChange={handleChange} />
-                </div>
-
-                <div className="form-group">
-                  <label>Part Type</label>
-                  <select name="part_typ" value={formData.part_typ} onChange={handleChange}>
-                    <option value="">Select</option>
-                    {partTypes.map(pt => (
-                      <option key={pt.id} value={pt.id}>{pt.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Project</label>
-                  <select name="projects" value={formData.projects} onChange={handleChange}>
-                    <option value="">Select</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>RM Base Date</label>
-                  <input name="rm_base" value={formData.rm_base} onChange={handleChange} />
-                </div>
-
-                <div className="form-group">
-                  <label>Process Base Date</label>
-                  <input name="process_base" value={formData.process_base} onChange={handleChange} />
-                </div>
-
-                <div className="form-group">
-                  <label>OH / Profit / Other Cost Base</label>
-                  <input name="oh_profit_base" value={formData.oh_profit_base} onChange={handleChange} />
-                </div>
-
-                <div className="form-group full">
-                  <label>Remarks</label>
-                  <textarea name="remarks" rows={2} value={formData.remarks} onChange={handleChange} />
-                </div>
-              </div>
+              <input name="part_num" value={formData.part_num} onChange={handleChange} />
+              <input name="rev" value={formData.rev} onChange={handleChange} />
+              <textarea name="desc" value={formData.desc} onChange={handleChange} />
             </div>
 
             <div className="modal-footer">
@@ -291,10 +273,50 @@ const Csc: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* DELETE CONFIRM MODAL */}
+      {deleteId && (
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2>Confirm Delete</h2>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to delete this CSC?
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOOTSTRAP TOAST */}
+      <div className="toast-container position-fixed top-0 end-0 p-3">
+        <div
+          id="cscToast"
+          className={`toast text-bg-${toastType} border-0`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div className="d-flex">
+            <div className="toast-body">{toastMsg}</div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"
+            ></button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Csc;
-
-make it noticable toaster when api successfull and failure for csc create and update and delete as well instead of alert ask the confirm message in modal or toaster and after delete success or failure message in toaster. also implement pagination logic.
