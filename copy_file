@@ -1,14 +1,4 @@
-
-D:\development-ui\my-app>npm i react-toastify
-npm error code SELF_SIGNED_CERT_IN_CHAIN
-npm error errno SELF_SIGNED_CERT_IN_CHAIN
-npm error request to https://registry.npmjs.org/react-toastify failed, reason: self-signed certificate in certificate chain
-npm error A complete log of this run can be found in: C:\Users\Parthiban.C1\AppData\Local\npm-cache\_logs\2026-02-03T05_22_54_904Z-debug-0.log
-
-D:\development-ui\my-app>npm i --save-dev @types/bootstrap
-npm error code SELF_SIGNED_CERT_IN_CHAIN
-npm error errno SELF_SIGNED_CERT_IN_CHAIN
-npm error request to https://registry.npmjs.org/@types%2fbootstrap failed, reason: self-signed certificate in certificate chain
-npm error A complete log of this run can be found in: C:\Users\Parthiban.C1\AppData\Local\npm-cache\_logs\2026-02-03T06_07_07_381Z-debug-0.log
-
-what this mean
+Could not find a declaration file for module 'bootstrap'. 'd:/development-ui/my-app/node_modules/bootstrap/dist/js/bootstrap.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/bootstrap` if it exists or add a new declaration (.d.ts) file containing `declare module 'bootstrap';`
+this shows that's why i install and also i already import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+ like this in main.tsx
