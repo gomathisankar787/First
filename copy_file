@@ -1,211 +1,177 @@
-def create(self, validated_data):
-        try:
-            excel_file = validated_data.pop("input_excel")
-            sheet_name = validated_data.pop("sheet_name")
+<div class="container-fluid mt-4">
 
-            file_name = default_storage.save(excel_file.name, excel_file)
-            file_path = default_storage.path(file_name)
+    <div class="card">
+        <div class="card-header fw-bold">
+            RM Master
+        </div>
 
-            if file_path.lower().endswith(".csv"):
-                df = pd.read_csv(file_path)
-                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
-                df.to_excel(xlsx_path, index=False)
-                file_path = xlsx_path
+        <div class="card-body">
 
-            book = load_workbook(file_path, data_only=True)
-            default_storage.delete(file_name)
-            # print('sheetname',book.sheetnames)
-            if sheet_name not in book.sheetnames:
-                raise serializers.ValidationError(
-                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
-                )
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" id="rmTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="tab" href="#bulkUpload">
+                        Bulk Upload
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#singleUpload">
+                        Single Upload
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#rmList">
+                        RM List
+                    </a>
+                </li>
+            </ul>
 
-            sheet = book[sheet_name]
-            rows = list(sheet.rows)
 
-            if not rows or len(rows) < 2:
-                raise serializers.ValidationError("Excel sheet is empty")
-            final_data = []
-            if sheet_name == "OH,Profit & Other Base":
-                for row in rows[1:]:
-                    if all(cell.value is None for cell in row):
-                        break
+<div class="tab-content mt-3">
 
-                    args = [cell.value for cell in row]
+    <div class="tab-pane fade show active" id="bulkUpload">
+        <div class="card p-3">
 
-                    temp = {
-                        "process_type": args[0],
-                        "icc_rm": self.clean_value(args[1]),
-                        "icc_conv": self.clean_value(args[2]),
-                        "icc_bof": self.clean_value(args[3]),
-                        "rej_rm": self.clean_value(args[4]),
-                        "rej_conv": self.clean_value(args[5]),
-                        "rej_bof": self.clean_value(args[6]),
-                        "inspection_rm": self.clean_value(args[7]),
-                        "inspection_conv": self.clean_value(args[8]),
-                        "inspection_bof": self.clean_value(args[9]),
-                        "tmc_rm": self.clean_value(args[10]),
-                        "tmc_conv": self.clean_value(args[11]),
-                        "tmc_bof": self.clean_value(args[12]),
-                        "design_cost_rm": self.clean_value(args[13]),
-                        "design_cost_conv": self.clean_value(args[14]),
-                        "design_cost_bof": self.clean_value(args[15]),
-                        "oh_rm": self.clean_value(args[16]),
-                        "oh_conv": self.clean_value(args[17]),
-                        "oh_bof": self.clean_value(args[18]),
-                        "profit_rm": self.clean_value(args[19]),
-                        "profit_conv": self.clean_value(args[20]),
-                        "profit_bof": self.clean_value(args[21]),
-                        "warranty_cost": self.clean_value(args[22]),
-                        "inbound_logistics": self.clean_value(args[23]),
-                        "effective_from": validated_data["effective_from"],
-                        "source": validated_data["source"],
-                        "base": validated_data["base"],
-                        "remarks": validated_data["remarks"],
-                        "updated_by": os.environ.get("USERNAME", "").lower(),
-                    }
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
 
-                    final_data.append(temp)
-
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        OH_ProfitData.objects.create(**item)
-
-            if sheet_name == "RM Base":
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "category": self.clean_base_value(args[2],False),
-                        "material_grade": self.clean_base_value(args[3],False),
-                        "rm_rate": self.clean_base_value(args[4],True),
-                        "scrap_rate": self.clean_base_value(args[10],True),
-                        "uom": self.clean_base_value(args[5],False),
-                        "updated_on":self.clean_base_value(args[8],False),
-                        "effective_from":self.clean_base_value(args[7],False),
-                        "source": self.clean_base_value(args[6],False),
-                        "remarks":self.clean_base_value(args[9],False),
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        RMbase.objects.create(**item)
-
-            if sheet_name == 'Process Base':
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "process_category": self.clean_base_value(args[2],False),
-                        "process_description": self.clean_base_value(args[3],False),
-                        "norms": self.clean_base_value(args[5],True),
-                        "uom": self.clean_base_value(args[6],False),
-                        "updated_on":self.clean_base_value(args[9],False),
-                        "effective_from":self.clean_base_value(args[8],False),
-                        "source": self.clean_base_value(args[7],False),
-                        "remarks":validated_data["remarks"],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                # print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        Processbase.objects.create(**item)
-
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
-            }
-
-this is url for bulk upload of rm, process and ohprofit first give screen for rm master this is one header tab 
-<body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
-
-        <!-- Hamburger -->
-        <button class="navbar-toggler" type="button"
-            data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- Navbar Content -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="container-fluid">
-                <div class="row w-100 align-items-center">
-
-                    <!-- LEFT: Logo + Links -->
-                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
-                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
-                        <nav class="navbar p-0">
-                            <ul class="navbar-nav flex-row align-items-center">
-                                <li class="nav-item mr-3">
-                                    <a class="nav-link active" href="/home">Home</a>
-                                </li>
-                                <li class="nav-item mr-3">
-                                    <a class="nav-link" href="/mycsc">CSC</a>
-                                </li>
-
-                                <!-- Dropdown -->
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle"
-                                        href="#"
-                                        id="navDropdown"
-                                        role="button"
-                                        data-toggle="dropdown"
-                                        aria-haspopup="true"
-                                        aria-expanded="false">
-                                        Admin
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="navDropdown">
-                                        <a class="dropdown-item" href="/admin">User Access</a>
-                                        <a class="dropdown-item" href="/rm_master">RM Master</a>
-                                        <a class="dropdown-item" href="#">Process Master</a>
-                                        <a class="dropdown-item" href="#">Oh & Profit Master</a>
-                                    </div>
-                                </li>
-                            </ul>
-                        </nav>
-
+                    <div class="col-md-4">
+                        <label>Upload File</label>
+                        <input type="file" class="form-control" accept=".xlsx,.csv">
                     </div>
 
-                    <!-- CENTER: Title -->
-                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
-                        KMC – Sheet Metal Costing
+                    <div class="col-md-3">
+                        <label>Sheet Name</label>
+                        <input type="text" class="form-control" value="RM Base">
                     </div>
 
-                    <!-- RIGHT: Logo -->
-                    <div class="ml-auto">
-                        <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="250">
+                    <div class="col-md-3">
+                        <label>Effective From</label>
+                        <input type="date" class="form-control">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100">
+                            Upload
+                        </button>
                     </div>
 
                 </div>
-            </div>
-        </div>
-    </nav>
-    <!-- This container contains the sidebar
-            and main content of the page -->
-    <!-- h-100 takes the full height of the body-->
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <div class="col-12" style="text-align: justify;">
-            </div>
+            </form>
+
         </div>
     </div>
 
-</body>
+
+    <div class="tab-pane fade" id="singleUpload">
+
+        <div class="card p-3">
+            <form>
+
+                <div class="row">
+
+                    <div class="col-md-3">
+                        <label>Category</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Material Grade</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>RM Rate</label>
+                        <input type="number" class="form-control">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Scrap Rate</label>
+                        <input type="number" class="form-control">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>UOM</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                </div>
+
+                <div class="row mt-3">
+
+                    <div class="col-md-3">
+                        <label>Effective From</label>
+                        <input type="date" class="form-control">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Source</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Remarks</label>
+                        <input type="text" class="form-control">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-success w-100">
+                            Save
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+
+    <div class="tab-pane fade" id="rmList">
+
+        <div class="card p-3 table-responsive">
+
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Category</th>
+                        <th>Material Grade</th>
+                        <th>RM Rate</th>
+                        <th>Scrap Rate</th>
+                        <th>UOM</th>
+                        <th>Effective From</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td contenteditable="true">Steel</td>
+                        <td contenteditable="true">CRCA</td>
+                        <td contenteditable="true">75.20</td>
+                        <td contenteditable="true">12.50</td>
+                        <td contenteditable="true">KG</td>
+                        <td>2024-01-01</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary">Update</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <nav class="mt-2">
+                <ul class="pagination pagination-sm justify-content-end">
+                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
+                    <li class="page-item active"><a class="page-link">1</a></li>
+                    <li class="page-item"><a class="page-link">2</a></li>
+                    <li class="page-item"><a class="page-link">Next</a></li>
+                </ul>
+            </nav>
+
+        </div>
+
+    </div>
+
+</div>
