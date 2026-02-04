@@ -1,33 +1,41 @@
-<!-- top navbar -->
-    <nav class="navbar navbar-expand-lg
-            navbar-light" id="nav">
-        <a class="navbar-brand" href="#">Costing</a>
-        <!-- hamburger button that toggles the navbar-->
-        <button class="navbar-toggler" type="button" 
-            data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" 
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon">
-            </span>
-        </button>
-        <!-- navbar links -->
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <div class="container-fluid">
-                    <div class="row w-100 align-items-center">
-                        <div class="col-3 text-start">
-                            <img src="/static/images/KMC_logo.png" alt="left icon" class="img-fluid">
-                            <a class="nav-item nav-link active" href="/home">Home</a>
-                            <a class="nav-item nav-link" href="/mycsc">Csc</a>
-                            <a class="nav-item nav-link" href="/admin">Admin</a>
-                        </div>
-                        <div class="fw-bold">KMC - Sheet Metal Costing</div>
-                        <div class="col-3 text-end">
-                            <img src="/static/images/AL_logo.png" alt="right icon" class="img-fluid">
-                        </div>
-                    </div>
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
+
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold" href="#">Costing</a>
+
+    <!-- Hamburger -->
+    <button class="navbar-toggler" type="button"
+        data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Content -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="container-fluid">
+            <div class="row w-100 align-items-center">
+
+                <!-- LEFT: Logo + Links -->
+                <div class="col-lg-4 d-flex align-items-center gap-3">
+                    <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
+                    <a class="nav-link active" href="/home">Home</a>
+                    <a class="nav-link" href="/mycsc">CSC</a>
+                    <a class="nav-link" href="/admin">Admin</a>
                 </div>
+
+                <!-- CENTER: Title -->
+                <div class="col-lg-4 text-center fw-bold">
+                    KMC – Sheet Metal Costing
+                </div>
+
+                <!-- RIGHT: Logo -->
+                <div class="col-lg-4 text-end">
+                    <img src="/static/images/AL_logo.png" alt="right icon" height="40">
+                </div>
+
             </div>
         </div>
-    </nav>
-correct this header
+    </div>
+</nav>
