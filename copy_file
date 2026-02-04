@@ -1,80 +1,16 @@
- <div class="col-12" style="text-align: justify;">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
-                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
-                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
-                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
-                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2" style="margin-left: 115px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
-                        </div>
-                    </div>
-                </div>
-                <!-- <div class="form-container"> --><br>
-                    <!-- <div class="row"> -->
-                        <div class="table flex-container">
-                        <div class="flex-item button-container1">
-                        <ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
-                        </li>
-                        <!-- <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-profile-tab" data-toggle="pill" data-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">SM MATERIAL</button>
-                        </li>
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-contact-tab" data-toggle="pill" data-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">SM PROCESS</button>
-                        </li> -->
-                        <li class="nav-item mr-2" role="presentation">
-                            <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
-                        </li>
-                        </ul></div>
-                        <div class="flex-item button-container2">
-                            Total Estimated Cost : <b>{{totals.total_cpa|default:0|floatformat:2}}</b>
-                        </div>
-                        </div>
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-                                <div class="table flex-container">
-                                    <div class="flex-item title">
-                                        <h2>BOM List</h2>
-                                    </div>
 
-                                    <!-- {% if page_obj.paginator.count > 1 %}
-                                    <div class="flex-item button-container3">
-                                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#AssemblyModal"
-                                        data-id="{{csc_values.id}}">Assembly Cost</button>
-                                    </div>
-                                    {% endif %} -->
-                                    <div class="flex-item button-container1">
-                                        <button type="button" class="btn btn-primary" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
-                                    </div>
-                                    <div class="flex-item button-container2">
-                                        <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
-                                    </div>
-                                </div>
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 
-                                {% csrf_token %}
-                                <div class="table-container table-scroll-wrapper">
-                                    <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                        <th style="background-color: #24948f;">S.No</th>
-                                        <th style="background-color: #24968f;">Level</th>
-                                        <th style="background-color: #24968f;">Part No.</th>
-                                        <th style="background-color: #24968f;">Rev</th>
-                                        <th style="background-color: #24968f;">Parts Description</th>
-                                        <th style="background-color: #24968f;">Qty</th>
-                                        <th style="background-color: #24968f;">Process Type</th>
-                                        <th style="background-color: #24968f;">Scope</th>
-                                        <th style="background-color: #24968f;">Method</th>
-                                        <th style="background-color: #24968f;">Is Nesting Needed</th>
-                                        <th style="background-color: #24968f;">Actions</th>
-                                        </tr>
+User = get_user_model()
+
+class EmailBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        try:
+            user = User.objects.get(email=username)
+        except User.DoesNotExist:
+            return None
+
+        if user.check_password(password):
+            return user
+        return None
