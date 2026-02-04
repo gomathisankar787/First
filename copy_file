@@ -1,61 +1,133 @@
-<body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
-
-        <!-- Hamburger -->
-        <button class="navbar-toggler" type="button"
-            data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- Navbar Content -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="container-fluid">
-                <div class="row w-100 align-items-center">
-
-                    <!-- LEFT: Logo + Links -->
-                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
-                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
-                        <a class="nav-item nav-link active" href="/home">Home</a>
-                        <a class="nav-item nav-link" href="/mycsc">CSC</a>
-                        <a class="nav-item nav-link" href="/admin">Admin</a>
-                    </div>
-
-                    <!-- CENTER: Title -->
-                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
-                        KMC – Sheet Metal Costing
-                    </div>
-
-                    <!-- RIGHT: Logo -->
-                    <div class="ml-auto">
-                        <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="250">
-                    </div>
-
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold">User Access Management</span>
+            <button class="btn btn-primary btn-sm">+ Create User</button>
         </div>
-    </nav>
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <div class="col-12" style="text-align: justify;">
-            </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>User Name</th>
+                        <th>Email</th>
+                        <th>Access Level</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Gomathisankar</td>
+                        <td>goma@kmc.com</td>
+                        <td><span class="badge bg-info">Edit</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning">Edit</button>
+                            <button class="btn btn-sm btn-secondary">Deactivate</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Arun Kumar</td>
+                        <td>arun@kmc.com</td>
+                        <td><span class="badge bg-primary">Review</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning">Edit</button>
+                            <button class="btn btn-sm btn-secondary">Deactivate</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Admin User</td>
+                        <td>admin@kmc.com</td>
+                        <td><span class="badge bg-danger">Admin</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning">Edit</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-</body>
-give the user access page content
-Access level	Access Details
-View	View Access - Only able to view the approved CSCs
-Download	View Access - Only able to view the approved CSCs
-Edit	"Able to view CSC, Download
-create new CSC 
-edit WIP state CSC of his own created CSCs "
-Review	"Able to view CSC, Download
-create new CSC 
-edit WIP state CSC of assigned to him for review 
-Review and approve CSC"
-Admin	"Able to view CSC, download
-has access for Admin pages"
-screen like indicate the access details and user list with status and create and update options
+</div>
+
+
+
+<div class="container-fluid mt-4">
+
+    <div class="card mb-4">
+        <div class="card-header fw-bold">
+            Access Level – Permission Matrix
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped text-center align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Access Level</th>
+                        <th>View CSC</th>
+                        <th>Download</th>
+                        <th>Create CSC</th>
+                        <th>Edit WIP</th>
+                        <th>Review</th>
+                        <th>Approve</th>
+                        <th>Admin Pages</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>View</b></td>
+                        <td>✔</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                    </tr>
+                    <tr>
+                        <td><b>Download</b></td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                    </tr>
+                    <tr>
+                        <td><b>Edit</b></td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>Own CSC</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                        <td>✖</td>
+                    </tr>
+                    <tr>
+                        <td><b>Review</b></td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>Assigned CSC</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✖</td>
+                    </tr>
+                    <tr>
+                        <td><b>Admin</b></td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                        <td>✔</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
