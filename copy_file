@@ -1,260 +1,551 @@
-const [data, setData] = useState<CscItem[]>([]);
-  const [partTypes, setPartTypes] = useState<Dropdown[]>([]);
-  const [projects, setProjects] = useState<Dropdown[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState<"success" | "danger">("success");
-  // const toastRef = useRef<HTMLDivElement | null>(null);
-
-  const ITEMS_PER_PAGE = 15;
-
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentRows = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const [formData, setFormData] = useState({
-    part_num: "",
-    rev: "",
-    desc: "",
-    part_typ: "",
-    projects: "",
-    rm_base: "",
-    process_base: "",
-    oh_profit_base: "",
-    remarks: "",
-    updated_by: "parthiban.c1",
-  });
-
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  /* ---------------- Toast Helper ---------------- */
-  const showToast = (msg: string, type: "success" | "danger") => {
-    setToastMsg("");
-    setToastType(type);
-    setTimeout(()=>{
-      setToastMsg(msg);
-    },10);
-    setTimeout(()=>{
-      setToastMsg("");
-    },3000);
-
-  };
-
-
-  const fetchAll = async () => {
-    try {
-      const [cscRes,typeRes] = await Promise.all([
-        getCscList(),
-        getCscValues(),
-        // getProjects(),
-      ]); //, typeRes, projectRes
-      setData(cscRes);
-      setPartTypes(typeRes.part_types);
-      setProjects(typeRes.projects);
-      setFormData(prev=>({
-        ...prev,
-        rm_base: typeRes.rm_base.latest || "",
-        process_base: typeRes.process_base.latest || "",
-        oh_profit_base: typeRes.ohprofit_base.latest || ""
-      }))
-    } catch (err) {
-      showToast("Failed to load CSC list", "danger");
-      console.error("API error", err);
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #f4f6f7, #e9ecef);
     }
-  };
+
+    /* Navbar */
+    /* #nav {
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 10px 20px;
+    } */
 
 
-  const openModal = () => {
-    setEditId(null);
-    setFormData({
-      part_num: "",
-      rev: "",
-      desc: "",
-      part_typ: "",
-      projects: "",
-      rm_base: "",
-      process_base: "",
-      oh_profit_base: "",
-      remarks: "",
-      updated_by: "parthiban.c1",
-    });
-    setShowModal(true);
-  };
+.insert-menu {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    border-radius: 6px;
+    padding: 8px;
+    z-index: 9999;
+    font-size: 14px;
+  }
+  .insert-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .insert-menu button:hover {
+    background: #f4f6f8;
+  }
 
-  const closeModal = () => setShowModal(false);
 
-  const openEdit = (item: CscItem) => {
-    setEditId(item.id);
-    setFormData({
-      part_num: item.part_num,
-      rev: item.rev,
-      desc: item.desc,
-      part_typ: item.part_typ ? String(item.part_typ) : "",
-      projects: item.projects ? String(item.projects) : "",
-      rm_base: item.rm_base,
-      process_base: item.process_base,
-      oh_profit_base: item.oh_profit_base,
-      remarks: item.remarks,
-      updated_by: "parthiban.c1",
-    });
-    setShowModal(true);
-  };
+.om_table th,
+.om_table td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: center;
+  min-width: 100px;
+}
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+#nav {
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
 
-  const handleSave = async () => {
-    const payload = {
-      ...formData,
-      part_typ: formData.part_typ || null,
-      projects: formData.projects || null,
-    };
 
-    try {
-       if (editId) {
-        await updateCsc(editId, payload);
-        showToast("CSC updated successfully", "success");
-      } else {
-        await createCsc(payload);
-        showToast("CSC created successfully", "success");
-      }
-      closeModal();
-      fetchAll();
-    } catch (err: any) {
-      const message =
-        Array.isArray(err?.remarks) ? err.remarks.join("\n")
-        : typeof err?.remarks === "string" ? err.remarks
-        : err?.message ?? "Save failed. Please try again.";
+/* .drag-handle { cursor: grab; margin-left: 6px; }
+  tr.dragging { opacity: 0.6; }
+  /* drop target hint (optional) */
+  /* .drop-target-before { outline: 2px dashed #3aa; } */
 
-      showToast(message, "danger");
-      console.error("Save failed", err);
+#bom-table-body tr { cursor: grab; }
+#bom-table-body tr.dragging { opacity: 0.6; }
+
+
+
+.flex-container header {
+    display: flex;
+    /* justify-content: space-between; */
+    flex-wrap: wrap; /* Allows items to wrap to next line */
+    gap: 10px; /* Space between items */
+    margin-bottom: 10px;
+}
+
+.flex-item section{
+    flex: 1 1 20%; /* Grow, shrink, and base width */
+    min-width: 150px; /* Prevent items from getting too small */
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-between; /* space between title and button */
+    align-items: center; /* vertically center items */
+    padding: 10px;
+    margin:0px !important;
+}
+
+.flex-item.title {
+    flex: 1; /* take available space */
+}
+
+.flex-item.button-container1 {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 18px;
+}
+
+.flex-item.button-container3 {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 18px;
+}
+
+.flex-item.button-container2 {
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+/* .modal-dialog {
+    max-width: 95%;
+    margin: 0;
+    top: 30;
+    bottom: 10;
+    left: 10;
+    right: 10;
+    height: 90vh;
+    display: flex;
+} */
+
+#nav-home-tab{
+    background: #ffffff;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    padding: 10px 20px;
+}
+
+    .navbar-brand {
+        font-weight: 700;
+        color: #24968f !important;
+        font-size: 24px;
     }
-  };
-
-  /* ---------------- Delete ---------------- */
-  const handleDelete = async () => {
-    if (!deleteId) return;
-
-    try {
-      await deleteCsc(deleteId);
-      console.log('res',deleteCsc(deleteId))
-      showToast("CSC deleted successfully", "success");
-      fetchAll();
-    } catch {
-      showToast("Failed to delete CSC", "danger");
-    } finally {
-      setDeleteId(null);
+    .navbar-nav .nav-link {
+        font-size: 16px;
+        color: #333 !important;
+        margin-right: 15px;
+        transition: color 0.3s ease;
     }
-  };
-
-  const getPages = () => {
-    const pages: (number | string)[] = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) pages.push(1, 2, 3, "...", totalPages);
-      else if (currentPage >= totalPages - 2)
-        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
-      else
-        pages.push(
-          1,
-          "...",
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          "...",
-          totalPages
-        );
+    .navbar-nav .nav-link:hover {
+        color: #24968f !important;
     }
-    return pages;
-  };
 
-  {showModal && (
-        <div className="modal-backdrop">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2>{editId ? "Edit CSC" : "Create CSC"}</h2>
-              <button className="modal-close" onClick={closeModal}>×</button>
-            </div>
+    /* Sidebar */
+    /* #green {
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+    } */
 
-            <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Part Number</label>
-                  <input name="part_num" value={formData.part_num} onChange={handleChange} />
-                </div>
+    
+    #green {
+        position: fixed;
+        top: 60px; /* Adjust based on nav height */
+        left: 0;
+        width: 265px; /* Sidebar width */
+        height: calc(100vh - 60px); /* Full height minus nav */
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+        overflow-y: auto; /* Sidebar scroll if needed */
+    }
 
-                <div className="form-group">
-                  <label>Revision</label>
-                  <input name="rev" value={formData.rev} onChange={handleChange} />
-                </div>
+    #green a {
+        display: block;
+        padding: 12px 10px;
+        color: #333;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    #green a:hover {
+        background-color: #24968f;
+        color: #fff;
+    }
 
-                <div className="form-group full">
-                  <label>Description</label>
-                  <textarea name="desc" rows={3} value={formData.desc} onChange={handleChange} />
-                </div>
+    /* Main Content */
+    /* .col-10 {
+        position: relative;
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    } */
 
-                <div className="form-group">
-                  <label>Part Type</label>
-                  <select name="part_typ" value={formData.part_typ} onChange={handleChange}>
-                    <option value="">Select</option>
-                    {partTypes.map(pt => (
-                      <option key={pt.id} value={pt.id}>{pt.name}</option>
-                    ))}
-                  </select>
-                </div>
+     .modal.fullscreen-modal .modal-dialog {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        max-width: none;
+    }
 
-                <div className="form-group">
-                  <label>Project</label>
-                  <select name="projects" value={formData.projects} onChange={handleChange}>
-                    <option value="">Select</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
+    .modal.fullscreen-modal .modal-content {
+        height: auto; /* Fallback for older browsers */
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
 
-                <div className="form-group">
-                  <label>RM Base Date</label>
-                  <input name="rm_base" value={formData.rm_base} onChange={handleChange} />
-                </div>
+    .modal.fullscreen-modal .modal-body {
+        overflow-y: auto;
+    }
 
-                <div className="form-group">
-                  <label>Process Base Date</label>
-                  <input name="process_base" value={formData.process_base} onChange={handleChange} />
-                </div>
+    
+    .col-10 {
+        position: absolute;
+        top: 72px; /* Below nav */
+        left: 275px; /* Next to sidebar */
+        /* width: calc(100% - 160px);
+        height: calc(100vh - 60px);  */
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        overflow-y: hidden; /* Scroll only main content */
+    }
 
-                <div className="form-group">
-                  <label>OH / Profit / Other Cost Base</label>
-                  <input name="oh_profit_base" value={formData.oh_profit_base} onChange={handleChange} />
-                </div>
+    h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0969ca;
+        margin-bottom: 20px;
+    }
+    button {
+        background-color: #24968f;
+        color: #1d1c1c;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    button:hover {
+        background-color: #006955;
+        transform: translateY(-2px);
+    }
 
-                <div className="form-group full">
-                  <label>Remarks</label>
-                  <textarea name="remarks" rows={2} value={formData.remarks} onChange={handleChange} />
-                </div>
-              </div>
-            </div>
+    /* Table Styling */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={closeModal}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" onClick={handleSave}>
-                {editId ? "Update CSC" : "Save CSC"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    .bom_summary_values td,
+    .bom_summary_total td {
+        text-align: center;
+        vertical-align: middle;
+        height: 40px;
+    }
 
-set rmbase, processbase and ohprofit base also select and option
+    .bom_summary_graph_total td,
+    .bom_summary_graph_percent td{
+        text-align: center;
+        vertical-align: middle;
+        height: 40px;
+    }
+
+    .table thead th {
+        background: #24968f;
+        color: #fff;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    th, td {
+        /* padding: 12px; */
+        padding: 0 !important;
+        text-align: center;
+        font-size: 14px;
+    }
+    tr:nth-child(even) {
+        background-color: #f8f8f8;
+    }
+    tr:hover {
+        background-color: #eafaf9;
+        transition: background-color 0.3s ease;
+    }
+
+    .select2-selection__rendered{
+        line-height: 55px !important;
+    }
+
+    .select2-container .select2-selection--single{
+        height: 60px !important;
+    }
+
+    .select2-selection__arrow{
+        height: 58px !important;
+    }
+
+    .om_table td{
+        height: 40px;
+        align-content: center;
+    }
+
+    #processTable td,
+    #processTable th{
+        padding: 2px 2px;
+    }
+
+    /* Buttons inside table */
+    .btn-primary, .btn-secondary,.btn-danger {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .btn-primary {
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+    }
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: #fff;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-2px);
+    }
+    .btn-danger {
+        background-color: #ee5454;
+        color: #fff;
+        border: none;
+    }
+    .btn-danger:hover {
+        background-color: #ee5454;
+        transform: translateY(-2px);
+    }
+
+
+.modal-content {
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        background-color: #ffffff;
+        padding: 20px;
+    }
+
+    .modal-header {
+        background: linear-gradient(90deg, #24968f, #1abc9c);
+        color: #fff;
+        border-bottom: none;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 0 0 12px 12px;
+    }
+
+    /* Form Styling */
+    .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 6px;
+    }
+
+    #parttype,#project,#editproject,#editparttype{
+        height: 80%;
+    }
+
+    .formula-inputs input{
+        width: 40%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .formula-inputs input:focus{
+        border-color: #24968f;
+        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
+        outline: none;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #24968f;
+        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
+        outline: none;
+    }
+
+    .smprocessdata input,
+    .smprocessdata select,
+    .ohprofit input,
+    .ohprofit select,
+    .bomdata input,
+    .rowdata input,
+    .rowdata select,
+    .bomdata select{
+        width: 100%;
+        height: 60px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .bomdata select{
+        height: 100%;
+    }
+
+    .smprocessdata input:hover,
+    .smprocessdata select:hover,
+    .ohprofit input:hover,
+    .ohprofit select:hover,
+    .rowdata input:hover,
+    .rowdata select:hover,
+    .bomdata input:hover,
+    .bomdata select:hover{
+        border-color: #24968f;
+        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
+        outline: none;
+    }
+
+    /* Buttons */
+    .create-btn {
+        background: linear-gradient(135deg, #24968f, #006955);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+
+    .create-btn:hover {
+        background: linear-gradient(135deg, #006955, #004d40);
+        transform: translateY(-2px);
+    }
+
+    #Editcsc:hover{
+        background: linear-gradient(135deg, #c2e5df, #8cdbcd);
+        transform: translateY(-2px);
+    }
+
+    #deletecsc:hover{
+        background: linear-gradient(135deg, #f7bebe, #eb9fa5);
+        transform: translateY(-2px);
+    }
+
+    #showcsc:hover{
+        background: linear-gradient(135deg, #b1e7f5, #9fe6eb);
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        background-color: #e4e4e4;
+        color: #333;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+        background-color: #cfcfcf;
+        transform: translateY(-2px);
+    }
+
+    .modal-footer .btn-primary {
+        background-color: #24968f;
+        border: none;
+    }
+
+    #deleteProcessModal{
+        z-index:1060 !important;
+    }
+
+    .delete-modal-backdrop {
+        position: fixed;
+        inset:0;
+        background: rgba(0,0,0,0.4);
+        z-index: 1055;
+    }
+
+    .modal-footer .btn-primary:hover {
+        background-color: #006955;
+    }
+
+    .editable-field{
+        background-color: #ffffff;
+        border:2px solid #4caf50;
+    }
+
+    .editable-field:focus{
+        border-color:#2e7d32;
+        box-shadow: 0 0 3px rgba(46,125,50,0,6);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        #green {
+            display: none; /* Hide sidebar on small screens */
+        }
+        .col-10 {
+            width: 100%;
+            margin: 10px;
+            padding: 15px;
+        }
+        table {
+            font-size: 12px;
+        }
+    }
+</style>
+can you make this style as like axis bank website like header color and i don't need side bar. one header and remaining should body table only scrollable not body. 
