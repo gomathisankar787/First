@@ -1,196 +1,80 @@
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: #f4f5f7;
-    overflow: hidden; /* prevent body scroll */
-}
+ <div class="col-12" style="text-align: justify;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
+                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
+                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
+                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
+                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2" style="margin-left: 115px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="form-container"> --><br>
+                    <!-- <div class="row"> -->
+                        <div class="table flex-container">
+                        <div class="flex-item button-container1">
+                        <ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
+                        <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
+                        </li>
+                        <!-- <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link" id="pills-profile-tab" data-toggle="pill" data-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">SM MATERIAL</button>
+                        </li>
+                        <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link" id="pills-contact-tab" data-toggle="pill" data-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">SM PROCESS</button>
+                        </li> -->
+                        <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
+                        </li>
+                        </ul></div>
+                        <div class="flex-item button-container2">
+                            Total Estimated Cost : <b>{{totals.total_cpa|default:0|floatformat:2}}</b>
+                        </div>
+                        </div>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                                <div class="table flex-container">
+                                    <div class="flex-item title">
+                                        <h2>BOM List</h2>
+                                    </div>
 
-/* =========================
-   HEADER (Axis Bank style)
-   ========================= */
-#nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 64px;
-    background: linear-gradient(90deg, #97144d, #b01c56);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-}
+                                    <!-- {% if page_obj.paginator.count > 1 %}
+                                    <div class="flex-item button-container3">
+                                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#AssemblyModal"
+                                        data-id="{{csc_values.id}}">Assembly Cost</button>
+                                    </div>
+                                    {% endif %} -->
+                                    <div class="flex-item button-container1">
+                                        <button type="button" class="btn btn-primary" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
+                                    </div>
+                                    <div class="flex-item button-container2">
+                                        <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
+                                    </div>
+                                </div>
 
-.navbar-brand {
-    font-size: 22px;
-    font-weight: 700;
-    color: #ffffff !important;
-    letter-spacing: 0.5px;
-}
-
-.navbar-nav .nav-link {
-    color: #ffffff !important;
-    font-size: 15px;
-    margin-right: 18px;
-    opacity: 0.9;
-}
-
-.navbar-nav .nav-link:hover {
-    opacity: 1;
-    text-decoration: underline;
-}
-
-/* =========================
-   MAIN CONTENT AREA
-   ========================= */
-.col-10 {
-    position: absolute;
-    top: 64px; /* below header */
-    left: 0;
-    width: 100%;
-    height: calc(100vh - 64px);
-    background: #ffffff;
-    padding: 20px 24px;
-    box-shadow: inset 0 1px 0 #e5e5e5;
-    overflow: hidden; /* important */
-}
-
-/* =========================
-   SCROLLABLE TABLE AREA
-   ========================= */
-.table-scroll-wrapper {
-    height: 100%;
-    overflow-y: auto;
-    padding-bottom: 20px;
-}
-
-/* =========================
-   TABLE STYLING (Bank UI)
-   ========================= */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-}
-
-.table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #97144d;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 10px;
-}
-
-.table td {
-    padding: 8px;
-    font-size: 13px;
-    border: 1px solid #e1e1e1;
-    text-align: center;
-}
-
-.table tr:nth-child(even) {
-    background-color: #fafafa;
-}
-
-.table tr:hover {
-    background-color: #f3e6ec;
-}
-
-/* =========================
-   BUTTONS (Axis feel)
-   ========================= */
-button,
-.btn-primary {
-    background: linear-gradient(135deg, #97144d, #b01c56);
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 8px 16px;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-button:hover,
-.btn-primary:hover {
-    background: linear-gradient(135deg, #7d103f, #97144d);
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: #ffffff;
-}
-
-.btn-danger {
-    background: #d32f2f;
-}
-
-/* =========================
-   MODAL CLEANUP
-   ========================= */
-.modal-header {
-    background: linear-gradient(90deg, #97144d, #b01c56);
-    color: #ffffff;
-    border-bottom: none;
-}
-
-.modal-title {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.modal-content {
-    border-radius: 6px;
-}
-
-/* =========================
-   FORM INPUTS
-   ========================= */
-.form-group input,
-.form-group select,
-.form-group textarea {
-    height: 44px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #97144d;
-    box-shadow: 0 0 0 2px rgba(151,20,77,0.15);
-    outline: none;
-}
-
-/* =========================
-   REMOVE SIDEBAR COMPLETELY
-   ========================= */
-#green {
-    display: none !important;
-}
-
-/* =========================
-   RESPONSIVE
-   ========================= */
-@media (max-width: 768px) {
-    #nav {
-        height: 56px;
-    }
-
-    .col-10 {
-        top: 56px;
-        padding: 15px;
-    }
-
-    .table thead th {
-        font-size: 12px;
-    }
-}
+                                {% csrf_token %}
+                                <div class="table-container table-scroll-wrapper">
+                                    <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                        <th style="background-color: #24948f;">S.No</th>
+                                        <th style="background-color: #24968f;">Level</th>
+                                        <th style="background-color: #24968f;">Part No.</th>
+                                        <th style="background-color: #24968f;">Rev</th>
+                                        <th style="background-color: #24968f;">Parts Description</th>
+                                        <th style="background-color: #24968f;">Qty</th>
+                                        <th style="background-color: #24968f;">Process Type</th>
+                                        <th style="background-color: #24968f;">Scope</th>
+                                        <th style="background-color: #24968f;">Method</th>
+                                        <th style="background-color: #24968f;">Is Nesting Needed</th>
+                                        <th style="background-color: #24968f;">Actions</th>
+                                        </tr>
