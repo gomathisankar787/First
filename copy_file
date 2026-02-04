@@ -1,41 +1,60 @@
-<!-- Top Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
 
-    <!-- Brand -->
-    <a class="navbar-brand fw-bold" href="#">Costing</a>
+        <!-- Hamburger -->
+        <button class="navbar-toggler" type="button"
+            data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <!-- Hamburger -->
-    <button class="navbar-toggler" type="button"
-        data-toggle="collapse" data-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false"
-        aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="container-fluid">
+                <div class="row w-100 align-items-center">
 
-    <!-- Navbar Content -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <div class="container-fluid">
-            <div class="row w-100 align-items-center">
+                    <!-- LEFT: Logo + Links -->
+                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
+                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
+                        <a class="nav-item nav-link active" href="/home">Home</a>
+                        <a class="nav-item nav-link" href="/mycsc">CSC</a>
+                        <a class="nav-item nav-link" href="/admin">Admin</a>
+                    </div>
 
-                <!-- LEFT: Logo + Links -->
-                <div class="col-lg-4 d-flex align-items-center gap-3">
-                    <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
-                    <a class="nav-link active" href="/home">Home</a>
-                    <a class="nav-link" href="/mycsc">CSC</a>
-                    <a class="nav-link" href="/admin">Admin</a>
+                    <!-- CENTER: Title -->
+                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
+                        KMC – Sheet Metal Costing
+                    </div>
+
+                    <!-- RIGHT: Logo -->
+                    <div class="ml-auto">
+                        <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="250">
+                    </div>
+
                 </div>
-
-                <!-- CENTER: Title -->
-                <div class="col-lg-4 text-center fw-bold">
-                    KMC – Sheet Metal Costing
-                </div>
-
-                <!-- RIGHT: Logo -->
-                <div class="col-lg-4 text-end">
-                    <img src="/static/images/AL_logo.png" alt="right icon" height="40">
-                </div>
-
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-12" style="text-align: justify;">
             </div>
         </div>
     </div>
-</nav>
+
+</body>
+give the user access page content
+Access level	Access Details
+View	View Access - Only able to view the approved CSCs
+Download	View Access - Only able to view the approved CSCs
+Edit	"Able to view CSC, Download
+create new CSC 
+edit WIP state CSC of his own created CSCs "
+Review	"Able to view CSC, Download
+create new CSC 
+edit WIP state CSC of assigned to him for review 
+Review and approve CSC"
+Admin	"Able to view CSC, download
+has access for Admin pages"
