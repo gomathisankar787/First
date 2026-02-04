@@ -1,177 +1,86 @@
-<div class="container-fluid mt-4">
+<div class="card p-3 table-responsive">
 
-    <div class="card">
-        <div class="card-header fw-bold">
-            RM Master
-        </div>
+    <form method="post">
+        <table class="table table-bordered table-sm align-middle">
+            <thead class="table-light text-center">
+                <tr>
+                    <th rowspan="2">Process Type</th>
 
-        <div class="card-body">
+                    <th colspan="3">ICC</th>
+                    <th colspan="3">Rejection</th>
+                    <th colspan="3">Inspection</th>
+                    <th colspan="3">TMC</th>
+                    <th colspan="3">Design Cost</th>
+                    <th colspan="3">Over Head</th>
+                    <th colspan="3">Profit</th>
 
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="rmTab" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" data-toggle="tab" href="#bulkUpload">
-                        Bulk Upload
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" href="#singleUpload">
-                        Single Upload
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" href="#rmList">
-                        RM List
-                    </a>
-                </li>
-            </ul>
+                    <th rowspan="2">Warranty Cost</th>
+                    <th rowspan="2">Inbound Logistics</th>
+                    <th rowspan="2">Actions</th>
+                </tr>
+                <tr>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                    <th>RM</th><th>Conv</th><th>BOF</th>
+                </tr>
+            </thead>
 
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="text" class="form-control form-control-sm"
+                               name="process_type">
+                    </td>
 
-<div class="tab-content mt-3">
+                    <!-- ICC -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_bof"></td>
 
-    <div class="tab-pane fade show active" id="bulkUpload">
-        <div class="card p-3">
+                    <!-- Rejection -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_bof"></td>
 
-            <form method="post" enctype="multipart/form-data">
-                <div class="row">
+                    <!-- Inspection -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_bof"></td>
 
-                    <div class="col-md-4">
-                        <label>Upload File</label>
-                        <input type="file" class="form-control" accept=".xlsx,.csv">
-                    </div>
+                    <!-- TMC -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_bof"></td>
 
-                    <div class="col-md-3">
-                        <label>Sheet Name</label>
-                        <input type="text" class="form-control" value="RM Base">
-                    </div>
+                    <!-- Design Cost -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_bof"></td>
 
-                    <div class="col-md-3">
-                        <label>Effective From</label>
-                        <input type="date" class="form-control">
-                    </div>
+                    <!-- Over Head -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_bof"></td>
 
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-primary w-100">
-                            Upload
-                        </button>
-                    </div>
+                    <!-- Profit -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_rm"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_conv"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_bof"></td>
 
-                </div>
-            </form>
+                    <!-- Other -->
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="warranty_cost"></td>
+                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inbound_logistics"></td>
 
-        </div>
-    </div>
-
-
-    <div class="tab-pane fade" id="singleUpload">
-
-        <div class="card p-3">
-            <form>
-
-                <div class="row">
-
-                    <div class="col-md-3">
-                        <label>Category</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label>Material Grade</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>RM Rate</label>
-                        <input type="number" class="form-control">
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>Scrap Rate</label>
-                        <input type="number" class="form-control">
-                    </div>
-
-                    <div class="col-md-2">
-                        <label>UOM</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                </div>
-
-                <div class="row mt-3">
-
-                    <div class="col-md-3">
-                        <label>Effective From</label>
-                        <input type="date" class="form-control">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label>Source</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label>Remarks</label>
-                        <input type="text" class="form-control">
-                    </div>
-
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-success w-100">
-                            Save
-                        </button>
-                    </div>
-
-                </div>
-
-            </form>
-        </div>
-
-    </div>
-
-
-    <div class="tab-pane fade" id="rmList">
-
-        <div class="card p-3 table-responsive">
-
-            <table class="table table-bordered table-sm align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Category</th>
-                        <th>Material Grade</th>
-                        <th>RM Rate</th>
-                        <th>Scrap Rate</th>
-                        <th>UOM</th>
-                        <th>Effective From</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td contenteditable="true">Steel</td>
-                        <td contenteditable="true">CRCA</td>
-                        <td contenteditable="true">75.20</td>
-                        <td contenteditable="true">12.50</td>
-                        <td contenteditable="true">KG</td>
-                        <td>2024-01-01</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary">Update</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <nav class="mt-2">
-                <ul class="pagination pagination-sm justify-content-end">
-                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
-                    <li class="page-item active"><a class="page-link">1</a></li>
-                    <li class="page-item"><a class="page-link">2</a></li>
-                    <li class="page-item"><a class="page-link">Next</a></li>
-                </ul>
-            </nav>
-
-        </div>
-
-    </div>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-success">Save</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
 
 </div>
