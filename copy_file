@@ -1,86 +1,146 @@
-<div class="card p-3 table-responsive">
+<div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-12" style="text-align: justify;">
 
-    <form method="post">
-        <table class="table table-bordered table-sm align-middle">
-            <thead class="table-light text-center">
-                <tr>
-                    <th rowspan="2">Process Type</th>
+                <div class="card mb-4">
+                    <div class="card-header fw-bold">
+                        Access Level – Permission Matrix
+                    </div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-bordered table-striped text-center align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Access Level</th>
+                                    <th>View CSC</th>
+                                    <th>Download</th>
+                                    <th>Create CSC</th>
+                                    <th>Edit WIP</th>
+                                    <th>Review</th>
+                                    <th>Approve</th>
+                                    <th>Admin Pages</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>View</b></td>
+                                    <td>✔</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Download</b></td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Edit</b></td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>Own CSC</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                    <td>✖</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Review</b></td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>Assigned CSC</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✖</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Admin</b></td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                    <td>✔</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                    <th colspan="3">ICC</th>
-                    <th colspan="3">Rejection</th>
-                    <th colspan="3">Inspection</th>
-                    <th colspan="3">TMC</th>
-                    <th colspan="3">Design Cost</th>
-                    <th colspan="3">Over Head</th>
-                    <th colspan="3">Profit</th>
 
-                    <th rowspan="2">Warranty Cost</th>
-                    <th rowspan="2">Inbound Logistics</th>
-                    <th rowspan="2">Actions</th>
-                </tr>
-                <tr>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                    <th>RM</th><th>Conv</th><th>BOF</th>
-                </tr>
-            </thead>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">User Access Management</span>
+                        <button class="btn btn-primary btn-sm">+ Create User</button>
+                    </div>
 
-            <tbody>
-                <tr>
-                    <td>
-                        <input type="text" class="form-control form-control-sm"
-                               name="process_type">
-                    </td>
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User Name</th>
+                                    <th>Email</th>
+                                    <th>Access Levels</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                    <!-- ICC -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_bof"></td>
+                                <tr>
+                                    <td>Gomathisankar</td>
+                                    <td>goma@kmc.com</td>
+                                    <td>
+                                        <span class="badge bg-info me-1">View</span>
+                                        <span class="badge bg-success me-1">Download</span>
+                                        <span class="badge bg-warning text-dark me-1">Edit</span>
+                                    </td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-warning">Edit</button>
+                                        <button class="btn btn-sm btn-secondary">Deactivate</button>
+                                    </td>
+                                </tr>
 
-                    <!-- Rejection -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_bof"></td>
+                                <tr>
+                                    <td>Arun Kumar</td>
+                                    <td>arun@kmc.com</td>
+                                    <td>
+                                        <span class="badge bg-info me-1">View</span>
+                                        <span class="badge bg-primary me-1">Review</span>
+                                    </td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-warning">Edit</button>
+                                    </td>
+                                </tr>
 
-                    <!-- Inspection -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_bof"></td>
+                                <tr>
+                                    <td>Admin User</td>
+                                    <td>admin@kmc.com</td>
+                                    <td>
+                                        <span class="badge bg-danger me-1">Admin</span>
+                                    </td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-warning">Edit</button>
+                                    </td>
+                                </tr>
 
-                    <!-- TMC -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_bof"></td>
-
-                    <!-- Design Cost -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_bof"></td>
-
-                    <!-- Over Head -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_bof"></td>
-
-                    <!-- Profit -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_rm"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_conv"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_bof"></td>
-
-                    <!-- Other -->
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="warranty_cost"></td>
-                    <td><input type="number" step="0.01" class="form-control form-control-sm" name="inbound_logistics"></td>
-
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-success">Save</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
-
-</div>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+can you give the updated code for with pagination, create modal and update is inline like if click edit icon then it change one x icon and one tick icon x for cancel and tick for update
