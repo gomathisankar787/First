@@ -1,3 +1,325 @@
-class User(AbstractUser):
-    access_level = models.TextField(null=True, blank=True)
-give the views and serializer and urls for create and update api's. use modelserializer and create and update function inbuilt. and i need few fields like username, email, is_active and access_level. none other not needed so add extra_kwargs for not required of fields like password, last_login
+from rest_framework import serializers
+from .models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'is_active', 'access_level']
+        extra_kwargs = {
+            'password': {'required': False},
+            'last_login': {'required': False},
+            'is_superuser': {'required': False},
+            'is_staff': {'required': False},
+            'date_joined': {'required': False},
+            'groups': {'required': False},
+            'user_permissions': {'required': False},
+        }
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import User
+from .serializers import UserSerializer
+
+# Create User API
+class UserCreateAPIView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+# Update User API
+class UserUpdateAPIView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+
+from django.urls import path
+from .views import UserCreateAPIView, UserUpdateAPIView
+
+urlpatterns = [
+    path('users/create/', UserCreateAPIView.as_view(), name='user-create'),
+    path('users/update/<int:id>/', UserUpdateAPIView.as_view(), name='user-update'),
+]
+
+
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <div class="col-12" style="text-align: justify;">
+
+            <!-- Permission Matrix Card -->
+            <div class="card mb-4">
+                <div class="card-header fw-bold">
+                    Access Level – Permission Matrix
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-striped text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Access Level</th>
+                                <th>View CSC</th>
+                                <th>Download</th>
+                                <th>Create CSC</th>
+                                <th>Edit WIP</th>
+                                <th>Review</th>
+                                <th>Approve</th>
+                                <th>Admin Pages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>View</b></td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Download</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Edit</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>Own CSC</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Review</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>Assigned CSC</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Admin</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Access Management Card -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">User Access Management</span>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">+ Create User</button>
+                </div>
+
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle" id="userTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User Name</th>
+                                <th>Email</th>
+                                <th>Access Levels</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Users will be loaded via API -->
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <nav>
+                        <ul class="pagination justify-content-center" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">User Name</label>
+                        <input type="text" class="form-control" id="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userAccess" class="form-label">Access Levels</label>
+                        <select class="form-select" id="userAccess" multiple>
+                            <option value="View">View</option>
+                            <option value="Download">Download</option>
+                            <option value="Edit">Edit</option>
+                            <option value="Review">Review</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiBase = '/api/users/';  // Adjust API base URL
+    const rowsPerPage = 3;
+    let users = [];
+    let currentPage = 1;
+
+    // Fetch users from API
+    async function fetchUsers() {
+        const res = await fetch(apiBase);
+        users = await res.json();
+        renderTable();
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('userTableBody');
+        tableBody.innerHTML = '';
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        const paginatedUsers = users.slice(start, end);
+
+        paginatedUsers.forEach((user, idx) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="userName">${user.username}</td>
+                <td class="userEmail">${user.email}</td>
+                <td class="userAccess">${user.access_level ? user.access_level.split(',').map(a => `<span class="badge bg-info me-1">${a}</span>`).join('') : ''}</td>
+                <td class="userStatus"><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-warning editBtn">✎</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        renderPagination();
+        addEditListeners();
+    }
+
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(users.length / rowsPerPage);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', e => {
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+            });
+            pagination.appendChild(li);
+        }
+    }
+
+    // Inline Edit
+    function addEditListeners() {
+        const editButtons = document.querySelectorAll('.editBtn');
+        editButtons.forEach((btn, idx) => {
+            btn.addEventListener('click', async () => {
+                const rowIndex = (currentPage - 1) * rowsPerPage + idx;
+                const user = users[rowIndex];
+                const row = btn.closest('tr');
+
+                row.querySelector('.userName').innerHTML = `<input type="text" class="form-control form-control-sm" value="${user.username}">`;
+                row.querySelector('.userEmail').innerHTML = `<input type="email" class="form-control form-control-sm" value="${user.email}">`;
+                row.querySelector('.userAccess').innerHTML = `
+                    <select class="form-select form-select-sm" multiple>
+                        <option value="View" ${user.access_level?.includes('View')?'selected':''}>View</option>
+                        <option value="Download" ${user.access_level?.includes('Download')?'selected':''}>Download</option>
+                        <option value="Edit" ${user.access_level?.includes('Edit')?'selected':''}>Edit</option>
+                        <option value="Review" ${user.access_level?.includes('Review')?'selected':''}>Review</option>
+                        <option value="Admin" ${user.access_level?.includes('Admin')?'selected':''}>Admin</option>
+                    </select>
+                `;
+                row.querySelector('.userStatus').innerHTML = `
+                    <select class="form-select form-select-sm">
+                        <option value="true" ${user.is_active?'selected':''}>Active</option>
+                        <option value="false" ${!user.is_active?'selected':''}>Inactive</option>
+                    </select>
+                `;
+                btn.parentElement.innerHTML = `
+                    <button class="btn btn-sm btn-success me-1 saveBtn">✔</button>
+                    <button class="btn btn-sm btn-danger cancelBtn">❌</button>
+                `;
+
+                // Save
+                row.querySelector('.saveBtn').addEventListener('click', async () => {
+                    const payload = {
+                        username: row.querySelector('.userName input').value,
+                        email: row.querySelector('.userEmail input').value,
+                        access_level: Array.from(row.querySelector('.userAccess select').selectedOptions).map(o=>o.value).join(','),
+                        is_active: row.querySelector('.userStatus select').value === 'true'
+                    };
+                    await fetch(`${apiBase}update/${user.id}/`, {
+                        method: 'PATCH',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    });
+                    await fetchUsers();
+                });
+
+                // Cancel
+                row.querySelector('.cancelBtn').addEventListener('click', fetchUsers);
+            });
+        });
+    }
+
+    // Create User
+    document.getElementById('createUserForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const payload = {
+            username: document.getElementById('userName').value,
+            email: document.getElementById('userEmail').value,
+            access_level: Array.from(document.getElementById('userAccess').selectedOptions).map(o=>o.value).join(','),
+            is_active: true
+        };
+        await fetch(`${apiBase}create/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        document.getElementById('createUserForm').reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createUserModal'));
+        modal.hide();
+        fetchUsers();
+    });
+
+    // Initial load
+    fetchUsers();
+</script>
