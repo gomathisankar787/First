@@ -1,146 +1,274 @@
 <div class="container-fluid h-100">
-        <div class="row h-100">
-            <div class="col-12" style="text-align: justify;">
+    <div class="row h-100">
+        <div class="col-12" style="text-align: justify;">
 
-                <div class="card mb-4">
-                    <div class="card-header fw-bold">
-                        Access Level – Permission Matrix
-                    </div>
-                    <div class="card-body table-responsive">
-                        <table class="table table-bordered table-striped text-center align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Access Level</th>
-                                    <th>View CSC</th>
-                                    <th>Download</th>
-                                    <th>Create CSC</th>
-                                    <th>Edit WIP</th>
-                                    <th>Review</th>
-                                    <th>Approve</th>
-                                    <th>Admin Pages</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><b>View</b></td>
-                                    <td>✔</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Download</b></td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Edit</b></td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>Own CSC</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                    <td>✖</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Review</b></td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>Assigned CSC</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✖</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Admin</b></td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                    <td>✔</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- Permission Matrix Card -->
+            <div class="card mb-4">
+                <div class="card-header fw-bold">
+                    Access Level – Permission Matrix
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-striped text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Access Level</th>
+                                <th>View CSC</th>
+                                <th>Download</th>
+                                <th>Create CSC</th>
+                                <th>Edit WIP</th>
+                                <th>Review</th>
+                                <th>Approve</th>
+                                <th>Admin Pages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>View</b></td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Download</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Edit</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>Own CSC</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Review</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>Assigned CSC</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Admin</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Access Management Card -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">User Access Management</span>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">+ Create User</button>
                 </div>
 
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle" id="userTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User Name</th>
+                                <th>Email</th>
+                                <th>Access Levels</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Users will be dynamically rendered here -->
+                        </tbody>
+                    </table>
 
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">User Access Management</span>
-                        <button class="btn btn-primary btn-sm">+ Create User</button>
-                    </div>
-
-                    <div class="card-body table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>User Name</th>
-                                    <th>Email</th>
-                                    <th>Access Levels</th>
-                                    <th>Status</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                                <tr>
-                                    <td>Gomathisankar</td>
-                                    <td>goma@kmc.com</td>
-                                    <td>
-                                        <span class="badge bg-info me-1">View</span>
-                                        <span class="badge bg-success me-1">Download</span>
-                                        <span class="badge bg-warning text-dark me-1">Edit</span>
-                                    </td>
-                                    <td><span class="badge bg-success">Active</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                        <button class="btn btn-sm btn-secondary">Deactivate</button>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>Arun Kumar</td>
-                                    <td>arun@kmc.com</td>
-                                    <td>
-                                        <span class="badge bg-info me-1">View</span>
-                                        <span class="badge bg-primary me-1">Review</span>
-                                    </td>
-                                    <td><span class="badge bg-success">Active</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>Admin User</td>
-                                    <td>admin@kmc.com</td>
-                                    <td>
-                                        <span class="badge bg-danger me-1">Admin</span>
-                                    </td>
-                                    <td><span class="badge bg-success">Active</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-                    </div>
+                    <!-- Pagination -->
+                    <nav>
+                        <ul class="pagination justify-content-center" id="pagination">
+                            <!-- Pagination items will be rendered dynamically -->
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
     </div>
-can you give the updated code for with pagination, create modal and update is inline like if click edit icon then it change one x icon and one tick icon x for cancel and tick for update
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">User Name</label>
+                        <input type="text" class="form-control" id="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userAccess" class="form-label">Access Levels</label>
+                        <select class="form-select" id="userAccess" multiple>
+                            <option value="View">View</option>
+                            <option value="Download">Download</option>
+                            <option value="Edit">Edit</option>
+                            <option value="Review">Review</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sample Users Data
+    let users = [
+        {name: 'Gomathisankar', email: 'goma@kmc.com', access: ['View','Download','Edit'], status: 'Active'},
+        {name: 'Arun Kumar', email: 'arun@kmc.com', access: ['View','Review'], status: 'Active'},
+        {name: 'Admin User', email: 'admin@kmc.com', access: ['Admin'], status: 'Active'},
+        {name: 'Test User', email: 'test@kmc.com', access: ['View'], status: 'Inactive'},
+        {name: 'User 5', email: 'user5@kmc.com', access: ['View'], status: 'Active'},
+        {name: 'User 6', email: 'user6@kmc.com', access: ['View'], status: 'Active'},
+    ];
+
+    const rowsPerPage = 3;
+    let currentPage = 1;
+
+    function renderTable() {
+        const tableBody = document.getElementById('userTableBody');
+        tableBody.innerHTML = '';
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        const paginatedUsers = users.slice(start, end);
+
+        paginatedUsers.forEach((user, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="userName">${user.name}</td>
+                <td class="userEmail">${user.email}</td>
+                <td class="userAccess">${user.access.map(a => `<span class="badge bg-info me-1">${a}</span>`).join('')}</td>
+                <td class="userStatus"><span class="badge ${user.status==='Active'?'bg-success':'bg-secondary'}">${user.status}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-warning editBtn">✎</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+        renderPagination();
+        addEditListeners();
+    }
+
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(users.length / rowsPerPage);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i===currentPage?'active':''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+            });
+            pagination.appendChild(li);
+        }
+    }
+
+    // Inline Edit
+    function addEditListeners() {
+        const editButtons = document.querySelectorAll('.editBtn');
+        editButtons.forEach((btn, idx) => {
+            btn.addEventListener('click', () => {
+                const rowIndex = (currentPage-1)*rowsPerPage + idx;
+                const user = users[rowIndex];
+                const row = btn.closest('tr');
+
+                // Replace cells with inputs
+                row.querySelector('.userName').innerHTML = `<input type="text" class="form-control form-control-sm" value="${user.name}">`;
+                row.querySelector('.userEmail').innerHTML = `<input type="email" class="form-control form-control-sm" value="${user.email}">`;
+                row.querySelector('.userAccess').innerHTML = `
+                    <select class="form-select form-select-sm" multiple>
+                        <option value="View" ${user.access.includes('View')?'selected':''}>View</option>
+                        <option value="Download" ${user.access.includes('Download')?'selected':''}>Download</option>
+                        <option value="Edit" ${user.access.includes('Edit')?'selected':''}>Edit</option>
+                        <option value="Review" ${user.access.includes('Review')?'selected':''}>Review</option>
+                        <option value="Admin" ${user.access.includes('Admin')?'selected':''}>Admin</option>
+                    </select>
+                `;
+
+                row.querySelector('.userStatus').innerHTML = `
+                    <select class="form-select form-select-sm">
+                        <option value="Active" ${user.status==='Active'?'selected':''}>Active</option>
+                        <option value="Inactive" ${user.status==='Inactive'?'selected':''}>Inactive</option>
+                    </select>
+                `;
+
+                // Replace edit button with tick and cross
+                btn.parentElement.innerHTML = `
+                    <button class="btn btn-sm btn-success me-1 saveBtn">✔</button>
+                    <button class="btn btn-sm btn-danger cancelBtn">❌</button>
+                `;
+
+                // Save functionality
+                row.querySelector('.saveBtn').addEventListener('click', () => {
+                    user.name = row.querySelector('.userName input').value;
+                    user.email = row.querySelector('.userEmail input').value;
+                    user.access = Array.from(row.querySelector('.userAccess select').selectedOptions).map(o=>o.value);
+                    user.status = row.querySelector('.userStatus select').value;
+                    renderTable();
+                });
+
+                // Cancel functionality
+                row.querySelector('.cancelBtn').addEventListener('click', () => {
+                    renderTable();
+                });
+            });
+        });
+    }
+
+    // Create User
+    document.getElementById('createUserForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const access = Array.from(document.getElementById('userAccess').selectedOptions).map(o=>o.value);
+        users.push({name, email, access, status: 'Active'});
+        renderTable();
+        document.getElementById('createUserForm').reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createUserModal'));
+        modal.hide();
+    });
+
+    // Initial render
+    renderTable();
+</script>
