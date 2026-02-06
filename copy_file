@@ -1,103 +1,170 @@
-# models.py
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">User Name</label>
+                        <input type="text" class="form-control" id="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userAccess" class="form-label">Access Levels</label>
+                        <select class="form-select" id="userAccess" multiple>
+                            <option value="View">View</option>
+                            <option value="Download">Download</option>
+                            <option value="Edit">Edit</option>
+                            <option value="Review">Review</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-class User(AbstractUser):
-    access_level = models.TextField(null=True, blank=True)
+<script>
+    const apiBase = '/users/';  // Adjust API base URL
+    const rowsPerPage = 3;
+    let users = [];
+    let currentPage = 1;
 
-# apps.py
+    // Fetch users from API
+    async function fetchUsers() {
+        const res = await fetch(apiBase);
+        users = await res.json();
+        renderTable();
+    }
 
-from django.apps import AppConfig
+    function renderTable() {
+        const tableBody = document.getElementById('userTableBody');
+        tableBody.innerHTML = '';
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        const paginatedUsers = users.slice(start, end);
 
+        paginatedUsers.forEach((user, idx) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="userName">${user.username}</td>
+                <td class="userEmail">${user.email}</td>
+                <td class="userAccess">${user.access_level.map(a => `<span class="badge bg-info me-1">${a}</span>`).join('')}</td>
+                <td class="userStatus"><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-warning editBtn">✎</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
 
-class MyappConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'myapp'
+        renderPagination();
+        addEditListeners();
+    }
 
-# settings.py
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(users.length / rowsPerPage);
 
-INSTALLED_APPS = [
-    'myapp',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'drf_yasg',
-    'rest_framework'
-]
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', e => {
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+            });
+            pagination.appendChild(li);
+        }
+    }
 
-AUTH_USER_MODEL = 'myapp.User'
+    // Inline Edit
+    function addEditListeners() {
+        const editButtons = document.querySelectorAll('.editBtn');
+        editButtons.forEach((btn, idx) => {
+            btn.addEventListener('click', async () => {
+                const rowIndex = (currentPage - 1) * rowsPerPage + idx;
+                const user = users[rowIndex];
+                const row = btn.closest('tr');
 
+                row.querySelector('.userName').innerHTML = `<input type="text" class="form-control form-control-sm" value="${user.username}">`;
+                row.querySelector('.userEmail').innerHTML = `<input type="email" class="form-control form-control-sm" value="${user.email}">`;
+                row.querySelector('.userAccess').innerHTML = `
+                    <select class="form-select form-select-sm" multiple>
+                        <option value="View" ${user.access_level?.includes('View')?'selected':''}>View</option>
+                        <option value="Download" ${user.access_level?.includes('Download')?'selected':''}>Download</option>
+                        <option value="Edit" ${user.access_level?.includes('Edit')?'selected':''}>Edit</option>
+                        <option value="Review" ${user.access_level?.includes('Review')?'selected':''}>Review</option>
+                        <option value="Admin" ${user.access_level?.includes('Admin')?'selected':''}>Admin</option>
+                    </select>
+                `;
+                row.querySelector('.userStatus').innerHTML = `
+                    <select class="form-select form-select-sm">
+                        <option value="true" ${user.is_active?'selected':''}>Active</option>
+                        <option value="false" ${!user.is_active?'selected':''}>Inactive</option>
+                    </select>
+                `;
+                btn.parentElement.innerHTML = `
+                    <button class="btn btn-sm btn-success me-1 saveBtn">✔</button>
+                    <button class="btn btn-sm btn-danger cancelBtn">❌</button>
+                `;
 
-# manage.py showmigrations output
+                // Save
+                row.querySelector('.saveBtn').addEventListener('click', async () => {
+                    const payload = {
+                        username: row.querySelector('.userName input').value,
+                        email: row.querySelector('.userEmail input').value,
+                        access_level: Array.from(row.querySelector('.userAccess select').selectedOptions).map(o=>o.value),
+                        is_active: row.querySelector('.userStatus select').value === 'true'
+                    };
+                    await fetch(`${apiBase}update/${user.id}/`, {
+                        method: 'PATCH',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    });
+                    await fetchUsers();
+                });
 
-myapp
- [X] 0001_initial
- [X] 0002_alter_crcsctbl_part_typ_alter_crcsctbl_projects
- [X] 0003_alter_smprocess_cutting_forminglength_and_more
- [X] 0004_alter_smprocess_thickness
- [X] 0005_rmbase_density_rmbase_uts_rmbase_scrap_recovery_and_more
- [X] 0006_oh_profitdata_child
- [X] 0007_alter_rmbase_effective_from_alter_rmbase_source_and_more
- [X] 0008_alter_processbase_base_and_more
- [X] 0009_assemblycost
- [X] 0010_bomsummary
- [X] 0011_smprocess_cutting_formula_and_more
- [X] 0012_alter_bomsheet_options_bomsheet_order_index_and_more
- [X] 0013_alter_oh_profitdata_child_base_and_more
- [ ] 0014_user
-admin
- [X] 0001_initial
- [X] 0002_logentry_remove_auto_add
- [X] 0003_logentry_add_action_flag_choices
-auth
- [X] 0001_initial
- [X] 0002_alter_permission_name_max_length
- [X] 0003_alter_user_email_max_length
- [X] 0004_alter_user_username_opts
- [X] 0005_alter_user_last_login_null
- [X] 0006_require_contenttypes_0002
- [X] 0007_alter_validators_add_error_messages
- [X] 0008_alter_user_username_max_length
- [X] 0009_alter_user_last_name_max_length
- [X] 0010_alter_group_name_max_length
- [X] 0011_update_proxy_permissions
- [X] 0012_alter_user_first_name_max_length
+                // Cancel
+                row.querySelector('.cancelBtn').addEventListener('click', fetchUsers);
+            });
+        });
+    }
 
+    // Create User
+    document.getElementById('createUserForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const payload = {
+            username: document.getElementById('userName').value,
+            email: document.getElementById('userEmail').value,
+            access_level: Array.from(document.getElementById('userAccess').selectedOptions).map(o=>o.value),
+            is_active: true
+        };
+        await fetch(`${apiBase}create/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        document.getElementById('createUserForm').reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createUserModal'));
+        modal.hide();
+        fetchUsers();
+    });
 
-(venv) D:\pynewproject\pynewproject>python manage.py migrate       
-C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\drf_yasg\__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import DistributionNotFound, get_distribution
-Operations to perform:
-  Apply all migrations: admin, auth, contenttypes, myapp, sessions
-Traceback (most recent call last):
-  File "D:\pynewproject\pynewproject\manage.py", line 22, in <module>
-    main()
-    ~~~~^^
-  File "D:\pynewproject\pynewproject\manage.py", line 18, in main
-    execute_from_command_line(sys.argv)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
-    utility.execute()
-    ~~~~~~~~~~~~~~~^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\__init__.py", line 436, in execute
-    self.fetch_command(subcommand).run_from_argv(self.argv)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\base.py", line 416, in run_from_argv
-    self.execute(*args, **cmd_options)
-    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\base.py", line 460, in execute
-    output = self.handle(*args, **options)
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\base.py", line 107, in wrapper
-    res = handle_func(*args, **kwargs)
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\core\management\commands\migrate.py", line 299, in handle
-    pre_migrate_apps = pre_migrate_state.apps
-                       ^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
-    res = instance.__dict__[self.name] = self.func(instance)
-                                         ~~~~~~~~~^^^^^^^^^^
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\db\migrations\state.py", line 589, in apps
-    return StateApps(self.real_apps, self.models)
-  File "C:\Users\Parthiban.C1\Downloads\pynewproject\pynewproject\venv\Lib\site-packages\django\db\migrations\state.py", line 660, in __init__
-    raise ValueError("\n".join(error.msg for error in errors))
-ValueError: The field admin.LogEntry.user was declared with a lazy reference to 'myapp.user', but app 'myapp' doesn't provide model 'user'.
+    // Initial load
+    fetchUsers();
+</script>
+
+updation : add toastr for create and update success and failure and add modal better style mind that we use bootstrap 4. and pagination like add prev and next minimal users 5 and add scrolling for user table only
