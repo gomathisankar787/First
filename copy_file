@@ -1,299 +1,155 @@
 html, body {
-        height: 100%;
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        /* background: linear-gradient(135deg, #f4f6f7, #e9ecef); */
-         background: #f4f5f7;
-        overflow: hidden; /* prevent body scroll */
-
-    }
-
-.insert-menu {
-    position: absolute;
-    background: #fff;
-    border: 1px solid #ddd;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-    border-radius: 6px;
-    padding: 8px;
-    z-index: 9999;
-    font-size: 14px;
-  }
-.insert-menu button:hover {
-    background: #f4f6f8;
-  }
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f9;
+    overflow: hidden;
+}
 #nav {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 64px;
-    background: linear-gradient(90deg, #97144d, #b01c56);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    background: linear-gradient(90deg, #0b4da2, #1f6fd2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     z-index: 1000;
     display: flex;
     align-items: center;
     padding: 0 24px;
 }
 
-#nav-home-tab{
-    background: #ffffff;
-    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
-    padding: 10px 20px;
+.navbar-brand {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff !important;
 }
 
-    .navbar-brand {
-        font-size: 22px;
-        font-weight: 700;
-        color: #ffffff !important;
-        letter-spacing: 0.5px;
-    }
-    .navbar-nav .nav-link {
-        color: #ffffff !important;
-        font-size: 15px;
-        margin-right: 18px;
-        opacity: 0.9;
-    }
-    .navbar-nav .nav-link:hover {
-        opacity: 1;
-        text-decoration: underline;
-        color: #24968f !important;
-    }
+.navbar-nav .nav-link {
+    color: #eaf1fb !important;
+    font-size: 15px;
+    margin-right: 18px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #0fa3b1 !important;
+    text-decoration: none;
+}
 .col-12 {
-        position: absolute;
-        top: 64px; /* below header */
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 64px);
-        background: #ffffff;
-        padding: 20px 24px;
-        box-shadow: inset 0 1px 0 #e5e5e5;
-        overflow: hidden; /* important */
-    }
-
-    h1 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #0969ca;
-        margin-bottom: 20px;
-    }
-    button {
-        background-color: #24968f;
-        color: #1d1c1c;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-    button:hover {
-        background-color: #006955;
-        transform: translateY(-2px);
-    }
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 64px);
+    background: #ffffff;
+    padding: 20px 24px;
+    box-shadow: inset 0 1px 0 #e1e6ef;
+    overflow: hidden;
+}
 .table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #ffffff;
-    }
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
 .table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        background: #97144d;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 10px;
-    }
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #0b4da2;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 10px;
+}
 
-    .om_table thead th{
-        background: #97144d;
-    }
 tr:nth-child(even) {
-        background-color: #fafafa;
-    }
-    tr:hover {
-        background-color: #f3e6ec;
-        transition: background-color 0.3s ease;
-    }
+    background-color: #f7f9fc;
+}
+
+tr:hover {
+    background-color: #eaf1fb;
+}
 button,
-    .btn-primary {
-        background: linear-gradient(135deg, #97144d, #b01c56);
-        color: #ffffff;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 600;
-        padding: 8px 16px;
-        transition: background 0.3s ease, transform 0.2s ease;
-    }
-.btn-secondary {
-        background: #6c757d;
-        color: #ffffff;
-    }
-.btn-danger {
-        background: #d32f2f;
-    }
 .btn-primary {
-        background-color: #3498db;
-        color: #fff;
-        border: none;
-    }
-    .btn-primary:hover {
-        background-color: #2980b9;
-        transform: translateY(-2px);
-    }
-    .btn-secondary {
-        background-color: #95a5a6;
-        color: #fff;
-        border: none;
-    }
-    .btn-secondary:hover {
-        background-color: #7f8c8d;
-        transform: translateY(-2px);
-    }
-    .btn-danger {
-        background-color: #ee5454;
-        color: #fff;
-        border: none;
-    }
-    .btn-danger:hover {
-        background-color: #ee5454;
-        transform: translateY(-2px);
-    }
+    background: linear-gradient(135deg, #0b4da2, #1f6fd2);
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+}
+
+button:hover,
+.btn-primary:hover {
+    background: #083c80;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #ffffff;
+}
+
+.btn-danger {
+    background: #d32f2f;
+}
 .modal-content {
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        background-color: #ffffff;
-        padding: 20px;
-    }
+    border-radius: 10px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    background-color: #ffffff;
+}
 
-    .modal-header {
-        background: linear-gradient(90deg, #97144d, #b01c56);
-        color: #ffffff;
-        border-bottom: none;
-        border-radius: 12px 12px 0 0;
-    }
+.modal-header {
+    background: linear-gradient(90deg, #0b4da2, #1f6fd2);
+    color: #ffffff;
+    border-bottom: none;
+}
+
 .modal-body {
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 0 0 12px 12px;
-    }
+    padding: 20px;
+    background-color: #f4f6f9;
+}
 
-    /* Form Styling */
-    .form-container {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
 
-    .form-group label {
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 6px;
-    }
-.formula-inputs input:focus{
-        border-color: #24968f;
-        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
-        outline: none;
-    }
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
 .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-        border-color: #97144d;
-        box-shadow: 0 0 0 2px rgba(151,20,77,0.15);
-        outline: none;
-    }
-.smprocessdata input:hover,
-    .smprocessdata select:hover,
-    .ohprofit input:hover,
-    .ohprofit select:hover,
-    .rowdata input:hover,
-    .rowdata select:hover,
-    .bomdata input:hover,
-    .bomdata select:hover{
-        border-color: #24968f;
-        box-shadow: 0 0 8px rgba(36, 150, 143, 0.3);
-        outline: none;
-    }
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #1f6fd2;
+    box-shadow: 0 0 0 2px rgba(31,111,210,0.15);
+    outline: none;
+}
 
-    /* Buttons */
-    .create-btn {
-        background: linear-gradient(135deg, #24968f, #006955);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-right: 10px;
-    }
+input:hover,
+select:hover {
+    border-color: #0fa3b1;
+}
 
-    .create-btn:hover {
-        background: linear-gradient(135deg, #006955, #004d40);
-        transform: translateY(-2px);
-    }
+#Editcsc:hover {
+    background: #eaf1fb;
+}
 
-    #Editcsc:hover{
-        background: linear-gradient(135deg, #c2e5df, #8cdbcd);
-        transform: translateY(-2px);
-    }
+#deletecsc:hover {
+    background: #fdeaea;
+}
 
-    #deletecsc:hover{
-        background: linear-gradient(135deg, #f7bebe, #eb9fa5);
-        transform: translateY(-2px);
-    }
+#showcsc:hover {
+    background: #e7f6fb;
+}
+.editable-field {
+    background-color: #ffffff;
+    border: 2px solid #1f6fd2;
+}
 
-    #showcsc:hover{
-        background: linear-gradient(135deg, #b1e7f5, #9fe6eb);
-        transform: translateY(-2px);
-    }
-
-    .cancel-btn {
-        background-color: #e4e4e4;
-        color: #333;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .cancel-btn:hover {
-        background-color: #cfcfcf;
-        transform: translateY(-2px);
-    }
-
-    .modal-footer .btn-primary {
-        background-color: #24968f;
-        border: none;
-    }
-.delete-modal-backdrop {
-        position: fixed;
-        inset:0;
-        background: rgba(0,0,0,0.4);
-        z-index: 1055;
-    }
-
-    .modal-footer .btn-primary:hover {
-        background-color: #006955;
-    }
-
-    .editable-field{
-        background-color: #ffffff;
-        border:2px solid #4caf50;
-    }
-
-    .editable-field:focus{
-        border-color:#2e7d32;
-        box-shadow: 0 0 3px rgba(46,125,50,0,6);
-    }
-
-make the al bg colors i mean theme is like blue and should been professional take reference as ashok leyland company website.
+.editable-field:focus {
+    border-color: #0b4da2;
+    box-shadow: 0 0 4px rgba(11,77,162,0.3);
+}
