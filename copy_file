@@ -1,30 +1,123 @@
-document.getElementById("rmSingleForm").addEventListener("submit", async e => {
-        e.preventDefault();
+let pendingCreatePayload = null;
 
-        const payload = {
-            category: document.querySelector('[name="category"]').value,
-            material_grade: document.querySelector('[name="material"]').value,
-            rm_rate: document.querySelector('[name="rm_rate"]').value,
-            scrap_rate: document.querySelector('[name="scrap_rate"]').value,
-            uom: document.querySelector('[name="uom"]').value,
-            effective_from: document.querySelector('[name="effective_from"]').value,
-            source: document.querySelector('[name="source"]').value,
-            remarks: document.querySelector('[name="remarks"]').value,
-            base: "RM"
-        };
+document.getElementById("rmSingleForm").addEventListener("submit", e => {
+    e.preventDefault();
 
-        const res = await fetch("/rm/create/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+    pendingCreatePayload = {
+        category: document.querySelector('[name="category"]').value,
+        material_grade: document.querySelector('[name="material"]').value,
+        rm_rate: document.querySelector('[name="rm_rate"]').value,
+        scrap_rate: document.querySelector('[name="scrap_rate"]').value,
+        uom: document.querySelector('[name="uom"]').value,
+        effective_from: document.querySelector('[name="effective_from"]').value,
+        source: document.querySelector('[name="source"]').value,
+        remarks: document.querySelector('[name="remarks"]').value,
+        base: "RM"
+    };
 
-        if (res.ok) {
-            toastr.success("RM Created");
-            e.target.reset();
-            loadRMList(rmCurrentPage);
-        } else {
-            toastr.error("Failed to create RM");
-        }
+    confirmAction("create"); // open modal
+});
+
+async function performRMCreate() {
+    if (!pendingCreatePayload) return;
+
+    const res = await fetch("/rm/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingCreatePayload)
     });
-how to call create as function because we didn't use function and also in pagination if more than 3 or 4 pages then show only dots don't show all page number i view by prev and next button for larger pages
+
+    if (res.ok) {
+        toastr.success("RM Created Successfully");
+        document.getElementById("rmSingleForm").reset();
+        loadRMList(rmCurrentPage);
+    } else {
+        toastr.error("Failed to create RM");
+    }
+
+    pendingCreatePayload = null;
+}
+
+document.getElementById("confirmYesBtn").addEventListener("click", async () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === "update") {
+        await performRMUpdate(pendingAction.btn);
+    }
+
+    if (pendingAction.type === "create") {
+        await performRMCreate();
+    }
+
+    $("#confirmModal").modal("hide");
+    pendingAction = null;
+});
+
+function renderRMPagination(totalCount) {
+    const totalPages = Math.ceil(totalCount / 15);
+    const pagination = document.querySelector("#rmList .pagination");
+
+    pagination.innerHTML = "";
+
+    const createPage = (page, label = page, active = false, disabled = false) => `
+        <li class="page-item ${active ? 'active' : ''} ${disabled ? 'disabled' : ''}">
+            <a class="page-link" onclick="${disabled ? '' : `loadRMList(${page})`}">
+                ${label}
+            </a>
+        </li>
+    `;
+
+    // Prev
+    pagination.innerHTML += createPage(
+        rmCurrentPage - 1,
+        "Prev",
+        false,
+        rmCurrentPage === 1
+    );
+
+    // Always show first page
+    pagination.innerHTML += createPage(1, 1, rmCurrentPage === 1);
+
+    // Left dots
+    if (rmCurrentPage > 4) {
+        pagination.innerHTML += `
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+        `;
+    }
+
+    // Middle pages
+    const start = Math.max(2, rmCurrentPage - 1);
+    const end = Math.min(totalPages - 1, rmCurrentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+        pagination.innerHTML += createPage(i, i, i === rmCurrentPage);
+    }
+
+    // Right dots
+    if (rmCurrentPage < totalPages - 3) {
+        pagination.innerHTML += `
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+        `;
+    }
+
+    // Always show last page (if more than one)
+    if (totalPages > 1) {
+        pagination.innerHTML += createPage(
+            totalPages,
+            totalPages,
+            rmCurrentPage === totalPages
+        );
+    }
+
+    // Next
+    pagination.innerHTML += createPage(
+        rmCurrentPage + 1,
+        "Next",
+        false,
+        rmCurrentPage === totalPages
+    );
+}
