@@ -1,366 +1,164 @@
-# urls.py
-
-path('excel_upload/oh_profit', views.ExcelUploadOhProfit.as_view()),
-
-# views.py
-
-class ExcelUploadOhProfit(generics.GenericAPIView):
-    parser_classes = ([MultiPartParser,])
-    @swagger_auto_schema(request_body=OhprofitSerializer)
-    def post(self, request):
-        # print('req: ', request, datetime.now())
-        serializer = OhprofitSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            ar_autocomplete_data = serializer.save()
-        except Exception as e:
-            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response('Success', status=status.HTTP_200_OK)
+# models.py
+class RMbase(models.Model):
+    category = models.CharField(max_length=100, null=True, blank=True)
+    material_grade = models.CharField(max_length=100, null=True, blank=True)
+    rm_rate = models.FloatField(default=0)
+    scrap_rate = models.FloatField(default=0)
+    uom = models.CharField(max_length=20, null=True, blank=True)
+    effective_from = models.DateField(null=True, blank=True)
+    source = models.CharField(max_length=100, null=True, blank=True)
+    remarks = models.CharField(max_length=255, null=True, blank=True)
+    base = models.CharField(max_length=50, null=True, blank=True)
+    updated_by = models.CharField(max_length=50, null=True, blank=True)
+    updated_on = models.DateTimeField(auto_now=True)
 
 # serializers.py
+class RMBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RMbase
+        fields = "__all__"
 
-class OhprofitSerializer(serializers.Serializer):
-    input_excel = serializers.FileField()
-    sheet_name = serializers.CharField()
-    effective_from = serializers.DateField(required=False)
-    source = serializers.CharField(required=False)
-    base = serializers.CharField(required=False)
-    remarks = serializers.CharField(required=False)
+# views.py
+from rest_framework import generics, status
+from rest_framework.response import Response
+from django.db import transaction
+import os
 
-    def clean_value(self, value):
-        if value is None:
-            return 0.0
-        if isinstance(value, (int, float)):
-            return float(value)
-        val = str(value).strip()
-        if val.endswith("%"):
-            return float(val.rstrip("%")) / 100   # convert % to decimal
-        return float(val)
-    def clean_base_value(self,value,int_flag):
-        if value is None and int_flag is True:
-            return 0
-        if value is None and int_flag is False:
-            return None
-        if isinstance(value,str):
-            value = value.replace("\xa0","").strip()
-            if value == "" and int_flag is False:
-                return None
-            if value == "" and int_flag is True:
-                return 0
-            try:
-                return float(value)
-            except:
-                return value
-        if isinstance(value,(int,float)):
-            # print('val',value)
-            if value == None and int_flag is True:
-                return 0
-            return value
-        return value
+class RMCreateAPIView(generics.CreateAPIView):
+    serializer_class = RMBaseSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(
+            updated_by=os.environ.get("USERNAME", "").lower()
+        )
 
 
-    def create(self, validated_data):
-        try:
-            excel_file = validated_data.pop("input_excel")
-            sheet_name = validated_data.pop("sheet_name")
+class RMListAPIView(generics.ListAPIView):
+    serializer_class = RMBaseSerializer
 
-            file_name = default_storage.save(excel_file.name, excel_file)
-            file_path = default_storage.path(file_name)
-
-            if file_path.lower().endswith(".csv"):
-                df = pd.read_csv(file_path)
-                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
-                df.to_excel(xlsx_path, index=False)
-                file_path = xlsx_path
-
-            book = load_workbook(file_path, data_only=True)
-            default_storage.delete(file_name)
-            # print('sheetname',book.sheetnames)
-            if sheet_name not in book.sheetnames:
-                raise serializers.ValidationError(
-                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
-                )
-
-            sheet = book[sheet_name]
-            rows = list(sheet.rows)
-
-            if not rows or len(rows) < 2:
-                raise serializers.ValidationError("Excel sheet is empty")
-            final_data = []
-            if sheet_name == "OH,Profit & Other Base":
-                for row in rows[1:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp = {
-                        "process_type": args[0],
-                        "icc_rm": self.clean_value(args[1]),
-                        "icc_conv": self.clean_value(args[2]),
-                        "icc_bof": self.clean_value(args[3]),
-                        "rej_rm": self.clean_value(args[4]),
-                        "rej_conv": self.clean_value(args[5]),
-                        "rej_bof": self.clean_value(args[6]),
-                        "inspection_rm": self.clean_value(args[7]),
-                        "inspection_conv": self.clean_value(args[8]),
-                        "inspection_bof": self.clean_value(args[9]),
-                        "tmc_rm": self.clean_value(args[10]),
-                        "tmc_conv": self.clean_value(args[11]),
-                        "tmc_bof": self.clean_value(args[12]),
-                        "design_cost_rm": self.clean_value(args[13]),
-                        "design_cost_conv": self.clean_value(args[14]),
-                        "design_cost_bof": self.clean_value(args[15]),
-                        "oh_rm": self.clean_value(args[16]),
-                        "oh_conv": self.clean_value(args[17]),
-                        "oh_bof": self.clean_value(args[18]),
-                        "profit_rm": self.clean_value(args[19]),
-                        "profit_conv": self.clean_value(args[20]),
-                        "profit_bof": self.clean_value(args[21]),
-                        "warranty_cost": self.clean_value(args[22]),
-                        "inbound_logistics": self.clean_value(args[23]),
-                        "effective_from": validated_data["effective_from"],
-                        "source": validated_data["source"],
-                        "base": validated_data["base"],
-                        "remarks": validated_data["remarks"],
-                        "updated_by": os.environ.get("USERNAME", "").lower(),
-                    }
-
-                    final_data.append(temp)
-
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        OH_ProfitData.objects.create(**item)
-
-            if sheet_name == "RM Base":
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "category": self.clean_base_value(args[2],False),
-                        "material_grade": self.clean_base_value(args[3],False),
-                        "rm_rate": self.clean_base_value(args[4],True),
-                        "scrap_rate": self.clean_base_value(args[10],True),
-                        "uom": self.clean_base_value(args[5],False),
-                        "updated_on":self.clean_base_value(args[8],False),
-                        "effective_from":self.clean_base_value(args[7],False),
-                        "source": self.clean_base_value(args[6],False),
-                        "remarks":self.clean_base_value(args[9],False),
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        RMbase.objects.create(**item)
-
-            if sheet_name == 'Process Base':
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "process_category": self.clean_base_value(args[2],False),
-                        "process_description": self.clean_base_value(args[3],False),
-                        "norms": self.clean_base_value(args[5],True),
-                        "uom": self.clean_base_value(args[6],False),
-                        "updated_on":self.clean_base_value(args[9],False),
-                        "effective_from":self.clean_base_value(args[8],False),
-                        "source": self.clean_base_value(args[7],False),
-                        "remarks":validated_data["remarks"],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                # print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        Processbase.objects.create(**item)
-
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
-            }
-
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
-
-# ui
-
-<div class="tab-pane fade" id="rmmaster">
-                <div class="card">
-                    <div class="card-header fw-bold">
-                        RM Master
-                    </div>
-
-                    <div class="card-body">
-
-                        <!-- Tabs -->
-                        <ul class="nav nav-tabs" id="rmTab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-toggle="tab" href="#rmbulkUpload">
-                                    Bulk Upload
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-toggle="tab" href="#rmsingleUpload">
-                                    Single Upload
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-toggle="tab" href="#rmList">
-                                    RM List
-                                </a>
-                            </li>
-                        </ul>
+    def get_queryset(self):
+        return RMbase.objects.all().order_by("-updated_on")
 
 
-                    <div class="tab-content mt-3">
-                        <div class="tab-pane fade show active" id="rmbulkUpload">
-                            <div class="card p-3">
-                                <form method="post" enctype="multipart/form-data">
-                                    <div class="row">
+class RMUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = RMBaseSerializer
+    queryset = RMbase.objects.all()
+    lookup_field = "id"
 
-                                        <div class="col-md-4">
-                                            <label>Upload File</label>
-                                            <input type="file" class="form-control" accept=".xlsx,.csv">
-                                        </div>
+# urls.py
+urlpatterns = [
+    path('excel_upload/oh_profit', views.ExcelUploadOhProfit.as_view()),
 
-                                        <div class="col-md-3">
-                                            <label>Sheet Name</label>
-                                            <input type="text" class="form-control" value="RM Base">
-                                        </div>
+    path('rm/create/', views.RMCreateAPIView.as_view()),
+    path('rm/list/', views.RMListAPIView.as_view()),
+    path('rm/update/<int:id>/', views.RMUpdateAPIView.as_view()),
+]
 
-                                        <div class="col-md-3">
-                                            <label>Effective From</label>
-                                            <input type="date" class="form-control">
-                                        </div>
+<form id="rmBulkUploadForm" enctype="multipart/form-data">
 
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button class="btn btn-primary w-100">
-                                                Upload
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+document.getElementById("rmBulkUploadForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("input_excel", document.querySelector('input[type="file"]').files[0]);
+    formData.append("sheet_name", "RM Base");
+    formData.append("effective_from", document.querySelector('input[type="date"]').value);
+    formData.append("base", "RM");
+    formData.append("remarks", "Bulk Upload");
+
+    const res = await fetch("/excel_upload/oh_profit", {
+        method: "POST",
+        body: formData
+    });
+
+    if (res.ok) {
+        toastr.success("RM Bulk Upload Success");
+        loadRMList();
+    } else {
+        toastr.error("Upload failed");
+    }
+});
+
+<form id="rmSingleForm">
+
+document.getElementById("rmSingleForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const payload = {
+        category: document.querySelector('[name="category"]').value,
+        material_grade: document.querySelector('[name="material"]').value,
+        rm_rate: document.querySelector('[name="rm_rate"]').value,
+        scrap_rate: document.querySelector('[name="scrap_rate"]').value,
+        uom: document.querySelector('[name="uom"]').value,
+        effective_from: document.querySelector('[name="effective_from"]').value,
+        source: document.querySelector('[name="source"]').value,
+        remarks: document.querySelector('[name="remarks"]').value,
+        base: "RM"
+    };
+
+    const res = await fetch("/rm/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+        toastr.success("RM Created");
+        e.target.reset();
+        loadRMList();
+    } else {
+        toastr.error("Failed to create RM");
+    }
+});
+
+async function loadRMList() {
+    const res = await fetch("/rm/list/");
+    const data = await res.json();
+
+    const tbody = document.querySelector("#rmList tbody");
+    tbody.innerHTML = "";
+
+    data.forEach(item => {
+        tbody.innerHTML += `
+            <tr data-id="${item.id}">
+                <td contenteditable>${item.category || ""}</td>
+                <td contenteditable>${item.material_grade || ""}</td>
+                <td contenteditable>${item.rm_rate}</td>
+                <td contenteditable>${item.scrap_rate}</td>
+                <td contenteditable>${item.uom || ""}</td>
+                <td>${item.effective_from || ""}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="updateRM(this)">Update</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+loadRMList();
 
 
-                    <div class="tab-pane fade" id="rmsingleUpload">
-                        <div class="card p-3">
-                            <form>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label>Category</label>
-                                        <input type="text" class="form-control">
-                                    </div>
+async function updateRM(btn) {
+    const row = btn.closest("tr");
+    const id = row.dataset.id;
 
-                                    <div class="col-md-3">
-                                        <label>Material Grade</label>
-                                        <input type="text" class="form-control">
-                                    </div>
+    const payload = {
+        category: row.children[0].innerText.trim(),
+        material_grade: row.children[1].innerText.trim(),
+        rm_rate: row.children[2].innerText.trim(),
+        scrap_rate: row.children[3].innerText.trim(),
+        uom: row.children[4].innerText.trim(),
+    };
 
-                                    <div class="col-md-2">
-                                        <label>RM Rate</label>
-                                        <input type="number" class="form-control">
-                                    </div>
+    const res = await fetch(`/rm/update/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
 
-                                    <div class="col-md-2">
-                                        <label>Scrap Rate</label>
-                                        <input type="number" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>UOM</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                </div>
-
-                                <div class="row mt-3">
-
-                                    <div class="col-md-3">
-                                        <label>Effective From</label>
-                                        <input type="date" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Source</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label>Remarks</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button class="btn btn-primary w-100">
-                                            Save
-                                        </button>
-                                    </div>
-
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-
-                    <div class="tab-pane fade" id="rmList">
-                        <div class="card p-3 table-responsive">
-                            <table class="table table-bordered table-sm align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Material Grade</th>
-                                        <th>RM Rate</th>
-                                        <th>Scrap Rate</th>
-                                        <th>UOM</th>
-                                        <th>Effective From</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr>
-                                        <td contenteditable="true">Steel</td>
-                                        <td contenteditable="true">CRCA</td>
-                                        <td contenteditable="true">75.20</td>
-                                        <td contenteditable="true">12.50</td>
-                                        <td contenteditable="true">KG</td>
-                                        <td>2024-01-01</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">Update</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <!-- Pagination -->
-                            <nav class="mt-2">
-                                <ul class="pagination pagination-sm justify-content-end">
-                                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
-                                    <li class="page-item active"><a class="page-link">1</a></li>
-                                    <li class="page-item"><a class="page-link">2</a></li>
-                                    <li class="page-item"><a class="page-link">Next</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-            </div>
-
-can you give the rm master api integration code i have bulk upload api so give also single upload and list and update api's and also ui api integration code
+    if (res.ok) {
+        toastr.success("RM Updated");
+    } else {
+        toastr.error("Update failed");
+    }
+}
