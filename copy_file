@@ -1,155 +1,493 @@
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f4f6f9;
-    overflow: hidden;
-}
-#nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 64px;
-    background: linear-gradient(90deg, #0b4da2, #1f6fd2);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        /* background: linear-gradient(135deg, #f4f6f7, #e9ecef); */
+         background: #f4f5f7;
+        overflow: hidden; /* prevent body scroll */
 
-.navbar-brand {
-    font-size: 22px;
-    font-weight: 700;
-    color: #ffffff !important;
-}
+    }
 
-.navbar-nav .nav-link {
-    color: #eaf1fb !important;
-    font-size: 15px;
-    margin-right: 18px;
-}
+    #nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 64px;
+        background: linear-gradient(90deg, #0b4da2, #1f6fd2);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+    }
 
-.navbar-nav .nav-link:hover {
-    color: #0fa3b1 !important;
-    text-decoration: none;
-}
-.col-12 {
-    position: absolute;
-    top: 64px;
-    left: 0;
-    width: 100%;
-    height: calc(100vh - 64px);
+#nav-home-tab{
     background: #ffffff;
-    padding: 20px 24px;
-    box-shadow: inset 0 1px 0 #e1e6ef;
-    overflow: hidden;
-}
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
+    padding: 10px 20px;
 }
 
-.table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: #0b4da2;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 10px;
-}
+    .navbar-brand {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: 0.5px;
+    }
+    .navbar-nav .nav-link {
+        color: #ffffff !important;
+        font-size: 15px;
+        margin-right: 18px;
+        opacity: 0.9;
+    }
+    .navbar-nav .nav-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+        color: #0fa3b1 !important;
+    }
 
-tr:nth-child(even) {
-    background-color: #f7f9fc;
-}
+    .col-12 {
+        position: absolute;
+        top: 64px;                 /* below header */
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 64px);
+        background: #ffffff;
+        padding: 20px 24px;
+        box-shadow: inset 0 1px 0 #e5e5e5;
 
-tr:hover {
-    background-color: #eaf1fb;
-}
-button,
-.btn-primary {
-    background: linear-gradient(135deg, #0b4da2, #1f6fd2);
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 8px 16px;
-    transition: all 0.2s ease;
-}
+        /* ✅ allow page scroll below navbar */
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch; /* smooth scroll on mobile */
+    }
 
-button:hover,
-.btn-primary:hover {
-    background: #083c80;
-    transform: translateY(-1px);
-}
+    /* Scroll only the user list table area */
+    .user-table-scroll {
+        max-height: 320px;     /* adjust as you like */
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
 
-.btn-secondary {
-    background: #6c757d;
-    color: #ffffff;
-}
-
-.btn-danger {
-    background: #d32f2f;
-}
-.modal-content {
-    border-radius: 10px;
-    box-shadow: 0 10px 22px rgba(0,0,0,0.18);
-    background-color: #ffffff;
-}
-
-.modal-header {
-    background: linear-gradient(90deg, #0b4da2, #1f6fd2);
-    color: #ffffff;
-    border-bottom: none;
-}
-
-.modal-body {
-    padding: 20px;
-    background-color: #f4f6f9;
-}
+    /* Optional: sticky header while scrolling */
+    .user-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;   /* same as table-light */
+        z-index: 2;
+    }
 
 
-.form-group label {
-    font-weight: 600;
-    color: #2c3e50;
-}
+    /* Responsive */
+    @media (max-width: 768px) {
+        .col-12 {
+            padding: 12px;
+        }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    border-color: #1f6fd2;
-    box-shadow: 0 0 0 2px rgba(31,111,210,0.15);
-    outline: none;
-}
+        .user-table-scroll {
+            max-height: 240px; /* smaller screen */
+        }
 
-input:hover,
-select:hover {
-    border-color: #0fa3b1;
-}
+        table {
+            font-size: 12px;
+        }
+    }
 
-#Editcsc:hover {
-    background: #eaf1fb;
-}
+</style>
+</head>
 
-#deletecsc:hover {
-    background: #fdeaea;
-}
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
 
-#showcsc:hover {
-    background: #e7f6fb;
-}
-.editable-field {
-    background-color: #ffffff;
-    border: 2px solid #1f6fd2;
-}
+        <!-- Hamburger -->
+        <button class="navbar-toggler" type="button"
+            data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-.editable-field:focus {
-    border-color: #0b4da2;
-    box-shadow: 0 0 4px rgba(11,77,162,0.3);
-}
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="container-fluid">
+                <div class="row w-100 align-items-center">
+
+                    <!-- LEFT: Logo + Links -->
+                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
+                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
+                        <nav class="navbar p-0">
+                            <ul class="navbar-nav flex-row align-items-center">
+                                <li class="nav-item mr-3">
+                                    <a class="nav-link active" href="/home">Home</a>
+                                </li>
+                                <li class="nav-item mr-3">
+                                    <a class="nav-link" href="/mycsc">CSC</a>
+                                </li>
+
+                                <!-- Dropdown -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle"
+                                        href="#"
+                                        id="navDropdown"
+                                        role="button"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                        Admin
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="navDropdown">
+                                        <a class="dropdown-item" href="/admin">User Access</a>
+                                        <a class="dropdown-item" href="/rm_master">RM Master</a>
+                                        <a class="dropdown-item" href="/process_master">Process Master</a>
+                                        <a class="dropdown-item" href="/ohprofit_master">Oh & Profit Master</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </nav>
+
+                    </div>
+
+                    <!-- CENTER: Title -->
+                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
+                        KMC – Sheet Metal Costing
+                    </div>
+
+                    <!-- RIGHT: Logo -->
+                    <div class="ml-auto">
+                        <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="250">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid h-100">
+    <div class="row h-100">
+        <div class="col-12" style="text-align: justify;">
+
+            <!-- User Access Management Card -->
+            <div class="card  mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                    <span class="fw-bold">User Access Management</span>
+                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createUserModal">+ Create User</button>
+                </div>
+
+                <div class="card-body table-responsive">
+                    <table class="table table-hover align-middle" id="userTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User Name</th>
+                                <th>Email</th>
+                                <th>Access Levels</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Users will be loaded via API -->
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <nav class="mt-3">
+                        <ul class="pagination justify-content-center" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Permission Matrix Card -->
+            <div class="card">
+                <div class="card-header fw-bold">
+                    Access Level – Permission Matrix
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-striped text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Access Level</th>
+                                <th>View CSC</th>
+                                <th>Download</th>
+                                <th>Create CSC</th>
+                                <th>Edit WIP</th>
+                                <th>Review</th>
+                                <th>Approve</th>
+                                <th>Admin Pages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>View</b></td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Download</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Edit</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>Own CSC</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Review</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✖</td>
+                            </tr>
+                            <tr>
+                                <td><b>Admin</b></td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                                <td>✔</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <!-- bigger modal -->
+        <div class="modal-content border-primary">
+            <div class="modal-header text-white" style="background: linear-gradient(90deg, #0b4da2, #1f6fd2);">
+                <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="userName">User Name</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="userEmail">Email</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userAccess">Access Levels</label>
+                        <select class="form-control" id="userAccess" multiple>
+                            <option value="View">View</option>
+                            <option value="Download">Download</option>
+                            <option value="Edit">Edit</option>
+                            <option value="Review">Review</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <button type="submit" class="btn float-right text-white" style="background: linear-gradient(90deg, #0b4da2, #1f6fd2);">Create User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiBase = '/users/';
+    const rowsPerPage = 5; // 5 users per page
+    let users = [];
+    let currentPage = 1;
+
+    // Fetch users
+    async function fetchUsers() {
+        try {
+            const res = await fetch(apiBase);
+            users = await res.json();
+            renderTable();
+        } catch (err) {
+            toastr.error('Failed to fetch users');
+            console.error(err);
+        }
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('userTableBody');
+        tableBody.innerHTML = '';
+
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        const paginatedUsers = users.slice(start, end);
+
+        paginatedUsers.forEach((user, idx) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="userName">${user.username}</td>
+                <td class="userEmail">${user.email}</td>
+                <td class="userAccess">${(user.access_level || []).map(a=>`<span class="badge badge-info mr-1">${a}</span>`).join('')}</td>
+                <td class="userStatus"><span class="badge ${user.is_active?'badge-success':'badge-secondary'}">${user.is_active?'Active':'Inactive'}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-warning editBtn">✎</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        renderPagination();
+        addEditListeners();
+    }
+
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(users.length / rowsPerPage);
+
+        // Prev button
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage===1?'disabled':''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#">Prev</a>`;
+        prevLi.addEventListener('click', e=>{
+            e.preventDefault();
+            if(currentPage>1){ currentPage--; renderTable(); }
+        });
+        pagination.appendChild(prevLi);
+
+        // Page numbers
+        for(let i=1;i<=totalPages;i++){
+            const li = document.createElement('li');
+            li.className = `page-item ${i===currentPage?'active':''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            li.addEventListener('click', e=>{
+                e.preventDefault();
+                currentPage=i;
+                renderTable();
+            });
+            pagination.appendChild(li);
+        }
+
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage===totalPages?'disabled':''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#">Next</a>`;
+        nextLi.addEventListener('click', e=>{
+            e.preventDefault();
+            if(currentPage<totalPages){ currentPage++; renderTable(); }
+        });
+        pagination.appendChild(nextLi);
+    }
+
+    // Inline edit
+    function addEditListeners() {
+        document.querySelectorAll('.editBtn').forEach((btn, idx)=>{
+            btn.addEventListener('click', ()=>{
+                const rowIndex = (currentPage-1)*rowsPerPage + idx;
+                const user = users[rowIndex];
+                const row = btn.closest('tr');
+
+                row.querySelector('.userName').innerHTML = `<input type="text" class="form-control form-control-sm" value="${user.username}">`;
+                row.querySelector('.userEmail').innerHTML = `<input type="email" class="form-control form-control-sm" value="${user.email}">`;
+                row.querySelector('.userAccess').innerHTML = `
+                    <select class="form-control form-control-sm" multiple>
+                        ${['View','Download','Edit','Review','Admin'].map(a=>`<option value="${a}" ${user.access_level?.includes(a)?'selected':''}>${a}</option>`).join('')}
+                    </select>
+                `;
+                row.querySelector('.userStatus').innerHTML = `
+                    <select class="form-control form-control-sm">
+                        <option value="true" ${user.is_active?'selected':''}>Active</option>
+                        <option value="false" ${!user.is_active?'selected':''}>Inactive</option>
+                    </select>
+                `;
+                btn.parentElement.innerHTML = `
+                    <button class="btn btn-sm btn-success saveBtn mr-1">✔</button>
+                    <button class="btn btn-sm btn-danger cancelBtn">❌</button>
+                `;
+
+                // Save
+                row.querySelector('.saveBtn').addEventListener('click', async ()=>{
+                    const payload = {
+                        username: row.querySelector('.userName input').value,
+                        email: row.querySelector('.userEmail input').value,
+                        access_level: Array.from(row.querySelector('.userAccess select').selectedOptions).map(o=>o.value),
+                        is_active: row.querySelector('.userStatus select').value==='true'
+                    };
+                    try {
+                        const res = await fetch(`${apiBase}update/${user.id}/`, {
+                            method: 'PATCH',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify(payload)
+                        });
+                        if(res.ok){
+                            toastr.success('User updated successfully');
+                        } else {
+                            toastr.error('Failed to update user');
+                        }
+                        fetchUsers();
+                    } catch(err){
+                        toastr.error('Error updating user');
+                        console.error(err);
+                    }
+                });
+
+                // Cancel
+                row.querySelector('.cancelBtn').addEventListener('click', fetchUsers);
+            });
+        });
+    }
+
+    // Create user
+    document.getElementById('createUserForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const payload = {
+            username: document.getElementById('userName').value,
+            email: document.getElementById('userEmail').value,
+            access_level: Array.from(document.getElementById('userAccess').selectedOptions).map(o=>o.value),
+            is_active: true
+        };
+        try {
+            const res = await fetch(`${apiBase}create/`, {
+                method: 'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if(res.ok){
+                toastr.success('User created successfully');
+            } else {
+                toastr.error('Failed to create user');
+            }
+            document.getElementById('createUserForm').reset();
+            $('#createUserModal').modal('hide'); // Bootstrap 4
+            fetchUsers();
+        } catch(err){
+            toastr.error('Error creating user');
+            console.error(err);
+        }
+    });
+
+    // Initial load
+    fetchUsers();
+</script>
+
+</body>
+can you give the filter option for user access management table for search user
