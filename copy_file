@@ -1,124 +1,32 @@
-# models.py
-class RMbase(models.Model):
-    category = models.CharField(max_length=100, null=True, blank=True)
-    material_grade = models.CharField(max_length=100, null=True, blank=True)
-    rm_rate = models.FloatField(default=0)
-    scrap_rate = models.FloatField(default=0)
-    uom = models.CharField(max_length=20, null=True, blank=True)
-    effective_from = models.DateField(null=True, blank=True)
-    source = models.CharField(max_length=100, null=True, blank=True)
-    remarks = models.CharField(max_length=255, null=True, blank=True)
-    base = models.CharField(max_length=50, null=True, blank=True)
-    updated_by = models.CharField(max_length=50, null=True, blank=True)
-    updated_on = models.DateTimeField(auto_now=True)
+# pagination.py
+from rest_framework.pagination import PageNumberPagination
 
-# serializers.py
-class RMBaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RMbase
-        fields = "__all__"
+class StandardResultsPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 
-# views.py
-from rest_framework import generics, status
-from rest_framework.response import Response
-from django.db import transaction
-import os
-
-class RMCreateAPIView(generics.CreateAPIView):
-    serializer_class = RMBaseSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(
-            updated_by=os.environ.get("USERNAME", "").lower()
-        )
-
+from .pagination import StandardResultsPagination
 
 class RMListAPIView(generics.ListAPIView):
     serializer_class = RMBaseSerializer
+    pagination_class = StandardResultsPagination
 
     def get_queryset(self):
         return RMbase.objects.all().order_by("-updated_on")
 
+let rmCurrentPage = 1;
 
-class RMUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = RMBaseSerializer
-    queryset = RMbase.objects.all()
-    lookup_field = "id"
+async function loadRMList(page = 1) {
+    rmCurrentPage = page;
 
-# urls.py
-urlpatterns = [
-    path('excel_upload/oh_profit', views.ExcelUploadOhProfit.as_view()),
-
-    path('rm/create/', views.RMCreateAPIView.as_view()),
-    path('rm/list/', views.RMListAPIView.as_view()),
-    path('rm/update/<int:id>/', views.RMUpdateAPIView.as_view()),
-]
-
-<form id="rmBulkUploadForm" enctype="multipart/form-data">
-
-document.getElementById("rmBulkUploadForm").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("input_excel", document.querySelector('input[type="file"]').files[0]);
-    formData.append("sheet_name", "RM Base");
-    formData.append("effective_from", document.querySelector('input[type="date"]').value);
-    formData.append("base", "RM");
-    formData.append("remarks", "Bulk Upload");
-
-    const res = await fetch("/excel_upload/oh_profit", {
-        method: "POST",
-        body: formData
-    });
-
-    if (res.ok) {
-        toastr.success("RM Bulk Upload Success");
-        loadRMList();
-    } else {
-        toastr.error("Upload failed");
-    }
-});
-
-<form id="rmSingleForm">
-
-document.getElementById("rmSingleForm").addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const payload = {
-        category: document.querySelector('[name="category"]').value,
-        material_grade: document.querySelector('[name="material"]').value,
-        rm_rate: document.querySelector('[name="rm_rate"]').value,
-        scrap_rate: document.querySelector('[name="scrap_rate"]').value,
-        uom: document.querySelector('[name="uom"]').value,
-        effective_from: document.querySelector('[name="effective_from"]').value,
-        source: document.querySelector('[name="source"]').value,
-        remarks: document.querySelector('[name="remarks"]').value,
-        base: "RM"
-    };
-
-    const res = await fetch("/rm/create/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-        toastr.success("RM Created");
-        e.target.reset();
-        loadRMList();
-    } else {
-        toastr.error("Failed to create RM");
-    }
-});
-
-async function loadRMList() {
-    const res = await fetch("/rm/list/");
+    const res = await fetch(`/rm/list/?page=${page}`);
     const data = await res.json();
 
     const tbody = document.querySelector("#rmList tbody");
     tbody.innerHTML = "";
 
-    data.forEach(item => {
+    data.results.forEach(item => {
         tbody.innerHTML += `
             <tr data-id="${item.id}">
                 <td contenteditable>${item.category || ""}</td>
@@ -128,17 +36,97 @@ async function loadRMList() {
                 <td contenteditable>${item.uom || ""}</td>
                 <td>${item.effective_from || ""}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="updateRM(this)">Update</button>
+                    <button class="btn btn-sm btn-primary"
+                        onclick="confirmAction('update', ${item.id}, this)">
+                        Update
+                    </button>
                 </td>
             </tr>
         `;
     });
+
+    renderRMPagination(data.count);
 }
 
-loadRMList();
+function renderRMPagination(totalCount) {
+    const totalPages = Math.ceil(totalCount / 15);
+    const pagination = document.querySelector("#rmList .pagination");
+
+    pagination.innerHTML = "";
+
+    pagination.innerHTML += `
+        <li class="page-item ${rmCurrentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" onclick="loadRMList(${rmCurrentPage - 1})">Prev</a>
+        </li>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.innerHTML += `
+            <li class="page-item ${i === rmCurrentPage ? 'active' : ''}">
+                <a class="page-link" onclick="loadRMList(${i})">${i}</a>
+            </li>
+        `;
+    }
+
+    pagination.innerHTML += `
+        <li class="page-item ${rmCurrentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" onclick="loadRMList(${rmCurrentPage + 1})">Next</a>
+        </li>
+    `;
+}
+
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="confirmTitle">Confirm Action</h5>
+        <button class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="confirmMessage">
+        Are you sure?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="confirmYesBtn">Yes</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+let pendingAction = null;
+
+function confirmAction(type, id = null, btn = null) {
+    pendingAction = { type, id, btn };
+
+    document.getElementById("confirmTitle").innerText =
+        type === "update" ? "Confirm Update" : "Confirm Action";
+
+    document.getElementById("confirmMessage").innerText =
+        type === "update"
+        ? "Are you sure you want to update this RM record?"
+        : "Are you sure you want to proceed?";
+
+    $("#confirmModal").modal("show");
+}
 
 
-async function updateRM(btn) {
+document.getElementById("confirmYesBtn").addEventListener("click", async () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === "update") {
+        await performRMUpdate(pendingAction.btn);
+    }
+
+    $("#confirmModal").modal("hide");
+    pendingAction = null;
+});
+
+
+async function performRMUpdate(btn) {
     const row = btn.closest("tr");
     const id = row.dataset.id;
 
@@ -157,8 +145,25 @@ async function updateRM(btn) {
     });
 
     if (res.ok) {
-        toastr.success("RM Updated");
+        toastr.success("RM Updated Successfully");
+        loadRMList(rmCurrentPage);
     } else {
         toastr.error("Update failed");
     }
+}
+
+
+<button class="btn btn-primary w-100"
+    onclick="confirmAction('create')">
+    Save
+</button>
+
+
+async function performRMCreate() {
+    // same payload logic as earlier create
+}
+
+
+if (pendingAction.type === "create") {
+    await performRMCreate();
 }
