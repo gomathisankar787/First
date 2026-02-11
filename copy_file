@@ -1,212 +1,193 @@
-path('process/create/', views.ProcessCreateAPIView.as_view()),
-path('process/list/', views.ProcessListAPIView.as_view()),
-path('process/update/<int:id>/', views.ProcessUpdateAPIView.as_view()),
+<div class="tab-pane fade show active" id="ohbulkUpload">
+                        <div class="card p-3">
+                            <form method="post" enctype="multipart/form-data">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label>Upload File</label>
+                                        <input type="file" class="form-control" accept=".xlsx,.csv">
+                                    </div>
 
-class ProcessCreateAPIView(generics.CreateAPIView):
-    serializer_class = ProcessBaseSerializer
+                                    <div class="col-md-3">
+                                        <label>Sheet Name</label>
+                                        <input type="text" class="form-control" value="Oh Profit Base">
+                                    </div>
 
-    def perform_create(self, serializer):
-        serializer.save(
-            updated_by=os.environ.get("USERNAME", "").lower()
-        )
+                                    <div class="col-md-3">
+                                        <label>Effective From</label>
+                                        <input type="date" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button class="btn btn-primary w-100">
+                                            Upload
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="ohsingleUpload">
+                        <div class="card p-3 table-responsive">
+                            <form method="post">
+                                <table class="table table-bordered table-sm align-middle">
+                                    <thead class="table-light text-center">
+                                        <tr>
+                                            <th rowspan="2">Process Type</th>
+
+                                            <th colspan="3">ICC</th>
+                                            <th colspan="3">Rejection</th>
+                                            <th colspan="3">Inspection</th>
+                                            <th colspan="3">TMC</th>
+                                            <th colspan="3">Design Cost</th>
+                                            <th colspan="3">Over Head</th>
+                                            <th colspan="3">Profit</th>
+
+                                            <th rowspan="2">Warranty Cost</th>
+                                            <th rowspan="2">Inbound Logistics</th>
+                                            <th rowspan="2">Actions</th>
+                                        </tr>
+                                        <tr>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                            <th>RM</th><th>Conv</th><th>BOF</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm"
+                                                    name="process_type">
+                                            </td>
+
+                                            <!-- ICC -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="icc_bof"></td>
+
+                                            <!-- Rejection -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="rej_bof"></td>
+
+                                            <!-- Inspection -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="inspection_bof"></td>
+
+                                            <!-- TMC -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="tmc_bof"></td>
+
+                                            <!-- Design Cost -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="design_cost_bof"></td>
+
+                                            <!-- Over Head -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="oh_bof"></td>
+
+                                            <!-- Profit -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_rm"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_conv"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="profit_bof"></td>
+
+                                            <!-- Other -->
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="warranty_cost"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="inbound_logistics"></td>
+
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-primary">Save</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                        </div>
+                    </div>
 
 
-class ProcessListAPIView(generics.ListAPIView):
-    serializer_class = ProcessBaseSerializer
-    pagination_class = StandardResultsPagination
+                    <div class="tab-pane fade" id="ohList">
+                        <div class="card p-3 table-responsive">
+                            <table class="table table-bordered table-sm align-middle">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th rowspan="2">Process Type</th>
 
-    def get_queryset(self):
-        return Processbase.objects.all().order_by("-updated_on")
+                                        <th colspan="3">ICC</th>
+                                        <th colspan="3">Rejection</th>
+                                        <th colspan="3">Inspection</th>
+                                        <th colspan="3">TMC</th>
+                                        <th colspan="3">Design Cost</th>
+                                        <th colspan="3">Over Head</th>
+                                        <th colspan="3">Profit</th>
 
+                                        <th rowspan="2">Warranty Cost</th>
+                                        <th rowspan="2">Inbound Logistics</th>
+                                        <th rowspan="2">Actions</th>
+                                    </tr>
+                                    <tr>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                        <th>RM</th><th>Conv</th><th>BOF</th>
+                                    </tr>
+                                </thead>
 
-class ProcessUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = ProcessBaseSerializer
-    queryset = Processbase.objects.all()
-    lookup_field = "id"
+                                <tbody>
+                                    <tr>
+                                        <td contenteditable="true">Sheet metal-A</td>
+                                        <td contenteditable="true">12.12</td>
+                                        <td contenteditable="true">75.20</td>
+                                        <td contenteditable="true">12.50</td>
+                                        <td contenteditable="true">43.2</td>
+                                        <td contenteditable="true">43.2</td>
+                                        <td contenteditable="true">43.2</td>
+                                        <td contenteditable="true">3.2</td>
+                                        <td contenteditable="true">13.5</td>
+                                        <td contenteditable="true">4.3</td>
+                                        <td contenteditable="true">4.3</td>
+                                        <td contenteditable="true">4.35</td>
+                                        <td contenteditable="true">0.43</td>
+                                        <td contenteditable="true">1.43</td>
+                                        <td contenteditable="true">2.43</td>
+                                        <td contenteditable="true">0.4</td>
+                                        <td contenteditable="true">40.2</td>
+                                        <td contenteditable="true">43.01</td>
+                                        <td contenteditable="true">0.33</td>
+                                        <td contenteditable="true">7.3</td>
+                                        <td contenteditable="true">4.42</td>
+                                        <td contenteditable="true">6.39</td>
+                                        <td contenteditable="true">7.433</td>
+                                        <td contenteditable="true">9.3</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Update</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-class ProcessBaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Processbase
-        fields = "__all__"
-        extra_kwargs = {
-            'updated_by': {'required': False}
-        }
-
-<form id="processBulkUploadForm" method="post" enctype="multipart/form-data">
-
-document.getElementById("processBulkUploadForm")
-.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const form = e.target;
-
-    const formData = new FormData();
-    formData.append("input_excel", form.querySelector('input[type="file"]').files[0]);
-    formData.append("sheet_name", "Process Base");
-    formData.append("effective_from", form.querySelector('input[type="date"]').value);
-    formData.append("base", "PROCESS");
-    formData.append("remarks", "Bulk Upload");
-
-    const res = await fetch("/excel_upload/oh_profit", {
-        method: "POST",
-        body: formData
-    });
-
-    if (res.ok) {
-        toastr.success("Process Bulk Upload Success");
-        loadProcessList();
-    } else {
-        toastr.error("Upload failed");
-    }
-});
-
-<form id="processSingleForm">
-
-let pendingProcessCreatePayload = null;
-
-document.getElementById("processSingleForm")
-.addEventListener("submit", e => {
-    e.preventDefault();
-
-    const form = e.target;
-
-    pendingProcessCreatePayload = {
-        process_category: form.children[0].querySelectorAll("input")[0].value,
-        process_description: form.children[0].querySelectorAll("input")[1].value,
-        norms: form.children[0].querySelectorAll("input")[2].value,
-        uom: form.children[0].querySelectorAll("input")[3].value,
-        effective_from: form.children[1].querySelectorAll("input")[0].value,
-        source: form.children[1].querySelectorAll("input")[1].value,
-        remarks: form.children[1].querySelectorAll("input")[2].value,
-        base: "PROCESS"
-    };
-
-    confirmProcessAction("create");
-});
-
-async function performProcessCreate() {
-    if (!pendingProcessCreatePayload) return;
-
-    const res = await fetch("/process/create/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingProcessCreatePayload)
-    });
-
-    if (res.ok) {
-        toastr.success("Process Created Successfully");
-        document.getElementById("processSingleForm").reset();
-        loadProcessList(processCurrentPage);
-    } else {
-        toastr.error("Failed to create Process");
-    }
-
-    pendingProcessCreatePayload = null;
-}
-
-let processCurrentPage = 1;
-
-async function loadProcessList(page = 1) {
-    processCurrentPage = page;
-
-    const res = await fetch(`/process/list/?page=${page}`);
-    const data = await res.json();
-
-    const tbody = document.querySelector("#prList tbody");
-    tbody.innerHTML = "";
-
-    data.results.forEach(item => {
-        tbody.innerHTML += `
-            <tr data-id="${item.id}">
-                <td contenteditable>${item.process_category || ""}</td>
-                <td contenteditable>${item.process_description || ""}</td>
-                <td contenteditable>${item.norms || ""}</td>
-                <td contenteditable>${item.uom || ""}</td>
-                <td contenteditable>${item.source || ""}</td>
-                <td>${item.effective_from || ""}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary"
-                        onclick="confirmProcessAction('update', ${item.id}, this)">
-                        Update
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    renderProcessPagination(data.count);
-}
-
-function renderProcessPagination(totalCount) {
-    const totalPages = Math.ceil(totalCount / 15);
-    const pagination = document.querySelector("#prList .pagination");
-
-    pagination.innerHTML = "";
-
-    for (let i = 1; i <= totalPages; i++) {
-        pagination.innerHTML += `
-            <li class="page-item ${i === processCurrentPage ? 'active' : ''}">
-                <a class="page-link" onclick="loadProcessList(${i})">${i}</a>
-            </li>
-        `;
-    }
-}
-
-async function updateProcess(btn) {
-    const row = btn.closest("tr");
-    const id = row.dataset.id;
-
-    const payload = {
-        process_category: row.children[0].innerText.trim(),
-        process_description: row.children[1].innerText.trim(),
-        norms: row.children[2].innerText.trim(),
-        uom: row.children[3].innerText.trim(),
-        source: row.children[4].innerText.trim(),
-    };
-
-    const res = await fetch(`/process/update/${id}/`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-        toastr.success("Process Updated");
-        loadProcessList(processCurrentPage);
-    } else {
-        toastr.error("Update failed");
-    }
-}
-
-let pendingProcessAction = null;
-
-function confirmProcessAction(type, id = null, btn = null) {
-    pendingProcessAction = { type, id, btn };
-
-    document.getElementById("confirmTitle").innerText =
-        type === "update" ? "Confirm Update" : "Confirm Action";
-
-    document.getElementById("confirmMessage").innerText =
-        type === "update"
-        ? "Are you sure you want to update this Process record?"
-        : "Are you sure you want to proceed?";
-
-    $("#confirmModal").modal("show");
-}
-
-document.getElementById("confirmYesBtn")
-.addEventListener("click", async () => {
-
-    if (!pendingProcessAction) return;
-
-    if (pendingProcessAction.type === "update") {
-        await updateProcess(pendingProcessAction.btn);
-    }
-
-    if (pendingProcessAction.type === "create") {
-        await performProcessCreate();
-    }
-
-    $("#confirmModal").modal("hide");
-    pendingProcessAction = null;
-});
+                            <!-- Pagination -->
+                            <nav class="mt-2">
+                                <ul class="pagination pagination-sm justify-content-end">
+                                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
+                                    <li class="page-item active"><a class="page-link">1</a></li>
+                                    <li class="page-item"><a class="page-link">2</a></li>
+                                    <li class="page-item"><a class="page-link">Next</a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+            </div>
+do the same for oh profit master
