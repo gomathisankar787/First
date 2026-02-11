@@ -1,25 +1,9 @@
-# urls.py
-path('excel_upload/oh_profit', views.ExcelUploadOhProfit.as_view()),
-path('rm/create/', views.RMCreateAPIView.as_view()),
-path('rm/list/', views.RMListAPIView.as_view()),
-path('rm/update/<int:id>/', views.RMUpdateAPIView.as_view()),
+path('process/create/', views.ProcessCreateAPIView.as_view()),
+path('process/list/', views.ProcessListAPIView.as_view()),
+path('process/update/<int:id>/', views.ProcessUpdateAPIView.as_view()),
 
-# views.py
-class ExcelUploadOhProfit(generics.GenericAPIView):
-    parser_classes = ([MultiPartParser,])
-    @swagger_auto_schema(request_body=OhprofitSerializer)
-    def post(self, request):
-        # print('req: ', request, datetime.now())
-        serializer = OhprofitSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            ar_autocomplete_data = serializer.save()
-        except Exception as e:
-            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response('Success', status=status.HTTP_200_OK)
-
-class RMCreateAPIView(generics.CreateAPIView):
-    serializer_class = RMBaseSerializer
+class ProcessCreateAPIView(generics.CreateAPIView):
+    serializer_class = ProcessBaseSerializer
 
     def perform_create(self, serializer):
         serializer.save(
@@ -27,728 +11,202 @@ class RMCreateAPIView(generics.CreateAPIView):
         )
 
 
-class RMListAPIView(generics.ListAPIView):
-    serializer_class = RMBaseSerializer
+class ProcessListAPIView(generics.ListAPIView):
+    serializer_class = ProcessBaseSerializer
     pagination_class = StandardResultsPagination
 
     def get_queryset(self):
-        return RMbase.objects.all().order_by("-updated_on")
+        return Processbase.objects.all().order_by("-updated_on")
 
 
-class RMUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = RMBaseSerializer
-    queryset = RMbase.objects.all()
+class ProcessUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = ProcessBaseSerializer
+    queryset = Processbase.objects.all()
     lookup_field = "id"
 
-# serializers.py 
-class OhprofitSerializer(serializers.Serializer):
-    input_excel = serializers.FileField()
-    sheet_name = serializers.CharField()
-    effective_from = serializers.DateField(required=False)
-    source = serializers.CharField(required=False)
-    base = serializers.CharField(required=False)
-    remarks = serializers.CharField(required=False)
-
-    def clean_value(self, value):
-        if value is None:
-            return 0.0
-        if isinstance(value, (int, float)):
-            return float(value)
-        val = str(value).strip()
-        if val.endswith("%"):
-            return float(val.rstrip("%")) / 100   # convert % to decimal
-        return float(val)
-    def clean_base_value(self,value,int_flag):
-        if value is None and int_flag is True:
-            return 0
-        if value is None and int_flag is False:
-            return None
-        if isinstance(value,str):
-            value = value.replace("\xa0","").strip()
-            if value == "" and int_flag is False:
-                return None
-            if value == "" and int_flag is True:
-                return 0
-            try:
-                return float(value)
-            except:
-                return value
-        if isinstance(value,(int,float)):
-            # print('val',value)
-            if value == None and int_flag is True:
-                return 0
-            return value
-        return value
-
-
-    def create(self, validated_data):
-        try:
-            excel_file = validated_data.pop("input_excel")
-            sheet_name = validated_data.pop("sheet_name")
-
-            file_name = default_storage.save(excel_file.name, excel_file)
-            file_path = default_storage.path(file_name)
-
-            if file_path.lower().endswith(".csv"):
-                df = pd.read_csv(file_path)
-                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
-                df.to_excel(xlsx_path, index=False)
-                file_path = xlsx_path
-
-            book = load_workbook(file_path, data_only=True)
-            default_storage.delete(file_name)
-            # print('sheetname',book.sheetnames)
-            if sheet_name not in book.sheetnames:
-                raise serializers.ValidationError(
-                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
-                )
-
-            sheet = book[sheet_name]
-            rows = list(sheet.rows)
-
-            if not rows or len(rows) < 2:
-                raise serializers.ValidationError("Excel sheet is empty")
-            final_data = []
-            if sheet_name == "OH,Profit & Other Base":
-                for row in rows[1:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp = {
-                        "process_type": args[0],
-                        "icc_rm": self.clean_value(args[1]),
-                        "icc_conv": self.clean_value(args[2]),
-                        "icc_bof": self.clean_value(args[3]),
-                        "rej_rm": self.clean_value(args[4]),
-                        "rej_conv": self.clean_value(args[5]),
-                        "rej_bof": self.clean_value(args[6]),
-                        "inspection_rm": self.clean_value(args[7]),
-                        "inspection_conv": self.clean_value(args[8]),
-                        "inspection_bof": self.clean_value(args[9]),
-                        "tmc_rm": self.clean_value(args[10]),
-                        "tmc_conv": self.clean_value(args[11]),
-                        "tmc_bof": self.clean_value(args[12]),
-                        "design_cost_rm": self.clean_value(args[13]),
-                        "design_cost_conv": self.clean_value(args[14]),
-                        "design_cost_bof": self.clean_value(args[15]),
-                        "oh_rm": self.clean_value(args[16]),
-                        "oh_conv": self.clean_value(args[17]),
-                        "oh_bof": self.clean_value(args[18]),
-                        "profit_rm": self.clean_value(args[19]),
-                        "profit_conv": self.clean_value(args[20]),
-                        "profit_bof": self.clean_value(args[21]),
-                        "warranty_cost": self.clean_value(args[22]),
-                        "inbound_logistics": self.clean_value(args[23]),
-                        "effective_from": validated_data["effective_from"],
-                        "source": validated_data["source"],
-                        "base": validated_data["base"],
-                        "remarks": validated_data["remarks"],
-                        "updated_by": os.environ.get("USERNAME", "").lower(),
-                    }
-
-                    final_data.append(temp)
-
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        OH_ProfitData.objects.create(**item)
-
-            if sheet_name == "RM Base":
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "category": self.clean_base_value(args[2],False),
-                        "material_grade": self.clean_base_value(args[3],False),
-                        "rm_rate": self.clean_base_value(args[4],True),
-                        "scrap_rate": self.clean_base_value(args[10],True),
-                        "uom": self.clean_base_value(args[5],False),
-                        "updated_on":self.clean_base_value(args[8],False),
-                        "effective_from":self.clean_base_value(args[7],False),
-                        "source": self.clean_base_value(args[6],False),
-                        "remarks":self.clean_base_value(args[9],False),
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        RMbase.objects.create(**item)
-
-            if sheet_name == 'Process Base':
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
-
-                    args = [cell.value for cell in row]
-
-                    temp ={
-                        "process_category": self.clean_base_value(args[2],False),
-                        "process_description": self.clean_base_value(args[3],False),
-                        "norms": self.clean_base_value(args[5],True),
-                        "uom": self.clean_base_value(args[6],False),
-                        "updated_on":self.clean_base_value(args[9],False),
-                        "effective_from":self.clean_base_value(args[8],False),
-                        "source": self.clean_base_value(args[7],False),
-                        "remarks":validated_data["remarks"],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                # print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        Processbase.objects.create(**item)
-
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
-            }
-
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
-
-class RMBaseSerializer(serializers.ModelSerializer):
+class ProcessBaseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RMbase
+        model = Processbase
         fields = "__all__"
         extra_kwargs = {
             'updated_by': {'required': False}
         }
 
-# ui and api integration
-<div class="tab-content mt-3">
-                        <div class="tab-pane fade show active" id="rmbulkUpload">
-                            <div class="card p-3">
-                                <form id="rmBulkUploadForm" method="post" enctype="multipart/form-data">
-                                    <div class="row">
+<form id="processBulkUploadForm" method="post" enctype="multipart/form-data">
 
-                                        <div class="col-md-4">
-                                            <label>Upload File</label>
-                                            <input type="file" class="form-control" accept=".xlsx,.csv">
-                                        </div>
+document.getElementById("processBulkUploadForm")
+.addEventListener("submit", async e => {
+    e.preventDefault();
 
-                                        <div class="col-md-3">
-                                            <label>Sheet Name</label>
-                                            <input type="text" class="form-control" value="RM Base">
-                                        </div>
+    const form = e.target;
 
-                                        <div class="col-md-3">
-                                            <label>Effective From</label>
-                                            <input type="date" class="form-control">
-                                        </div>
+    const formData = new FormData();
+    formData.append("input_excel", form.querySelector('input[type="file"]').files[0]);
+    formData.append("sheet_name", "Process Base");
+    formData.append("effective_from", form.querySelector('input[type="date"]').value);
+    formData.append("base", "PROCESS");
+    formData.append("remarks", "Bulk Upload");
 
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button class="btn btn-primary w-100">
-                                                Upload
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-
-                    <div class="tab-pane fade" id="rmsingleUpload">
-                        <div class="card p-3">
-                            <form id="rmSingleForm">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label>Category</label>
-                                        <input type="text" name="category" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Material Grade</label>
-                                        <input type="text" name="material" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>RM Rate</label>
-                                        <input type="number" name="rm_rate" step="any" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Scrap Rate</label>
-                                        <input type="number" name="scrap_rate" step="any" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>UOM</label>
-                                        <input type="text" name="uom" class="form-control">
-                                    </div>
-
-                                </div>
-
-                                <div class="row mt-3">
-
-                                    <div class="col-md-3">
-                                        <label>Effective From</label>
-                                        <input type="date" name="effective_from" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Source</label>
-                                        <input type="text" name="source" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label>Remarks</label>
-                                        <input type="text" name="remarks" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button class="btn btn-primary w-100" onclick="confirmAction('create')">
-                                            Save
-                                        </button>
-                                    </div>
-
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-
-                    <div class="tab-pane fade" id="rmList">
-                        <div class="card p-3 table-responsive">
-                            <table class="table table-bordered table-sm align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Material Grade</th>
-                                        <th>RM Rate</th>
-                                        <th>Scrap Rate</th>
-                                        <th>UOM</th>
-                                        <th>Effective From</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr>
-                                        <td contenteditable="true">Steel</td>
-                                        <td contenteditable="true">CRCA</td>
-                                        <td contenteditable="true">75.20</td>
-                                        <td contenteditable="true">12.50</td>
-                                        <td contenteditable="true">KG</td>
-                                        <td>2024-01-01</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" onclick="confirmAction('update')">Update</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <!-- Pagination -->
-                            <nav class="mt-2">
-                                <ul class="pagination pagination-sm justify-content-end">
-                                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
-                                    <li class="page-item active"><a class="page-link">1</a></li>
-                                    <li class="page-item"><a class="page-link">2</a></li>
-                                    <li class="page-item"><a class="page-link">Next</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-document.getElementById("rmBulkUploadForm").addEventListener("submit", async e => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append("input_excel", document.querySelector('input[type="file"]').files[0]);
-        formData.append("sheet_name", "RM Base");
-        formData.append("effective_from", document.querySelector('input[type="date"]').value);
-        formData.append("base", "RM");
-        formData.append("remarks", "Bulk Upload");
-
-        const res = await fetch("/excel_upload/oh_profit", {
-            method: "POST",
-            body: formData
-        });
-
-        if (res.ok) {
-            toastr.success("RM Bulk Upload Success");
-            loadRMList();
-        } else {
-            toastr.error("Upload failed");
-        }
+    const res = await fetch("/excel_upload/oh_profit", {
+        method: "POST",
+        body: formData
     });
 
+    if (res.ok) {
+        toastr.success("Process Bulk Upload Success");
+        loadProcessList();
+    } else {
+        toastr.error("Upload failed");
+    }
+});
 
-    document.getElementById("rmSingleForm").addEventListener("submit", e => {
-        e.preventDefault();
+<form id="processSingleForm">
 
-        pendingCreatePayload = {
-            category: document.querySelector('[name="category"]').value,
-            material_grade: document.querySelector('[name="material"]').value,
-            rm_rate: document.querySelector('[name="rm_rate"]').value,
-            scrap_rate: document.querySelector('[name="scrap_rate"]').value,
-            uom: document.querySelector('[name="uom"]').value,
-            effective_from: document.querySelector('[name="effective_from"]').value,
-            source: document.querySelector('[name="source"]').value,
-            remarks: document.querySelector('[name="remarks"]').value,
-            base: "RM"
-        };
+let pendingProcessCreatePayload = null;
 
-        confirmAction("create"); // open modal
+document.getElementById("processSingleForm")
+.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const form = e.target;
+
+    pendingProcessCreatePayload = {
+        process_category: form.children[0].querySelectorAll("input")[0].value,
+        process_description: form.children[0].querySelectorAll("input")[1].value,
+        norms: form.children[0].querySelectorAll("input")[2].value,
+        uom: form.children[0].querySelectorAll("input")[3].value,
+        effective_from: form.children[1].querySelectorAll("input")[0].value,
+        source: form.children[1].querySelectorAll("input")[1].value,
+        remarks: form.children[1].querySelectorAll("input")[2].value,
+        base: "PROCESS"
+    };
+
+    confirmProcessAction("create");
+});
+
+async function performProcessCreate() {
+    if (!pendingProcessCreatePayload) return;
+
+    const res = await fetch("/process/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingProcessCreatePayload)
     });
 
-    async function performRMCreate() {
-        if (!pendingCreatePayload) return;
-
-        const res = await fetch("/rm/create/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(pendingCreatePayload)
-        });
-
-        if (res.ok) {
-            toastr.success("RM Created Successfully");
-            document.getElementById("rmSingleForm").reset();
-            loadRMList(rmCurrentPage);
-        } else {
-            toastr.error("Failed to create RM");
-        }
-
-        pendingCreatePayload = null;
+    if (res.ok) {
+        toastr.success("Process Created Successfully");
+        document.getElementById("processSingleForm").reset();
+        loadProcessList(processCurrentPage);
+    } else {
+        toastr.error("Failed to create Process");
     }
 
-    let rmCurrentPage = 1;
+    pendingProcessCreatePayload = null;
+}
 
-    async function loadRMList(page = 1) {
-        rmCurrentPage = page;
+let processCurrentPage = 1;
 
-        const res = await fetch(`/rm/list/?page=${page}`);
-        const data = await res.json();
+async function loadProcessList(page = 1) {
+    processCurrentPage = page;
 
-        const tbody = document.querySelector("#rmList tbody");
-        tbody.innerHTML = "";
+    const res = await fetch(`/process/list/?page=${page}`);
+    const data = await res.json();
 
-        data.results.forEach(item => {
-            tbody.innerHTML += `
-                <tr data-id="${item.id}">
-                    <td contenteditable>${item.category || ""}</td>
-                    <td contenteditable>${item.material_grade || ""}</td>
-                    <td contenteditable>${item.rm_rate}</td>
-                    <td contenteditable>${item.scrap_rate}</td>
-                    <td contenteditable>${item.uom || ""}</td>
-                    <td>${item.effective_from || ""}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary"
-                            onclick="confirmAction('update', ${item.id}, this)">
-                            Update
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
+    const tbody = document.querySelector("#prList tbody");
+    tbody.innerHTML = "";
 
-        renderRMPagination(data.count);
-    }
+    data.results.forEach(item => {
+        tbody.innerHTML += `
+            <tr data-id="${item.id}">
+                <td contenteditable>${item.process_category || ""}</td>
+                <td contenteditable>${item.process_description || ""}</td>
+                <td contenteditable>${item.norms || ""}</td>
+                <td contenteditable>${item.uom || ""}</td>
+                <td contenteditable>${item.source || ""}</td>
+                <td>${item.effective_from || ""}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary"
+                        onclick="confirmProcessAction('update', ${item.id}, this)">
+                        Update
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 
-    function renderRMPagination(totalCount) {
-        const totalPages = Math.ceil(totalCount / 15);
-        const pagination = document.querySelector("#rmList .pagination");
+    renderProcessPagination(data.count);
+}
 
-        pagination.innerHTML = "";
+function renderProcessPagination(totalCount) {
+    const totalPages = Math.ceil(totalCount / 15);
+    const pagination = document.querySelector("#prList .pagination");
 
-        const createPage = (page, label = page, active = false, disabled = false) => `
-            <li class="page-item ${active ? 'active' : ''} ${disabled ? 'disabled' : ''}">
-                <a class="page-link" onclick="${disabled ? '' : `loadRMList(${page})`}">
-                    ${label}
-                </a>
+    pagination.innerHTML = "";
+
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.innerHTML += `
+            <li class="page-item ${i === processCurrentPage ? 'active' : ''}">
+                <a class="page-link" onclick="loadProcessList(${i})">${i}</a>
             </li>
         `;
-
-        // Prev
-        pagination.innerHTML += createPage(
-            rmCurrentPage - 1,
-            "Prev",
-            false,
-            rmCurrentPage === 1
-        );
-
-        // Always show first page
-        pagination.innerHTML += createPage(1, 1, rmCurrentPage === 1);
-
-        // Left dots
-        if (rmCurrentPage > 4) {
-            pagination.innerHTML += `
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-            `;
-        }
-
-        // Middle pages
-        const start = Math.max(2, rmCurrentPage - 1);
-        const end = Math.min(totalPages - 1, rmCurrentPage + 1);
-
-        for (let i = start; i <= end; i++) {
-            pagination.innerHTML += createPage(i, i, i === rmCurrentPage);
-        }
-
-        // Right dots
-        if (rmCurrentPage < totalPages - 3) {
-            pagination.innerHTML += `
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-            `;
-        }
-
-        // Always show last page (if more than one)
-        if (totalPages > 1) {
-            pagination.innerHTML += createPage(
-                totalPages,
-                totalPages,
-                rmCurrentPage === totalPages
-            );
-        }
-
-        // Next
-        pagination.innerHTML += createPage(
-            rmCurrentPage + 1,
-            "Next",
-            false,
-            rmCurrentPage === totalPages
-        );
     }
+}
 
-    loadRMList();
+async function updateProcess(btn) {
+    const row = btn.closest("tr");
+    const id = row.dataset.id;
 
-    let pendingAction = null;
+    const payload = {
+        process_category: row.children[0].innerText.trim(),
+        process_description: row.children[1].innerText.trim(),
+        norms: row.children[2].innerText.trim(),
+        uom: row.children[3].innerText.trim(),
+        source: row.children[4].innerText.trim(),
+    };
 
-    function confirmAction(type, id = null, btn = null) {
-        pendingAction = { type, id, btn };
-
-        document.getElementById("confirmTitle").innerText =
-            type === "update" ? "Confirm Update" : "Confirm Action";
-
-        document.getElementById("confirmMessage").innerText =
-            type === "update"
-            ? "Are you sure you want to update this RM record?"
-            : "Are you sure you want to proceed?";
-
-        $("#confirmModal").modal("show");
-    }
-
-
-    document.getElementById("confirmYesBtn").addEventListener("click", async () => {
-        if (!pendingAction) return;
-
-        if (pendingAction.type === "update") {
-            await updateRM(pendingAction.btn);
-        }
-
-        if (pendingAction.type === "create") {
-            await performRMCreate();
-        }
-
-        $("#confirmModal").modal("hide");
-        pendingAction = null;
+    const res = await fetch(`/process/update/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
     });
 
-    async function updateRM(btn) {
-        const row = btn.closest("tr");
-        const id = row.dataset.id;
+    if (res.ok) {
+        toastr.success("Process Updated");
+        loadProcessList(processCurrentPage);
+    } else {
+        toastr.error("Update failed");
+    }
+}
 
-        const payload = {
-            category: row.children[0].innerText.trim(),
-            material_grade: row.children[1].innerText.trim(),
-            rm_rate: row.children[2].innerText.trim(),
-            scrap_rate: row.children[3].innerText.trim(),
-            uom: row.children[4].innerText.trim(),
-        };
+let pendingProcessAction = null;
 
-        const res = await fetch(`/rm/update/${id}/`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+function confirmProcessAction(type, id = null, btn = null) {
+    pendingProcessAction = { type, id, btn };
 
-        if (res.ok) {
-            toastr.success("RM Updated");
-            loadRMList(rmCurrentPage);
-        } else {
-            toastr.error("Update failed");
-        }
+    document.getElementById("confirmTitle").innerText =
+        type === "update" ? "Confirm Update" : "Confirm Action";
+
+    document.getElementById("confirmMessage").innerText =
+        type === "update"
+        ? "Are you sure you want to update this Process record?"
+        : "Are you sure you want to proceed?";
+
+    $("#confirmModal").modal("show");
+}
+
+document.getElementById("confirmYesBtn")
+.addEventListener("click", async () => {
+
+    if (!pendingProcessAction) return;
+
+    if (pendingProcessAction.type === "update") {
+        await updateProcess(pendingProcessAction.btn);
     }
 
-# process master
- <div class="tab-pane fade" id="processmaster">
-            <div class="card">
-                        <div class="card-header fw-bold">
-                            Process Master
-                        </div>
+    if (pendingProcessAction.type === "create") {
+        await performProcessCreate();
+    }
 
-                        <div class="card-body">
-
-                            <!-- Tabs -->
-                            <ul class="nav nav-tabs" id="rmTab" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" data-toggle="tab" href="#prbulkUpload">
-                                        Bulk Upload
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-toggle="tab" href="#prsingleUpload">
-                                        Single Upload
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-toggle="tab" href="#prList">
-                                        RM List
-                                    </a>
-                                </li>
-                            </ul>
-
-
-                <div class="tab-content mt-3">
-                    <div class="tab-pane fade show active" id="prbulkUpload">
-                        <div class="card p-3">
-                            <form method="post" enctype="multipart/form-data">
-                                <div class="row">
-
-                                    <div class="col-md-4">
-                                        <label>Upload File</label>
-                                        <input type="file" class="form-control" accept=".xlsx,.csv">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Sheet Name</label>
-                                        <input type="text" class="form-control" value="Process Base">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Effective From</label>
-                                        <input type="date" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button class="btn btn-primary w-100">
-                                            Upload
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-
-                    <div class="tab-pane fade" id="prsingleUpload">
-                        <div class="card p-3">
-                            <form>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label>Process Category</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-5">
-                                        <label>Process Description</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <label>Norms</label>
-                                        <input type="number" class="form-control">
-                                    </div>
-
-                                    <!-- <div class="col-md-2">
-                                        <label>Scrap Rate</label>
-                                        <input type="number" class="form-control">
-                                    </div> -->
-
-                                    <div class="col-md-2">
-                                        <label>UOM</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                </div>
-
-                                <div class="row mt-3">
-
-                                    <div class="col-md-3">
-                                        <label>Effective From</label>
-                                        <input type="date" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label>Source</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label>Remarks</label>
-                                        <input type="text" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button class="btn btn-primary w-100">
-                                            Save
-                                        </button>
-                                    </div>
-
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-
-                    <div class="tab-pane fade" id="prList">
-                        <div class="card p-3 table-responsive">
-                            <table class="table table-bordered table-sm align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Description</th>
-                                        <th>Norms</th>
-                                        <th>UOM</th>
-                                        <th>Source</th>
-                                        <th>Effective From</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr>
-                                        <td contenteditable="true">Steel</td>
-                                        <td contenteditable="true">CRCA</td>
-                                        <td contenteditable="true">75.20</td>
-                                        <td contenteditable="true">12.50</td>
-                                        <td contenteditable="true">KG</td>
-                                        <td>2024-01-01</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary">Update</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <!-- Pagination -->
-                            <nav class="mt-2">
-                                <ul class="pagination pagination-sm justify-content-end">
-                                    <li class="page-item disabled"><a class="page-link">Prev</a></li>
-                                    <li class="page-item active"><a class="page-link">1</a></li>
-                                    <li class="page-item"><a class="page-link">2</a></li>
-                                    <li class="page-item"><a class="page-link">Next</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-        </div></div>
-    </div>
-do the same for process master
+    $("#confirmModal").modal("hide");
+    pendingProcessAction = null;
+});
