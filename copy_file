@@ -1,170 +1,129 @@
-/* ============================= */
-/* CSC INFO HEADER CARD */
-/* ============================= */
+<div class="table-card">
 
-.card {
-    border: none;
+    <!-- Floating Total -->
+    <div class="floating-total">
+        Total Cost: ₹ {{ total_cost }}
+    </div>
+
+    <div class="table-wrapper">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    <th>Sl No</th>
+                    <th>Material</th>
+                    <th>UOM</th>
+                    <th>Qty</th>
+                    <th>RM Rate</th>
+                    <th>Process Cost</th>
+                    <th>OH Cost</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <!-- Your dynamic rows here -->
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+/* Card container */
+.table-card {
+    position: relative;
+    background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-    padding: 10px 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    padding: 20px;
 }
 
-.card .row {
-    margin-bottom: 6px;
-}
-
-.card .row > div {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4a5568;
-}
-
-.card b {
-    color: #1a202c;
-    font-weight: 600;
-    margin-left: 6px;
-}
-
-/* ============================= */
-/* MODERN NAV TABS */
-/* ============================= */
-
-.nav-pills .nav-link {
-    border-radius: 8px;
-    font-weight: 600;
-    padding: 8px 18px;
-    color: #4a5568;
-    background: #f1f4f9;
-    transition: all 0.3s ease;
-}
-
-.nav-pills .nav-link:hover {
-    background: #dbeafe;
-    color: #005685;
-}
-
-.nav-pills .nav-link.active {
-    background: #005685;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(0,86,133,0.25);
-}
-
-.flex-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    margin: 10px 0 5px 0 !important;
-}
-
-.flex-item.title h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #005685;
-    margin: 0;
-}
-
-/* ============================= */
-/* PROFESSIONAL TABLE DESIGN */
-/* ============================= */
-
-.table {
+/* Scrollable wrapper */
+.table-wrapper {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: auto;
     border-radius: 10px;
-    overflow: hidden;
-    font-size: 13px;
 }
 
-.table thead th {
-    background: #005685;
+/* Clean table */
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Sticky Header */
+.custom-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px;
+}
+
+/* Table body */
+.custom-table tbody td {
+    padding: 10px 12px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+/* Zebra rows */
+.custom-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* Hover effect */
+.custom-table tbody tr:hover {
+    background-color: #eef3ff;
+}
+
+/* Scrollbar styling */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.floating-total {
+    position: absolute;
+    right: 20px;
+    top: -18px;
+    background: #0d6efd;
     color: white;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-    padding: 10px;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
 }
 
-.table td {
-    padding: 6px 8px;
-    font-size: 13px;
-    border: 1px solid #e6e9ef;
-}
+</div> <!-- table-wrapper -->
 
-.table tbody tr:nth-child(even) {
-    background: #f8fafc;
-}
+<div class="pagination-container mt-3 text-center">
+    <!-- your pagination here -->
+</div>
 
-.table tbody tr:hover {
-    background: #eaf2ff;
-}
-
-.smprocessdata input,
-.smprocessdata select,
-.ohprofit input,
-.ohprofit select,
-.bomdata input,
-.rowdata input,
-.rowdata select,
-.bomdata select{
-    height: 42px;
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: 6px;
-}
-
-/* ============================= */
-/* MODERN PAGINATION */
-/* ============================= */
+</div> <!-- table-card -->
 
 .pagination {
-    margin-top: 15px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
+    justify-content: center;
 }
 
-.pagination a,
-.pagination span,
-.pagination strong {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    text-decoration: none;
-    background: #f1f4f9;
+.pagination .page-link {
+    border-radius: 8px;
+    margin: 0 4px;
     color: #333;
-    transition: 0.3s ease;
 }
 
-.pagination a:hover {
-    background: #005685;
-    color: white;
-}
-
-.pagination strong {
-    background: #005685;
-    color: white;
-}
-
-.pagination span {
-    opacity: 0.5;
-}
-
-/* ============================= */
-/* SUMMARY TOTAL ROW */
-/* ============================= */
-
-.bom_summary_total,
-.bom_summary_graph_total {
-    background: #eef5ff !important;
-    font-weight: 600;
-    border-top: 2px solid #005685;
-}
-
-#bomFloatingWrapperH {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-}
-
-.col-12 {
-    overflow: auto;
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
 }
