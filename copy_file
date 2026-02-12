@@ -1,143 +1,107 @@
-.col-12 {
-    position: absolute;
-    top: 80px;
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    overflow: hidden;
-}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="mb-1 font-weight-bold">CSC Management</h4>
-        <small class="text-muted">Manage and maintain clean sheet costing records</small>
-    </div>
-    <button class="btn btn-gradient" data-toggle="modal" data-target="#exampleModalCenter">
-        <i class="bi bi-plus-circle mr-1"></i> Create CSC
-    </button>
-</div>
-
-.btn-gradient {
-    background: linear-gradient(90deg, #005685, #003f63);
-    color: #fff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-}
-
-.table {
-    background: #ffffff;
-    border-radius: 12px;
-    overflow: hidden;
-    font-size: 14px;
-}
-
-.table thead {
-    background: linear-gradient(90deg, #005685, #003f63);
-    color: #ffffff;
-}
-
-.table thead th {
-    border: none;
-    font-weight: 600;
-    padding: 14px;
-}
-
-.table tbody tr {
-    transition: all 0.2s ease;
-}
-
-.table tbody tr:hover {
-    background-color: #f0f6ff;
-}
-
-.table td {
-    vertical-align: middle;
-    border-top: 1px solid #f0f0f0;
-}
-
-<td>
-    <div class="action-icons">
-        <i class="bi bi-eye-fill text-info" title="View" onclick="uniquecscview({{values.id}})"></i>
-        <i class="bi bi-pencil-square text-primary" title="Edit" data-toggle="modal" ...></i>
-        <i class="bi bi-trash-fill text-danger" title="Delete" onclick="deleteCSC(this,{{ values.id }})"></i>
-    </div>
-</td>
-
-.action-icons i {
-    font-size: 18px;
-    margin: 0 8px;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.action-icons i:hover {
-    transform: scale(1.2);
-}
-
-<div class="d-flex justify-content-center mt-3">
+<div class="d-flex justify-content-center mt-4">
     <nav>
-        <ul class="pagination pagination-sm">
+        <ul class="pagination">
+
+            <!-- Previous Button -->
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Prev</span>
                 </li>
             {% endif %}
 
-            {% for num in page_obj.paginator.page_range %}
-                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}">{{num}}</a>
-                </li>
-            {% endfor %}
+            {% if page_obj.paginator.num_pages > 3 %}
 
+                <!-- Always show first page -->
+                {% if page_obj.number > 2 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                {% endif %}
+
+                <!-- Show dots before -->
+                {% if page_obj.number > 3 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+
+                <!-- Show current -1, current, current +1 -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num >= page_obj.number|add:-1 and num <= page_obj.number|add:1 %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Show dots after -->
+                {% if page_obj.number < page_obj.paginator.num_pages|add:-2 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+
+                <!-- Always show last page -->
+                {% if page_obj.number < page_obj.paginator.num_pages|add:-1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                            {{ page_obj.paginator.num_pages }}
+                        </a>
+                    </li>
+                {% endif %}
+
+            {% else %}
+                <!-- If total pages <= 3 show all -->
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Next Button -->
             {% if page_obj.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
                 </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
             {% endif %}
+
         </ul>
     </nav>
 </div>
 
-.pagination .page-link {
+
+.pagination {
+    gap: 5px;
+}
+
+.pagination .page-item .page-link {
+    border-radius: 8px;
     color: #005685;
-    border-radius: 6px;
-    margin: 0 3px;
+    border: 1px solid #dee2e6;
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: 0.2s ease;
+}
+
+.pagination .page-item .page-link:hover {
+    background: #f0f6ff;
 }
 
 .pagination .active .page-link {
-    background: #005685;
-    border-color: #005685;
-}
-.modal-content {
-    border-radius: 16px;
-    border: none;
-}
-
-.modal-header {
     background: linear-gradient(90deg, #005685, #003f63);
+    border-color: #005685;
     color: #fff;
-    border-bottom: none;
 }
 
-.modal-footer {
-    border-top: none;
+.pagination .disabled .page-link {
+    color: #aaa;
 }
-
-.form-group label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #4a4a4a;
-}
-
