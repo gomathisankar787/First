@@ -1,107 +1,83 @@
-<div class="d-flex justify-content-center mt-4">
-    <nav>
-        <ul class="pagination">
+<nav id="mainNavbar">
 
-            <!-- Previous Button -->
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Prev</span>
-                </li>
-            {% endif %}
+    <!-- Left Logo -->
+    <div class="nav-left">
+        <div class="logo-box">
+            <img src="/static/images/KMC_logo.png" alt="KMC Logo">
+        </div>
+    </div>
 
-            {% if page_obj.paginator.num_pages > 3 %}
+    <!-- Center Title -->
+    <div class="nav-center">
+        KMC – Sheet Metal Costing
+    </div>
 
-                <!-- Always show first page -->
-                {% if page_obj.number > 2 %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1">1</a>
-                    </li>
-                {% endif %}
+    <!-- Right Logo -->
+    <div class="nav-right">
+        <div class="logo-box">
+            <img src="/static/images/AL_logo.png" alt="AL Logo">
+        </div>
+    </div>
 
-                <!-- Show dots before -->
-                {% if page_obj.number > 3 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                {% endif %}
+</nav>
 
-                <!-- Show current -1, current, current +1 -->
-                {% for num in page_obj.paginator.page_range %}
-                    {% if num >= page_obj.number|add:-1 and num <= page_obj.number|add:1 %}
-                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
+/* ============================= */
+/* PROFESSIONAL ENTERPRISE HEADER */
+/* ============================= */
 
-                <!-- Show dots after -->
-                {% if page_obj.number < page_obj.paginator.num_pages|add:-2 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                {% endif %}
-
-                <!-- Always show last page -->
-                {% if page_obj.number < page_obj.paginator.num_pages|add:-1 %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
-                            {{ page_obj.paginator.num_pages }}
-                        </a>
-                    </li>
-                {% endif %}
-
-            {% else %}
-                <!-- If total pages <= 3 show all -->
-                {% for num in page_obj.paginator.page_range %}
-                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% endif %}
-
-            <!-- Next Button -->
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Next</span>
-                </li>
-            {% endif %}
-
-        </ul>
-    </nav>
-</div>
-
-
-.pagination {
-    gap: 5px;
-}
-
-.pagination .page-item .page-link {
-    border-radius: 8px;
-    color: #005685;
-    border: 1px solid #dee2e6;
-    padding: 6px 12px;
-    font-weight: 500;
-    transition: 0.2s ease;
-}
-
-.pagination .page-item .page-link:hover {
-    background: #f0f6ff;
-}
-
-.pagination .active .page-link {
+#mainNavbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 75px;
     background: linear-gradient(90deg, #005685, #003f63);
-    border-color: #005685;
-    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.pagination .disabled .page-link {
-    color: #aaa;
+/* Remove default bootstrap spacing issues */
+#mainNavbar * {
+    margin: 0;
 }
+
+/* Logo Sections */
+.nav-left,
+.nav-right {
+    width: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* White background box for logos */
+.logo-box {
+    background: #ffffff;
+    padding: 8px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-box img {
+    max-height: 45px;
+    max-width: 180px;
+    object-fit: contain;
+}
+
+/* Center Title */
+.nav-center {
+    flex: 1;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
