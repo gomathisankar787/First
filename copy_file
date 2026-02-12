@@ -1,259 +1,180 @@
-path('oh/create/', views.OHProfitCreateAPIView.as_view()),
-path('oh/list/', views.OHProfitListAPIView.as_view()),
-path('oh/update/<int:id>/', views.OHProfitUpdateAPIView.as_view()),
+<html>
+<head>
+    <!-- import bootstrap cdn-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+        crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
 
-class OHProfitCreateAPIView(generics.CreateAPIView):
-    serializer_class = OHProfitModelSerializer
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        /* background: linear-gradient(135deg, #f4f6f7, #e9ecef); */
+        background: #f4f5f7;
+        overflow: hidden; /* prevent body scroll */
 
-    def perform_create(self, serializer):
-        serializer.save(
-            updated_by=os.environ.get("USERNAME", "").lower()
-        )
+    }
+
+    #nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 64px;
+        background: linear-gradient(90deg, #005685, #005685);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+    }
+
+    #nav-home-tab{
+        background: #ffffff;
+        /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+        padding: 10px 20px;
+    }
+
+    .navbar-brand {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: 0.5px;
+    }
+    .navbar-nav .nav-link {
+        color: #ffffff !important;
+        font-size: 15px;
+        margin-right: 18px;
+        opacity: 0.9;
+    }
+    .navbar-nav .nav-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+        color: #0fa3b1 !important;
+    }
 
 
-class OHProfitListAPIView(generics.ListAPIView):
-    serializer_class = OHProfitModelSerializer
-    pagination_class = StandardResultsPagination
-
-    def get_queryset(self):
-        return OH_ProfitData.objects.all().order_by("-updated_on")
-
-
-class OHProfitUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = OHProfitModelSerializer
-    queryset = OH_ProfitData.objects.all()
-    lookup_field = "id"
-
-class OHProfitModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OH_ProfitData
-        fields = "__all__"
-        extra_kwargs = {
-            'updated_by': {'required': False}
+    /* Responsive */
+    @media (max-width: 768px) {
+        #green {
+            display: none; /* Hide sidebar on small screens */
         }
-
-<form id="ohBulkUploadForm" method="post" enctype="multipart/form-data">
-
-document.getElementById("ohBulkUploadForm")
-.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const form = e.target;
-
-    const formData = new FormData();
-    formData.append("input_excel", form.querySelector('input[type="file"]').files[0]);
-    formData.append("sheet_name", "OH,Profit & Other Base");  // IMPORTANT
-    formData.append("effective_from", form.querySelector('input[type="date"]').value);
-    formData.append("base", "OH");
-    formData.append("remarks", "Bulk Upload");
-
-    const res = await fetch("/excel_upload/oh_profit", {
-        method: "POST",
-        body: formData
-    });
-
-    if (res.ok) {
-        toastr.success("OH Profit Bulk Upload Success");
-        loadOHList();
-    } else {
-        toastr.error("Upload failed");
+        .col-12 {
+            width: 100%;
+            margin: 10px;
+            padding: 15px;
+        }
+        table {
+            font-size: 12px;
+        }
     }
-});
+</style>
+</head>
 
-<form id="ohSingleForm">
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
 
-let pendingOHCreatePayload = null;
+        <!-- Hamburger -->
+        <button class="navbar-toggler" type="button"
+            data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-document.getElementById("ohSingleForm")
-.addEventListener("submit", e => {
-    e.preventDefault();
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="container-fluid">
+                <div class="row w-100 align-items-center">
 
-    const form = e.target;
+                    <!-- LEFT: Logo + Links -->
+                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
+                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
+                        <nav class="navbar p-0">
+                            <ul class="navbar-nav flex-row align-items-center">
+                                <li class="nav-item mr-3">
+                                    <a class="nav-link active" href="/home">Home</a>
+                                </li>
+                                <li class="nav-item mr-3">
+                                    <a class="nav-link" href="/mycsc">CSC</a>
+                                </li>
+                                <li class="nav-item mr-3">
+                                    <a class="nav-link" href="/admin">Admin</a>
+                                </li>
 
-    pendingOHCreatePayload = Object.fromEntries(
-        new FormData(form).entries()
-    );
+                                <!-- Dropdown -->
+                                <!-- <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle"
+                                        href="#"
+                                        id="navDropdown"
+                                        role="button"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                        Admin
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="navDropdown">
+                                        <a class="dropdown-item" href="/admin">User Access</a>
+                                        <a class="dropdown-item" href="/rm_master">RM Master</a>
+                                        <a class="dropdown-item" href="/process_master">Process Master</a>
+                                        <a class="dropdown-item" href="/ohprofit_master">Oh & Profit Master</a>
+                                    </div>
+                                </li> -->
+                            </ul>
+                        </nav>
 
-    confirmOHAction("create");
-});
+                    </div>
 
-async function performOHCreate() {
-    if (!pendingOHCreatePayload) return;
+                    <!-- CENTER: Title -->
+                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
+                        KMC – Clean Sheet Costing
+                    </div>
 
-    const res = await fetch("/oh/create/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingOHCreatePayload)
-    });
+                    <!-- RIGHT: Logo -->
+                    <div class="ml-auto">
+                        <!-- <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="250"> -->
+                    </div>
 
-    if (res.ok) {
-        toastr.success("OH Profit Created Successfully");
-        document.getElementById("ohSingleForm").reset();
-        loadOHList(ohCurrentPage);
-    } else {
-        toastr.error("Failed to create OH Profit");
-    }
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- This container contains the sidebar
+            and main content of the page -->
+    <!-- h-100 takes the full height of the body-->
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <div class="col-14" style="text-align: justify;">
+                <img src="/static/images/image.png" style="height: 1050px; width: 1950px; padding-top: 64px;" alt="Background Image" class="img-fluid">
+            </div>
+        </div>
+    </div>
 
-    pendingOHCreatePayload = null;
-}
+</body>
 
-let ohCurrentPage = 1;
+</html>
 
-async function loadOHList(page = 1) {
-    ohCurrentPage = page;
-
-    const res = await fetch(`/oh/list/?page=${page}`);
-    const data = await res.json();
-
-    const tbody = document.querySelector("#ohList tbody");
-    tbody.innerHTML = "";
-
-    data.results.forEach(item => {
-        tbody.innerHTML += `
-        <tr data-id="${item.id}">
-            <td contenteditable>${item.process_type || ""}</td>
-
-            <td contenteditable>${item.icc_rm}</td>
-            <td contenteditable>${item.icc_conv}</td>
-            <td contenteditable>${item.icc_bof}</td>
-
-            <td contenteditable>${item.rej_rm}</td>
-            <td contenteditable>${item.rej_conv}</td>
-            <td contenteditable>${item.rej_bof}</td>
-
-            <td contenteditable>${item.inspection_rm}</td>
-            <td contenteditable>${item.inspection_conv}</td>
-            <td contenteditable>${item.inspection_bof}</td>
-
-            <td contenteditable>${item.tmc_rm}</td>
-            <td contenteditable>${item.tmc_conv}</td>
-            <td contenteditable>${item.tmc_bof}</td>
-
-            <td contenteditable>${item.design_cost_rm}</td>
-            <td contenteditable>${item.design_cost_conv}</td>
-            <td contenteditable>${item.design_cost_bof}</td>
-
-            <td contenteditable>${item.oh_rm}</td>
-            <td contenteditable>${item.oh_conv}</td>
-            <td contenteditable>${item.oh_bof}</td>
-
-            <td contenteditable>${item.profit_rm}</td>
-            <td contenteditable>${item.profit_conv}</td>
-            <td contenteditable>${item.profit_bof}</td>
-
-            <td contenteditable>${item.warranty_cost}</td>
-            <td contenteditable>${item.inbound_logistics}</td>
-
-            <td>
-                <button class="btn btn-sm btn-primary"
-                    onclick="confirmOHAction('update', ${item.id}, this)">
-                    Update
-                </button>
-            </td>
-        </tr>
-        `;
-    });
-
-    renderOHPagination(data.count);
-}
-
-function renderOHPagination(totalCount) {
-    const totalPages = Math.ceil(totalCount / 15);
-    const pagination = document.querySelector("#ohList .pagination");
-
-    pagination.innerHTML = "";
-
-    for (let i = 1; i <= totalPages; i++) {
-        pagination.innerHTML += `
-            <li class="page-item ${i === ohCurrentPage ? 'active' : ''}">
-                <a class="page-link" onclick="loadOHList(${i})">${i}</a>
-            </li>
-        `;
-    }
-}
-
-async function updateOH(btn) {
-    const row = btn.closest("tr");
-    const id = row.dataset.id;
-
-    const payload = {
-        process_type: row.children[0].innerText.trim(),
-
-        icc_rm: row.children[1].innerText.trim(),
-        icc_conv: row.children[2].innerText.trim(),
-        icc_bof: row.children[3].innerText.trim(),
-
-        rej_rm: row.children[4].innerText.trim(),
-        rej_conv: row.children[5].innerText.trim(),
-        rej_bof: row.children[6].innerText.trim(),
-
-        inspection_rm: row.children[7].innerText.trim(),
-        inspection_conv: row.children[8].innerText.trim(),
-        inspection_bof: row.children[9].innerText.trim(),
-
-        tmc_rm: row.children[10].innerText.trim(),
-        tmc_conv: row.children[11].innerText.trim(),
-        tmc_bof: row.children[12].innerText.trim(),
-
-        design_cost_rm: row.children[13].innerText.trim(),
-        design_cost_conv: row.children[14].innerText.trim(),
-        design_cost_bof: row.children[15].innerText.trim(),
-
-        oh_rm: row.children[16].innerText.trim(),
-        oh_conv: row.children[17].innerText.trim(),
-        oh_bof: row.children[18].innerText.trim(),
-
-        profit_rm: row.children[19].innerText.trim(),
-        profit_conv: row.children[20].innerText.trim(),
-        profit_bof: row.children[21].innerText.trim(),
-
-        warranty_cost: row.children[22].innerText.trim(),
-        inbound_logistics: row.children[23].innerText.trim(),
-    };
-
-    const res = await fetch(`/oh/update/${id}/`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-        toastr.success("OH Profit Updated");
-        loadOHList(ohCurrentPage);
-    } else {
-        toastr.error("Update failed");
-    }
-}
-
-let pendingOHAction = null;
-
-function confirmOHAction(type, id = null, btn = null) {
-    pendingOHAction = { type, id, btn };
-
-    document.getElementById("confirmTitle").innerText =
-        type === "update" ? "Confirm Update" : "Confirm Action";
-
-    document.getElementById("confirmMessage").innerText =
-        type === "update"
-        ? "Are you sure you want to update this OH Profit record?"
-        : "Are you sure you want to proceed?";
-
-    $("#confirmModal").modal("show");
-}
-
-document.getElementById("confirmYesBtn")
-.addEventListener("click", async () => {
-
-    if (!pendingOHAction) return;
-
-    if (pendingOHAction.type === "update") {
-        await updateOH(pendingOHAction.btn);
-    }
-
-    if (pendingOHAction.type === "create") {
-        await performOHCreate();
-    }
-
-    $("#confirmModal").modal("hide");
-    pendingOHAction = null;
-});
+can you update this like the links home, csc, admin are like cards is onto the background image. make it more better and professional look on home page that makes impressive.
