@@ -1,129 +1,32 @@
-<div class="table-card">
-
-    <!-- Floating Total -->
-    <div class="floating-total">
-        Total Cost: ₹ {{ total_cost }}
-    </div>
-
-    <div class="table-wrapper">
-        <table class="table custom-table">
-            <thead>
-                <tr>
-                    <th>Sl No</th>
-                    <th>Material</th>
-                    <th>UOM</th>
-                    <th>Qty</th>
-                    <th>RM Rate</th>
-                    <th>Process Cost</th>
-                    <th>OH Cost</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <!-- Your dynamic rows here -->
-            </tbody>
-        </table>
-    </div>
-
-</div>
-
-/* Card container */
-.table-card {
-    position: relative;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-    padding: 20px;
-}
-
-/* Scrollable wrapper */
-.table-wrapper {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: auto;
-    border-radius: 10px;
-}
-
-/* Clean table */
-.custom-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-/* Sticky Header */
-.custom-table thead th {
-    position: sticky;
-    top: 0;
-    background: #f8f9fa;
-    z-index: 10;
-    font-weight: 600;
-    font-size: 14px;
-    border-bottom: 2px solid #dee2e6;
-    padding: 12px;
-}
-
-/* Table body */
-.custom-table tbody td {
-    padding: 10px 12px;
-    font-size: 13px;
-    vertical-align: middle;
-}
-
-/* Zebra rows */
-.custom-table tbody tr:nth-child(even) {
-    background-color: #fafafa;
-}
-
-/* Hover effect */
-.custom-table tbody tr:hover {
-    background-color: #eef3ff;
-}
-
-/* Scrollbar styling */
-.table-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-
-.table-wrapper::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-.floating-total {
-    position: absolute;
-    right: 20px;
-    top: -18px;
-    background: #0d6efd;
-    color: white;
-    padding: 8px 18px;
-    border-radius: 25px;
-    font-weight: 600;
-    font-size: 14px;
-    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
-}
-
-</div> <!-- table-wrapper -->
-
-<div class="pagination-container mt-3 text-center">
-    <!-- your pagination here -->
-</div>
-
-</div> <!-- table-card -->
-
-.pagination {
-    justify-content: center;
-}
-
-.pagination .page-link {
-    border-radius: 8px;
-    margin: 0 4px;
-    color: #333;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: #fff;
-}
+<div class="table table-card flex-container">
+                        <div class="flex-item button-container1">
+                        <ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
+                        <li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
+                            <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
+                        </li>
+                        <li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
+                            <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
+                        </li>
+                        <li class="nav-item" role="presentation" style="margin-top: 30px;">
+                            <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
+                        </li>
+                        </ul></div>
+                        <div class="flex-item button-container2 floating-total">
+                            Total Estimated Cost : <b>₹ {{totals.total_cpa|default:0|floatformat:2}}</b>
+                        </div>
+                        </div>
+under the total estimated cost make one small question like move to review? and if user click that then, update csc status via url 
+CRCSCTBL(
+            part_num=part_no,
+            rev=part_rev,
+            desc=description,
+            part_typ_id=part_type_value,
+            projects_id=project_value,
+            rm_base=rm_base,
+            process_base=process_base,
+            oh_profit_base=oh_profit_base,
+            remarks=remarks,
+            csc_status="WIP",
+            updated_by=system_user
+        )
+status to Review and for ui the question change to under review and the total estimated cost container is change blue to green
