@@ -1,736 +1,143 @@
-html, body {
-        height: 100%;
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: #f4f6f9;
-        overflow: hidden; /* prevent body scroll */
-    }
-
-
-#nav {
-     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 64px;
-    background: linear-gradient(90deg, #005685, #005685);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-
+.col-12 {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 
-    .navbar-brand {
-        font-size: 22px;
-        font-weight: 700;
-        color: #ffffff !important;
-        letter-spacing: 0.5px;
-
-    }
-    .navbar-nav .nav-link {
-        color: #ffffff !important;
-        font-size: 15px;
-        margin-right: 18px;
-        opacity: 0.9;
-
-    }
-    .navbar-nav .nav-link:hover {
-        opacity: 1;
-        text-decoration: underline;
-        color:  #0fa3b1 !important;
-    }
-
-    .col-12 {
-        position: absolute;
-        top: 64px; /* below header */
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 64px);
-        background: #ffffff;
-        padding: 20px 24px;
-        box-shadow: inset 0 1px 0 #e5e5e5;
-        overflow: hidden; /* important */
-    }
-
-    h1 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #0969ca;
-        margin-bottom: 20px;
-    }
-    button {
-        background-color: linear-gradient(90deg, #005685, #005685);
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-
-    button:hover {
-        background-color: #005685;
-        transform: translateY(-2px);
-    }
-
-    .btn-danger {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-danger {
-        background-color: #ee5454;
-        color: #fff;
-        border: none;
-    }
-    .btn-danger:hover {
-        background-color: #ee5454;
-        transform: translateY(-2px);
-    }
-
-    /* Table Styling */
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #ffffff;
-    }
-    .table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background:#005685;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 10px;
-    }
-    th, td {
-        padding: 12px;
-        text-align: center;
-        font-size: 14px;
-    }
-    .table td {
-    padding: 8px;
-    font-size: 13px;
-    border: 1px solid #e1e1e1;
-    text-align: center;
-}
-
-    tr:nth-child(even) {
-        background-color: #f7f9fc;
-    }
-    tr:hover {
-        background-color: #eaf1fb;
-        transition: background-color 0.3s ease;
-    }
-
-    /* Buttons inside table */
-    .btn-primary, .btn-secondary {
-       background:  linear-gradient(90deg, #005685, #005685);
-        color: #ffffff;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 600;
-        padding: 8px 16px;
-        transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .btn-primary {
-        background-color: #3498db;
-        color: #fff;
-        border: none;
-    }
-    .btn-primary:hover {
-        background:  #005685;
-        transform: translateY(-1px);
-    }
-    .btn-secondary {
-        background-color: #95a5a6;
-        background: #6c757d;
-        color: #fff;
-        border: none;
-    }
-    .btn-secondary:hover {
-        background-color: #7f8c8d;
-        transform: translateY(-2px);
-    }
-
-    .btn-danger {
-    background: #d32f2f;
-}
-
-.modal-content {
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        background-color: #ffffff;
-        padding: 20px;
-    }
-
-    .modal-header {
-        background:  linear-gradient(90deg, #005685, #005685);
-        color: #ffffff;
-        border-bottom: none;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .modal-title {
-        font-size: 20px;
-        font-weight: 600;
-    }
-
-    .modal-body {
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 0 0 12px 12px;
-    }
-
-    /* Form Styling */
-    .form-container {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group label {
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 6px;
-    }
-
-    #parttype,#project,#editproject,#editparttype{
-        height: 80%;
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        height: 44px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-        border-color: #1f6fd2;
-        box-shadow: 0 0 0 2px rgba(151,20,77,0.15);
-        outline: none;
-    }
-
-    /* Buttons */
-    .create-btn {
-        background: linear-gradient(90deg, #005685, #005685);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-right: 10px;
-    }
-
-    .create-btn:hover {
-        background: linear-gradient(90deg, #005685, #005685);
-        transform: translateY(-2px);
-    }
-
-    #Editcsc:hover{
-        background: #77acf5;
-    }
-
-    #deletecsc:hover{
-        background: #f5b4b4;
-    }
-
-    #showcsc:hover{
-        background: #bfe6f3;
-    }
-
-    .cancel-btn {
-        background-color: #e4e4e4;
-        color: #333;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .cancel-btn:hover {
-        background-color: #cfcfcf;
-        transform: translateY(-2px);
-    }
-
-    .modal-footer .btn-primary {
-        background-color: #24968f;
-        border: none;
-    }
-
-    .modal-footer .btn-primary:hover {
-        background-color: #006955;
-    }
-
-    .table-scroll-wrapper {
-    height: 100%;
-    overflow-y: auto;
-    padding-bottom: 20px;
-}
-
-
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        #green {
-            display: none; /* Hide sidebar on small screens */
-        }
-        .col-12 {
-            width: 100%;
-            margin: 10px;
-            padding: 15px;
-        }
-        table {
-            font-size: 12px;
-        }
-    }
-</style>
-</head>
-
-<body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-3" id="nav">
-
-        <!-- Hamburger -->
-        <button class="navbar-toggler" type="button"
-            data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- Navbar Content -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="container-fluid">
-                <div class="row w-100 align-items-center">
-
-                    <!-- LEFT: Logo + Links -->
-                    <div class="navbar-nav col-lg-4 d-flex align-items-center gap-3">
-                        <img src="/static/images/KMC_logo.png" alt="left icon" height="40">
-                        <nav class="navbar p-0">
-                            <ul class="navbar-nav flex-row align-items-center">
-                                <li class="nav-item mr-3">
-                                    <a class="nav-link active" href="/home">Home</a>
-                                </li>
-                                <li class="nav-item mr-3">
-                                    <a class="nav-link" href="/mycsc">CSC</a>
-                                </li>
-                                <li class="nav-item mr-3">
-                                    <a class="nav-link" href="/admin">Admin</a>
-                                </li>
-                            </ul>
-                        </nav>
-
-                    </div>
-
-                    <!-- CENTER: Title -->
-                    <div class="col-lg-4 text-center fw-bold" style="color: #ffffff">
-                        KMC – Sheet Metal Costing
-                    </div>
-
-                    <!-- RIGHT: Logo -->
-                    <div class="ml-auto">
-                        <img src="/static/images/AL_logo.png" alt="right icon" height="70" width="350">
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <div class="col-12" style="text-align: justify;">
-                <div class="row justify-content-between">
-                    <h1 class="col-auto">CSC List</h1>
-                    <button type="button" class="col-auto btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Create New CSC</button>
-                </div>
-                <div class="table-scroll-wrapper">
-                    <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Part Name</th>
-                            <th>Part Rev</th>
-                            <th>Part Description</th>
-                            <th>Part Type</th>
-                            <th>Estimated On</th>
-                            <th>Estimated By</th>
-                            <th>Unique CSC ID</th>
-                            <th>CSC Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for values in page_obj %}
-                        <tr>
-                            <td>{{values.part_num}}</td>
-                            <td>{{values.rev}}</td>
-                            <td>{{values.desc}}</td>
-                            <td>{{values.part_typ.parttype_name}}</td>
-                            <td>{{values.rm_base}}</td>
-                            <td>{{values.updated_by}}</td>
-                            <td>{{values.unique_csc_id}}</td>
-                            <td>{{values.csc_status}}</td>
-                        <td><i class="bi bi-eye btn" id="showcsc" onclick="uniquecscview({{values.id}})"></i> <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
-                        data-id="{{ values.id }}"
-                        data-partnum="{{ values.part_num }}"
-                        data-rev="{{ values.rev }}"
-                        data-desc="{{ values.desc }}"
-                        data-parttyp="{{ values.part_typ_id }}"
-                        data-project="{{ values.projects_id}}"
-                        data-rmbase="{{ values.rm_base}}"
-                        data-processbase="{{ values.process_base }}"
-                        data-ohprofitbase="{{ values.oh_profit_base }}"
-                        data-remarks="{{ values.remarks }}"></i> <i class="bi bi-trash btn" id="deletecsc" onclick="deleteCSC(this,{{ values.id }})"></i></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-            <!-- Pagination Controls -->
-                <div class="pagination" style="display: flex; gap: 10px;">
-                    <!-- previous button -->
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{page_obj.previous_page_number}}">Previous</a>
-                    {% else %}
-                        <span style="opacity: 0.5;">Previous</span>
-                    {% endif %}
-                    <!-- page numbers -->
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <strong>{{ num }}</strong>
-                        {% else %}
-                            <a href="?page={{ num }}">{{num}}</a>
-                        {% endif %}
-                    {% endfor %}
-                    <!-- next button -->
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
-                    {% else %}
-                        <span style="opacity:0.5;">Next</span>
-                    {% endif %}
-                </div>
-            </div>
-            </div>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 font-weight-bold">CSC Management</h4>
+        <small class="text-muted">Manage and maintain clean sheet costing records</small>
     </div>
-        <!-- create CSC Modal -->
-        <div class="modal fade" id="exampleModalCenter" tabindex="-1" data-backdrop="static" data-keyboard="false" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Create new CSC</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-container">
-                        <form class="create-csc-form" method="post" action="">
-                        {% csrf_token %}
-                        <div class="form-row">
-                            <div class="form-group mr-2">
-                                <label for="partNumber">Part Number</label>
-                                <input type="text" id="partNumber" name="part_num" >
-                            </div>
-                            <div class="form-group ml-4">
-                                <label for="revision">Revision</label>
-                                <input type="text" id="revision" name="rev" >
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea class="formDescription" id="description" name="desc"></textarea>
-                        </div>
+    <button class="btn btn-gradient" data-toggle="modal" data-target="#exampleModalCenter">
+        <i class="bi bi-plus-circle mr-1"></i> Create CSC
+    </button>
+</div>
 
-                <!-- Add Part Type Button -->
-                        <div class="form-group" style="display: flex;">
-                            <label for="parttype" style="flex: 1; display: flex;">Part type</label>
-                            <div style="flex: 5; display: flex;">
-                                <select id="parttype" name="part_typ" class="form-control" style="flex: 1;">
-                                    <option value="" disabled selected>--- Select Part Type ---</option>
-                                    {% for part_type in part_types %}
-                                        <option value="{{ part_type.id }}">{{ part_type.parttype_name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="button" id="parttypebutton" class="btn btn-primary" style="margin-left: 10px; width: 150px;" data-toggle="modal" data-target="#addPartTypeModal">Add PartType</button>
-                            </div>
-                        </div>
+.btn-gradient {
+    background: linear-gradient(90deg, #005685, #003f63);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
 
-                        <div class="form-group" style="display: flex;">
-                            <label for="project" style="flex: 1;">Project</label>
-                            <div style="flex: 5; display: flex;">
-                                <select id="project" name="projects" class="form-control" style="flex: 1;">
-                                    <option value="" disabled selected> ---Select Project--- </option>
-                                    {% for project in projects %}
-                                        <option value="{{ project.id }}">{{ project.projects_name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="button" id="projectbutton" class="btn btn-primary" style="margin-left: 10px; width: 150px;" data-bs-toggle="modal" data-bs-target="#addProjectModal">Add Project</button>
-                            </div>
-                        </div>
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
 
-                        <div class="form-group">
-                            <label for="rmmaster">Rm Base Date</label>
-                            <select id="rmmaster" name="rm_base">
-                                {% for base in rm_base_values %}
-                                    <option value="{{ base }}" {% if base == rm_latest %}selected{% endif %}>
-                                        {{ base }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+.table {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+}
 
-                        <div class="form-group">
-                            <label for="processmaster">Process Base Date</label>
-                            <select id="processmaster" name="process_base">
-                                {% for base in process_base_values %}
-                                    <option value="{{ base }}" {% if base == process_latest %}selected{% endif %}>
-                                        {{ base }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+.table thead {
+    background: linear-gradient(90deg, #005685, #003f63);
+    color: #ffffff;
+}
 
-                        <div class="form-group">
-                        <label for="ohprofit">OH Profit & Other Cost Base</label>
-                        <select id="ohprofit" name="oh_profit_base">
-                            {% for base in ohprofit_base_values %}
-                                <option value="{{ base }}" {% if base == ohprofit_latest %}selected{% endif %}>
-                                    {{ base }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                        </div>
+.table thead th {
+    border: none;
+    font-weight: 600;
+    padding: 14px;
+}
 
-                        <div class="form-group">
-                            <label for="remarks">Remarks</label>
-                            <input type="text" id="remarks" name="remarks">
-                        </div>
-                    </form>
-                </div>
-                </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="createData()">Create</button>
-            </div>
-        </div>
-        </div>
-        </div>
+.table tbody tr {
+    transition: all 0.2s ease;
+}
 
+.table tbody tr:hover {
+    background-color: #f0f6ff;
+}
 
-        <!-- Edit CSC Modal -->
-        <div class="modal fade" id="updatecscModal" tabindex="-1" data-backdrop="static" data-keyboard="false" aria-labelledby="updatecscModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Update new CSC</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-container">
-                        <form class="create-csc-form" method="post" action="">
-                        {% csrf_token %}
-                        <div class="form-row">
-                            <div class="form-group mr-2">
-                                <input type="hidden" id="edit_id">
-                                <label for="partNumber">Part Number</label>
-                                <input type="text" id="editpartNumber" name="part_num" >
-                            </div>
-                            <div class="form-group ml-4">
-                                <label for="revision">Revision</label>
-                                <input type="text" id="editrevision" name="rev" >
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea class="formDescription" id="editdescription" name="desc"></textarea>
-                        </div>
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid #f0f0f0;
+}
 
-                <!-- Add Part Type Button -->
-                        <div class="form-group" style="display: flex;">
-                            <label for="parttype" style="flex: 1; display: flex;">Part type</label>
-                            <div style="flex: 5; display: flex;">
-                                <select id="editparttype" name="part_typ" class="form-control" style="flex: 1;">
-                                    <option value="" disabled selected>--- Select Part Type ---</option>
-                                    {% for part_type in part_types %}
-                                        <option value="{{ part_type.id }}">{{ part_type.parttype_name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="button" class="btn btn-primary" style="margin-left: 10px; width: 150px;" data-toggle="modal" data-target="#addPartTypeModal">Add PartType</button>
-                            </div>
-                        </div>
+<td>
+    <div class="action-icons">
+        <i class="bi bi-eye-fill text-info" title="View" onclick="uniquecscview({{values.id}})"></i>
+        <i class="bi bi-pencil-square text-primary" title="Edit" data-toggle="modal" ...></i>
+        <i class="bi bi-trash-fill text-danger" title="Delete" onclick="deleteCSC(this,{{ values.id }})"></i>
+    </div>
+</td>
 
-                        <div class="form-group" style="display: flex;">
-                            <label for="project" style="flex: 1;">Project</label>
-                            <div style="flex: 5; display: flex;">
-                                <select id="editproject" name="projects" class="form-control" style="flex: 1;">
-                                    <option value="" disabled selected> ---Select Project--- </option>
-                                    {% for project in projects %}
-                                        <option value="{{ project.id }}">{{ project.projects_name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="button" class="btn btn-primary" style="margin-left: 10px; width: 150px;" data-bs-toggle="modal" data-bs-target="#addProjectModal">Add Project</button>
-                            </div>
-                        </div>
+.action-icons i {
+    font-size: 18px;
+    margin: 0 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
 
-                        <div class="form-group">
-                            <label for="rmmaster">Rm Base Date</label>
-                            <select id="editrmmaster" name="rm_base">
-                                <option value="" disabled selected> ---Select RM Base--- </option>
-                                {% for base in rm_base_values %}
-                                <option value="{{ base }}">{{ base }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+.action-icons i:hover {
+    transform: scale(1.2);
+}
 
-                        <div class="form-group">
-                            <label for="processmaster">Process Base Date</label>
-                            <select id="editprocessmaster" name="process_base">
-                                <option value="" disabled selected> ---Select Process Base--- </option>
-                                {% for base in process_base_values %}
-                                <option value="{{ base }}">{{ base }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+<div class="d-flex justify-content-center mt-3">
+    <nav>
+        <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{page_obj.previous_page_number}}">Previous</a>
+                </li>
+            {% endif %}
 
-                        <div class="form-group">
-                        <label for="ohprofit">OH Profit & Other Cost Base</label>
-                        <select id="editohprofit" name="oh_profit_base">
-                            <option value="" disabled selected> ---Select Oh Profit Base--- </option>
-                            {% for base in ohprofit_base_values %}
-                            <option value="{{ base }}">{{ base }}</option>
-                            {% endfor %}
-                        </select>
-                        </div>
+            {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{num}}</a>
+                </li>
+            {% endfor %}
 
-                        <div class="form-group">
-                            <label for="editremarks">Remarks</label>
-                            <input type="text" id="editremarks" name="remarks">
-                        </div>
-                    </form>
-                </div>
-                </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="updateData()">Update</button>
-            </div>
-        </div>
-        </div>
-        </div>
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 
+.pagination .page-link {
+    color: #005685;
+    border-radius: 6px;
+    margin: 0 3px;
+}
 
-        <!-- create part type modal -->
+.pagination .active .page-link {
+    background: #005685;
+    border-color: #005685;
+}
+.modal-content {
+    border-radius: 16px;
+    border: none;
+}
 
-        <div class="modal fade" id="addPartTypeModal" tabindex="-1" role="dialog" aria-labelledby="addPartTypeModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Create PartType</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="parttype">Name</label>
-                    <input type="text" id="parttypename" name="remarks">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeParttype()">Close</button>
-                <button type="button" class="btn btn-primary" onclick="createparttype()">Save changes</button>
-            </div>
-            </div>
-        </div>
-        </div>
+.modal-header {
+    background: linear-gradient(90deg, #005685, #003f63);
+    color: #fff;
+    border-bottom: none;
+}
 
-        <!-- create project modal -->
+.modal-footer {
+    border-top: none;
+}
 
-        <div class="modal fade" id="addProjectModal" tabindex="-1" role="dialog" aria-labelledby="addProjectModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Create Project</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="project">Name</label>
-                    <input type="text" id="projectname" name="remarks">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeProject()">Close</button>
-                <button type="button" class="btn btn-primary" onclick="createproject()">Save changes</button>
-            </div>
-            </div>
-        </div>
-        </div>
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a4a;
+}
 
-        <!-- CSC Toaster -->
-        <div aria-live="polite" id="successToast" aria-atomic="true" class="position-relative">
-        <!-- Position it: -->
-        <!-- - `.toast-container` for spacing between toasts -->
-        <!-- - `.position-absolute`, `top-0` & `end-0` to position the toasts in the upper right corner -->
-        <!-- - `.p-3` to prevent the toasts from sticking to the edge of the container  -->
-        <div class="toast-container position-absolute top-0 end-0 p-3">
-
-            <!-- Then put toasts within -->
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-body">
-                    CSC Created Successfully!
-                </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-        </div>
-
-        <div class="modal fade" id="deleteCscModal" tabindex="-1" role="dialog" aria-labelledby="deleteCscModalTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteCscModalLongTitle">Delete Bom</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    Are you sure to delete this CSC ?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="confirmDeleteBtn">Delete</button>
-                </div>
-                </div>
-            </div>
-        </div>
-make this also much more better and professional look for that impressive screen.
