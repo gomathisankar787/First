@@ -1,18 +1,30 @@
 <nav id="mainNavbar">
 
-    <!-- Left Logo -->
+    <!-- LEFT LOGO -->
     <div class="nav-left">
         <div class="logo-box">
             <img src="/static/images/KMC_logo.png" alt="KMC Logo">
         </div>
     </div>
 
-    <!-- Center Title -->
-    <div class="nav-center">
-        KMC – Sheet Metal Costing
+    <!-- CENTER SECTION -->
+    <div class="nav-middle">
+
+        <!-- Title -->
+        <div class="nav-title">
+            KMC – Sheet Metal Costing
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="nav-links">
+            <a href="/home" class="nav-item active">Home</a>
+            <a href="/mycsc" class="nav-item">CSC</a>
+            <a href="/admin" class="nav-item">Admin</a>
+        </div>
+
     </div>
 
-    <!-- Right Logo -->
+    <!-- RIGHT LOGO -->
     <div class="nav-right">
         <div class="logo-box">
             <img src="/static/images/AL_logo.png" alt="AL Logo">
@@ -22,7 +34,7 @@
 </nav>
 
 /* ============================= */
-/* PROFESSIONAL ENTERPRISE HEADER */
+/* ENTERPRISE HEADER DESIGN */
 /* ============================= */
 
 #mainNavbar {
@@ -30,39 +42,30 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 75px;
+    height: 85px;
     background: linear-gradient(90deg, #005685, #003f63);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
-/* Remove default bootstrap spacing issues */
-#mainNavbar * {
-    margin: 0;
-}
-
-/* Logo Sections */
+/* LEFT & RIGHT LOGO SECTION */
 .nav-left,
 .nav-right {
-    width: 240px;
+    width: 220px;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
-/* White background box for logos */
+/* White background logo box */
 .logo-box {
     background: #ffffff;
     padding: 8px 18px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .logo-box img {
@@ -71,13 +74,46 @@
     object-fit: contain;
 }
 
-/* Center Title */
-.nav-center {
+/* CENTER AREA */
+.nav-middle {
     flex: 1;
     text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 0.5px;
 }
 
+/* Title */
+.nav-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+/* Links */
+.nav-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.nav-item {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: 0.3s ease;
+}
+
+/* Hover effect */
+.nav-item:hover {
+    background: rgba(255,255,255,0.15);
+    text-decoration: none;
+}
+
+/* Active link */
+.nav-item.active {
+    background: #ffffff;
+    color: #005685;
+    font-weight: 600;
+}
