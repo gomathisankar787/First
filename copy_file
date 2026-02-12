@@ -1,119 +1,554 @@
-<nav id="mainNavbar">
+<div class="col-12" style="text-align: justify;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
+                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
+                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
+                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
+                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2" style="margin-left: 154px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                    </div>
+                </div>
+                        <div class="table flex-container">
+                        <div class="flex-item button-container1">
+                        <ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
+                        <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
+                        </li>
+                        <li class="nav-item mr-2" role="presentation">
+                            <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
+                        </li>
+                        </ul></div>
+                        <div class="flex-item button-container2">
+                            Total Estimated Cost : <b>{{totals.total_cpa|default:0|floatformat:2}}</b>
+                        </div>
+                        </div>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                                <div class="table flex-container">
+                                    <div class="flex-item title">
+                                        <h2>BOM List</h2>
+                                    </div>
 
-    <!-- LEFT LOGO -->
-    <div class="nav-left">
-        <div class="logo-box">
-            <img src="/static/images/KMC_logo.png" alt="KMC Logo">
-        </div>
-    </div>
+                                    <!-- {% if page_obj.paginator.count > 1 %}
+                                    <div class="flex-item button-container3">
+                                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#AssemblyModal"
+                                        data-id="{{csc_values.id}}">Assembly Cost</button>
+                                    </div>
+                                    {% endif %} -->
+                                    <div class="flex-item button-container1">
+                                        <button type="button" class="btn btn-primary" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
+                                    </div>
+                                    <div class="flex-item button-container2">
+                                        <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
+                                    </div>
+                                </div>
 
-    <!-- CENTER SECTION -->
-    <div class="nav-middle">
+                                {% csrf_token %}
+                                <div class="table-container table-scroll-wrapper">
+                                    <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                        <th>S.No</th>
+                                        <th>Level</th>
+                                        <th>Part No.</th>
+                                        <th>Rev</th>
+                                        <th>Parts Description</th>
+                                        <th>Qty</th>
+                                        <th>Process Type</th>
+                                        <th>Scope</th>
+                                        <th>Method</th>
+                                        <th>Is Nesting Needed</th>
+                                        <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bomdata" id="bom-table-body">
+                                        {% if page_obj %}
+                                        {% for values in page_obj %}
+                                        <tr draggable="true">
+                                            <td class="sno" style="align-content: center;">{{ forloop.counter }}</td>
+                                            <input type="hidden" name="editid[]" value="{{values.id}}">
+                                            <input type="hidden" name="order_index[]" value="{{ values.order_index }}" class="order-index">
+                                            <td><input type="number" class="form-control" name="editlevel[]"
+                                                    value="{{ values.level }}" style="height:60px;"></td>
 
-        <!-- Title -->
-        <div class="nav-title">
-            KMC – Sheet Metal Costing
-        </div>
+                                            <td><input type="text" class="form-control" name="editpartno[]"
+                                                    value="{{ values.part_no }}" style="height:60px;"></td>
 
-        <!-- Navigation Links -->
-        <div class="nav-links">
-            <a href="/home" class="nav-item active">Home</a>
-            <a href="/mycsc" class="nav-item">CSC</a>
-            <a href="/admin" class="nav-item">Admin</a>
-        </div>
+                                            <td><input type="text" class="form-control" name="editrevision[]"
+                                                    value="{{ values.revision }}" style="height:60px;"></td>
 
-    </div>
+                                            <td><input type="text" class="form-control" name="editdesc[]"
+                                                    value="{{ values.part_description }}" style="height:60px;"></td>
 
-    <!-- RIGHT LOGO -->
-    <div class="nav-right">
-        <div class="logo-box">
-            <img src="/static/images/AL_logo.png" alt="AL Logo">
-        </div>
-    </div>
+                                            <td><input type="number" class="form-control" name="editqty[]"
+                                                    value="{{ values.qty }}" style="height:60px;"></td>
 
-</nav>
+                                            <!-- PROCESS TYPE -->
+                                            <td>
+                                                <select class="form-control" name="editprocess_type[]" onchange="toggleProcessType(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
+                                                    {% for process in process_types %}
+                                                        <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
+                                                            {{ process }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
 
-/* ============================= */
-/* ENTERPRISE HEADER DESIGN */
-/* ============================= */
+                                            <!-- SCOPE -->
+                                            <td>
+                                                <select class="form-control" name="editscope[]" style="height:60px;">
+                                                    <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
+                                                    <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
+                                                    <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
+                                                    <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
+                                                </select>
+                                            </td>
 
-#mainNavbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 85px;
-    background: linear-gradient(90deg, #005685, #003f63);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-}
+                                            <!-- METHOD -->
+                                            <td>
+                                                <select class="form-control" name="editmethod[]" onchange="toggleMethod(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
+                                                    {% for m in method_list %}
+                                                        <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
 
-/* LEFT & RIGHT LOGO SECTION */
-.nav-left,
-.nav-right {
-    width: 220px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+                                            <!-- NESTING -->
+                                            <td>
+                                                <select class="form-control" name="editis_nesting_needed[]" onchange="toggleNoOfBlanks(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
+                                                    <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
+                                                    <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
+                                                </select>
+                                            </td>
 
-/* White background logo box */
-.logo-box {
-    background: #ffffff;
-    padding: 8px 18px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+                                            <!-- ACTIONS -->
+                                            <td>
+                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
+                                                {% if values.method != "CSC" and values.scope == "BOSF" or values.method != "CSC" and values.scope == "BOF" %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#OtherMethodModal"
+                                                data-id="{{values.id}}"
+                                                data-level="{{values.level}}"
+                                                data-rev="{{values.revision}}"
+                                                data-qty="{{values.qty}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.process_type}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
+                                                data-method="{{values.method}}" onclick="othermodelmethod({{values.id}})"></i>
+                                                {% elif values.process_type == "Assembly" %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#AssemblyModal"
+                                                data-id="{{values.id}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.cutting_process}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
+                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
+                                                {% else %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
+                                                data-id="{{values.id}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.cutting_process}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
+                                                {% endif %}
+                                                <!-- <i class="bi bi-grip-vertical drag-handle" title="Drag to reorder"></i> -->
+                                                <i class="bi bi-trash btn delete-bom" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" data-target="#deleteBomModal"></i>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td class="sno" style="align-content: center;">1</td>
+                                            <input type="hidden" name="order_index[]" value="1" class="order-index">
+                                            <td><input type="number" name="level[]" class="form-control"style="height:60px;" value="1.0"></td>
+                                            <td><input type="text" name="part_num[]" class="form-control"style="height:60px;" value="{{csc_values.part_num}}"></td>
+                                            <td><input type="text" name="rev[]" class="form-control" style="height:60px;" value="{{csc_values.rev}}"></td>
+                                            <td><input type="text" name="desc[]" class="form-control" style="height:60px;"></td>
+                                            <td><input type="number" name="qty[]" class="form-control" style="height:60px;"></td>
 
-.logo-box img {
-    max-height: 45px;
-    max-width: 180px;
-    object-fit: contain;
-}
+                                            <!-- PROCESS TYPE -->
+                                            <td>
+                                                <select class="form-control" name="process_type[]" onchange="toggleProcessType(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.process_type %}selected{% endif %}>Select Process Type</option>
+                                                    {% for process in process_types %}
+                                                        <option value="{{ process }}" {% if values.process_type == process %}selected{% endif %}>
+                                                            {{ process }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
 
-/* CENTER AREA */
-.nav-middle {
-    flex: 1;
-    text-align: center;
-}
+                                            <!-- SCOPE -->
+                                            <td>
+                                                <select class="form-control" name="scope[]" style="height:60px;">
+                                                    <option value="" disabled {% if not values.scope %}selected{% endif %}>Select Scope</option>
+                                                    <option value="InHouse" {% if values.scope == 'InHouse' %}selected{% endif %}>InHouse</option>
+                                                    <option value="BOSF" {% if values.scope == 'BOSF' %}selected{% endif %}>BOSF</option>
+                                                    <option value="BOF" {% if values.scope == 'BOF' %}selected{% endif %}>BOF</option>
+                                                </select>
+                                            </td>
 
-/* Title */
-.nav-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 6px;
-}
+                                            <!-- METHOD -->
+                                            <td>
+                                                <select class="form-control" name="method[]" onchange="toggleMethod(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.method %}selected{% endif %}>Select Method</option>
+                                                    {% for m in method_list %}
+                                                        <option value="{{ m }}" {% if values.method == m %}selected{% endif %}>{{ m }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
 
-/* Links */
-.nav-links {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-}
+                                            <!-- NESTING -->
+                                            <td>
+                                                <select class="form-control" name="is_nesting_needed[]" onchange="toggleNoOfBlanks(this)" style="height:60px;">
+                                                    <option value="" disabled {% if not values.is_nesting_needed %}selected{% endif %}>Select</option>
+                                                    <option value="Yes" {% if values.is_nesting_needed == 'Yes' %}selected{% endif %}>Yes</option>
+                                                    <option value="No" {% if values.is_nesting_needed == 'No' %}selected{% endif %}>No</option>
+                                                </select>
+                                            </td>
 
-.nav-item {
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 6px;
-    transition: 0.3s ease;
-}
+                                            <!-- ACTIONS -->
+                                            <td>
+                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
+                                                <i class="bi bi-trash btn" id="deletecsc" onclick="deleteRow(this)"></i>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                    </table>
+                                </div>
+                                <div class="pagination" style="display: flex; gap: 15px;margin-left: 15px;">
+                                    <!-- previous button -->
+                                    {% if page_obj.has_previous %}
+                                        <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                                    {% else %}
+                                        <span style="opacity: 0.5;">Previous</span>
+                                    {% endif %}
+                                    <!-- page numbers -->
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <strong>{{ num }}</strong>
+                                        {% else %}
+                                            <a href="?page={{ num }}">{{num}}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <!-- next button -->
+                                    {% if page_obj.has_next %}
+                                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                                    {% else %}
+                                        <span style="opacity:0.5;">Next</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                                <h2>SM MATERIAL</h2>
+                                <form method="post" action="{% url 'bom_details' csc_values.id %}">
+                                        {% csrf_token %}
+                                        <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part No</th>
+                                                    <th>Description</th>
+                                                    <th>Estimation Method</th>
+                                                    <th>Material Grade</th>
+                                                    <th>RM Price / Kg (INR)</th>
+                                                    <th>Length (mm)</th>
+                                                    <th>Width (mm)</th>
+                                                    <th>Thick (mm)</th>
+                                                    <th>Sheet Length (mm)</th>
+                                                    <th>Sheet Width (mm)</th>
+                                                    <th>Shearing/ Blanking/ Laser cutting</th>
+                                                    <th>Sheet Weight (kg)</th>
+                                                    <th>No of Blanks per sheet</th>
+                                                    <th>Blank weight (Kg)</th>
+                                                    <th>Input Weight (Kg)</th>
+                                                    <th>Finish weight (Kg)</th>
+                                                    <th>Yield (%)</th>
+                                                    <th>Surface Area / Part</th>
+                                                    <th>Scrap wt (kg)</th>
+                                                    <th>Scrap mat.Price</th>
+                                                    <th>Recovery (%)</th>
+                                                    <th>Price per unit (INR)</th>
+                                                    <th>Direct RM Cost</th>
+                                                    <th>Allowance cost</th>
+                                                    <th>Remarks</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
 
-/* Hover effect */
-.nav-item:hover {
-    background: rgba(255,255,255,0.15);
-    text-decoration: none;
-}
+                                            {% if sm_material %}
+                                                {% for row in sm_material %}
+                                                <tr class="rowdata">
+                                                    <td>{{row.part_no}}</td>
+                                                    <!-- <input type="text" name="part_num" value="{{ row.part_no }}" style="width: 100px;" readonly> -->
+                                                    <td>{{row.part_description}}</td>
+                                                    <!-- <input type="text" name="description" value="{{ row.part_description }}" style="width: 80px;" readonly> -->
+                                                    <td>{{row.estimation_mthd}}</td>
+                                                    <!-- <input type="text" name="estimation_method" value="{{ row.estimation_mthd }}" style="width: 80px;" readonly> -->
+                                                    <td>{{row.material_grade}}</td>
+                                                    <!-- <input type="text" value="{{row.material_grade}}"> -->
+                                                    <td>{{row.rm_price_per_kg}}</td>
+                                                    <!-- <input name="rm_price" value="{{ row.rm_price_per_kg }}" readonly style="background-color: #e9ecef;"> -->
+                                                    <td>{{row.length}}</td>
+                                                    <!-- <input type="" name="length" value="{{ row.length }}" required min="0"> -->
+                                                    <td>{{row.width}}</td>
+                                                    <!-- <input type="" name="width" value="{{ row.width }}" required min="0"> -->
+                                                    <td>{{row.thickness}}</td>
+                                                    <!-- <input type="" name="thickness" value="{{ row.thickness }}" required min="0"> -->
+                                                    <td>{{row.sheet_length}}</td>
+                                                    <!-- <input name="sheet_length" value="{{ row.sheet_length }}" > -->
+                                                    <td>{{row.sheet_width}}</td>
+                                                    <!-- <input name="sheet_width" value="{{ row.sheet_width }}" > -->
+                                                    <td>{{row.cutting_process}}</td>
+                                                    <!-- <input type="text" value="{{row.cutting_process}}"> -->
+                                                    <td>{{row.sheet_weight}}</td>
+                                                    <!-- <input type="" name="sheet_weight" value="{{ row.sheet_weight }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.no_of_blanks}}</td>
+                                                    <!-- <input type="" name="no_of_blanks" value="{{ row.no_of_blanks }}" id="no_of_blanks"> -->
+                                                    <td>{{row.blank_weight}}</td>
+                                                    <!-- <input type="" name="blank_weight" value="{{ row.blank_weight }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.input_weight}}</td>
+                                                    <!-- <input type="" name="input_weight" value="{{ row.input_weight }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.finish_weight}}</td>
+                                                    <!-- <input type="" name="finish_weight" value="{{ row.finish_weight }}" required min="0"> -->
+                                                    <td>{{row.yield_value}}</td>
+                                                    <!-- <input type="" name="yield" value="{{ row.yield_value }}" > -->
+                                                    <td>{{row.surface_area_part}}</td>
+                                                    <!-- <input type="" name="surface_area" value="{{ row.surface_area_part }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.scrap_weight}}</td>
+                                                    <!-- <input type="" name="scrap_weight" value="{{ row.scrap_weight }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.scrap_price}}</td>
+                                                    <!-- <input name="scrap_price" value="{{ row.scrap_price }}" readonly style="background-color: #e9ecef;"> -->
+                                                    <td>{{95}}</td>
+                                                    <!-- <input type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"> -->
+                                                    <td>{{row.price_per_unit}}</td>
+                                                    <!-- <input type="" name="price_per_unit" value="{{ row.price_per_unit }}" style="background-color: #e9ecef; width: 100px;" readonly> -->
+                                                    <td>{{row.direct_rm_cost}}</td>
+                                                    <!-- <input type="" name="direct_rm_cost" value="{{ row.direct_rm_cost }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.allowance_cost}}</td>
+                                                    <!-- <input type="" name="allowance_cost" value="{{ row.allowance_cost }}" style="background-color: #e9ecef;" readonly> -->
+                                                    <td>{{row.remarks}}</td>
+                                                    <!-- <input type="text" name="remarks" value="{{row.remarks}}" style="width: 100px;"> -->
+                                                </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <td colspan="16" style="text-align:center;">No data on this page.</td>
+                                            {% endif %}
+                                            </tbody>
+                                        </table></div>
+                                        <!-- <div class="action-buttons">
+                                            <button type="submit" name="save_material_data">Save Material Data</button>
+                                        </div> -->
+                                        <div class="pagination" style="display: flex; gap: 15px;margin-left: 15px;">
+                                            <!-- previous button -->
+                                            {% if page_obj.has_previous %}
+                                                <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                                            {% else %}
+                                                <span style="opacity: 0.5;">Previous</span>
+                                            {% endif %}
+                                            <!-- page numbers -->
+                                            {% for num in page_obj.paginator.page_range %}
+                                                {% if page_obj.number == num %}
+                                                    <strong>{{ num }}</strong>
+                                                {% else %}
+                                                    <a href="?page={{ num }}">{{num}}</a>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <!-- next button -->
+                                            {% if page_obj.has_next %}
+                                                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                                            {% else %}
+                                                <span style="opacity:0.5;">Next</span>
+                                            {% endif %}
+                                        </div>
 
-/* Active link */
-.nav-item.active {
-    background: #ffffff;
-    color: #005685;
-    font-weight: 600;
-}
+                                    </form>
+                            </div>
+                            <div class="tab-pane fade" id="pills-bomsummary" role="tabpanel" aria-labelledby="pills-bomsummary-tab">
+                                <form id="bom_summary_form" method="post" action="">
+                                    <!-- <ul class="nav nav-tabs">
+                                        <li class="nav-item">
+                                             <a class="nav-link active" id="tableview-tab" data-toggle="tab" data-target="#tableview" role="tab" aria-controls="tableview" aria-selected="true">Table View</a>
+                                        </li>
+                                    </ul> -->
+                                    <!-- <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade show active" id="tableview" role="tabpanel" aria-labelledby="tableview-tab"> -->
+                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                            {% csrf_token %}
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>S.NO</th>
+                                                    <th>PARENT PART NO</th>
+                                                    <th>LEVEL</th>
+                                                    <th>PART NO</th>
+                                                    <th>REV</th>
+                                                    <th>PARTS DESCRIPTION</th>
+                                                    <th>QTY</th>
+                                                    <th>PROCESS TYPE</th>
+                                                    <th>SCOPE</th>
+                                                    <th>METHOD</th>
+                                                    <th>DIRECT RM</th>
+                                                    <th>ALLOWANCE</th>
+                                                    <th>PROCESS COST</th>
+                                                    <th>SURFACE FINISH COST</th>
+                                                    <th>OH & OTHERS</th>
+                                                    <th>PROFIT</th>
+                                                    <th>CPU</th>
+                                                    <th>CPA</th>
+                                                    <th>WEIGHT</th>
+                                                    <th>TOTAL WEIGHT</th>
+                                                    <th>RATE/KG</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="bom_summary_total">
+                                                    <td colspan="10">Total</td>
+                                                    <td class="summary_total_direct_rm">{{ totals.total_direct_rm|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_allowance">{{ totals.total_allowance|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_process_cost">{{ totals.total_process_cost|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_surface">{{ totals.total_surface|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_oh_and_others">{{ totals.total_oh_and_others|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_profit">{{ totals.total_profit|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_cpu">{{ totals.total_cpu|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_cpa">{{ totals.total_cpa|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_weight">{{ totals.sum_total_weight|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_total_weight">{{ totals.total_total_weight|default:0|floatformat:2 }}</td>
+                                                    <td class="summary_total_rate_kg">{{ totals.avg_rate_kg|default:0|floatformat:2 }}</td>
+                                                </tr>
+                                                <tr>
+                                                    {% if bom_summary_obj %}
+                                                    {% for values in bom_summary_obj %}
+                                                    <tr class="bom_summary_values">
+                                                        <td class="sno">{{ forloop.counter }}</td>
+                                                        <input type="hidden" name="bomsmid[]" value="{{values.id}}">
+                                                        <td class="summary_parent_part_no">{{parent_part_no}}</td>
+                                                        <td class="summary_level">{{values.bom_level}}</td>
+                                                        <td class="summary_part_no">{{ values.bom_part_no }}</td>
+                                                        <td class="summary_revision">{{ values.bom_revision }}</td>
+                                                        <td class="summary_part_desc">{{ values.bom_part_desc }}</td>
+                                                        <td class="summary_qty">{{ values.bom_qty }}</td>
+                                                        <td class="summary_process_type">{{ values.bom_process_type }}</td>
+                                                        <td class="summary_scope">{{ values.bom_scope }}</td>
+                                                        <td class="summary_method">{{ values.bom_method }}</td>
+                                                        <td class="summary_direct_rm">{{ values.direct_rm|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_allowance">{{ values.allowance|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_process_cost">{{ values.process_cost|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_surface">{{ values.surface_finish_cost|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_oh_and_others">{{ values.oh_and_others|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_profit">{{ values.profit|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_cpu" style="width: 60px;">{{ values.cpu|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_cpa" style="width: 60px;">{{ values.cpa|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_weight">{{ values.weight|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_total_weight">{{ values.total_weight|default:0|floatformat:2 }}</td>
+                                                        <td class="summary_rate_kg">{{ values.rate_kg|default:0|floatformat:2 }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="pagination" style="display: flex; gap: 15px;margin-left: 15px;">
+                                        <!-- previous button -->
+                                        {% if page_obj.has_previous %}
+                                            <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+                                        {% else %}
+                                            <span style="opacity: 0.5;">Previous</span>
+                                        {% endif %}
+                                        <!-- page numbers -->
+                                        {% for num in page_obj.paginator.page_range %}
+                                            {% if page_obj.number == num %}
+                                                <strong>{{ num }}</strong>
+                                            {% else %}
+                                                <a href="?page={{ num }}">{{num}}</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <!-- next button -->
+                                        {% if page_obj.has_next %}
+                                            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        {% else %}
+                                            <span style="opacity:0.5;">Next</span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- </div> -->
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="graphview" role="tabpanel" aria-labelledby="graphview-tab">
+                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
+                                            {% csrf_token %}
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>COST HEAD</th>
+                                                    <th>DIRECT RM COST</th>
+                                                    <th>ALLOWANCE COST</th>
+                                                    <th>PROCESS COST</th>
+                                                    <th>SURFACE PROTECTION</th>
+                                                    <th>OVERHEAD</th>
+                                                    <th>PROFIT</th>
+                                                    <th>TOTAL BASIC COST</th>
+                                                    <th>PACKING</th>
+                                                    <th>TRANSPORT</th>
+                                                    <th>AMORTIZATION</th>
+                                                    <th>TOTAL COST</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="bom_summary_graph_total">
+                                                    <td>Amount</td>
+                                                    <td id="bom_summary_graph_direct_rm">{{ totals.total_direct_rm|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_allowance">{{ totals.total_allowance|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_process_cost">{{ totals.total_process_cost|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_surface_protection">{{ totals.total_surface|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_overhead">{{ totals.total_oh_and_others|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_profit">{{ totals.total_profit|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_total_basic_cost" style="font-weight: bold;">{{ totals.total_cpa|default:0|floatformat:2 }}</td>
+                                                    <td id="bom_summary_graph_packing">0</td>
+                                                    <td id="bom_summary_graph_transport">0</td>
+                                                    <td id="bom_summary_graph_amortization">0</td>
+                                                    <td id="bom_summary_graph_total_cost" style="font-weight: bold;">{{ totals.total_cpa|default:0|floatformat:0}}</td>
+                                                </tr>
+                                                <tr class="bom_summary_graph_percent">
+                                                    <td>Ratio</td>
+                                                    <td>{{totals.direct_rm_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.allowance_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.process_cost_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.surface_cost_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.overhead_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.profit_percent|default:0|floatformat:0}}%</td>
+                                                    <td style="font-weight: bold;">100%</td>
+                                                    <td>{{totals.packing_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.transport_percent|default:0|floatformat:0}}%</td>
+                                                    <td>{{totals.amortization_percent|default:0|floatformat:0}}%</td>
+                                                    <td style="font-weight: bold;">{{totals.totalcost_percent|default:0|floatformat:0}}%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="bomFloatingWrapperH" style="height: 585px; max-width: 1870px;">
+                                        <canvas id="bomFloatingBarH"></canvas>
+                                    </div>
+                            </div>
+                        </div>
+            </div>
+next change this page as well for clean and professional for impressive look. after i give the existing styles give me the updates
