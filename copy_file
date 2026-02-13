@@ -1,84 +1,147 @@
-<div class="table table-card flex-container">
-<div class="flex-item button-container1">
-<ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
-<li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
-    <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
-</li>
-<li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
-    <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
-</li>
-<li class="nav-item" role="presentation" style="margin-top: 30px;">
-    <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
-</li>
-</ul></div>
-<div class="flex-item button-container2 floating-total">
-    Total Estimated Cost : <b>₹ {{totals.total_cpa|default:0|floatformat:2}}</b>
+<div class="flex-item button-container2">
+    
+    <!-- STATUS BADGE -->
+    <span id="cscStatusBadge"
+          class="badge px-3 py-2"
+          style="font-size:13px;
+                 background-color: {% if csc_status == 'WIP' %}#0d6efd{% else %}#198754{% endif %};
+                 color:white;
+                 border-radius:20px;">
+        {{ csc_status }}
+    </span>
+
+    <!-- TOTAL -->
+    <div class="floating-total">
+        Total Estimated Cost :
+        <b>₹ {{ totals.total_cpa|default:0|floatformat:2 }}</b>
+    </div>
+
+    <!-- MOVE TO REVIEW SECTION -->
+    {% if csc_status == "WIP" %}
+    <div class="review-container mt-2 text-end" id="reviewSection">
+        <label class="move-review-label">
+            <input type="checkbox" id="moveToReviewCheckbox">
+            <span class="question-text">Move to Review?</span>
+        </label>
+    </div>
+    {% endif %}
+
 </div>
+
+.button-container2 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: relative;
+}
+
+.review-container {
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.move-review-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #444;
+}
+
+.move-review-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+<div class="modal fade" id="reviewConfirmModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Status Update</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to move this to <b>Review</b>?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" id="confirmReviewBtn">Yes, Move</button>
+      </div>
+    </div>
+  </div>
 </div>
+<script>
 
-.floating-total {
-        position: absolute;
-        right: 20px;
-        top: 15px;
-        background: #0d6efd;
-        color: white;
-        padding: 8px 18px;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 14px;
-        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
-    }
+const checkbox = document.getElementById("moveToReviewCheckbox");
 
-.flex-container {
-        height: 80px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        margin: 10px 0 5px 0 !important;
-    }
+if (checkbox) {
 
-    .flex-item.title h2 {
-        font-size: 18px;
-        font-weight: 700;
-        color: #005685;
-        margin: 0;
-    }
+    checkbox.addEventListener("change", function () {
 
-    .flex-container header {
-        display: flex;
-        /* justify-content: space-between; */
-        flex-wrap: wrap; /* Allows items to wrap to next line */
-        gap: 10px; /* Space between items */
-        margin-bottom: 10px;
-    }
+        if (this.checked) {
+            $("#reviewConfirmModal").modal("show");
+        }
+    });
+}
 
-    .flex-item section{
-        flex: 1 1 20%; /* Grow, shrink, and base width */
-        min-width: 150px; /* Prevent items from getting too small */
-    }
 
-    .flex-item.title {
-        flex: 1; /* take available space */
-    }
+// Confirm Button Click
+document.getElementById("confirmReviewBtn")?.addEventListener("click", function () {
 
-    .flex-item.button-container1 {
-        display: flex;
-        justify-content: space-between;
-        margin-right: 18px;
-    }
+    fetch("/api/update-csc-status/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            status: "REVIEW",
+            csc_id: "{{ csc_id }}"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
 
-    .flex-item.button-container3 {
-        display: flex;
-        justify-content: space-between;
-        margin-right: 18px;
-    }
+        if (data.success) {
 
-    .flex-item.button-container2 {
-        display: flex;
-        justify-content: flex-end;
-    }
+            // Change Badge Color
+            const badge = document.getElementById("cscStatusBadge");
+            badge.innerText = "UNDER REVIEW";
+            badge.style.backgroundColor = "#198754"; // green
 
-set one small checkbox with move to review question below the total estimated cost if csc_status is WIP then show this. if user click it then show modal for confirmation for update status from WIP to review 
-if user confirm it call one api that update the status in csc and also in ui change the blue badge to green and checkbox change to tick and the question change to message like under review. do with the better ui for correct 
-position and dynamic changes.
+            // Change Question to Message
+            const questionText = document.querySelector(".question-text");
+            questionText.innerText = "Under Review";
+
+            // Disable checkbox
+            checkbox.disabled = true;
+
+            // Hide modal
+            $("#reviewConfirmModal").modal("hide");
+
+        } else {
+            alert("Something went wrong");
+            checkbox.checked = false;
+        }
+
+    })
+    .catch(() => {
+        alert("Error updating status");
+        checkbox.checked = false;
+    });
+
+});
+
+</script>
+@csrf_exempt
+def update_csc_status(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        csc_id = data.get("csc_id")
+
+        obj = CSC.objects.get(id=csc_id)
+        obj.csc_status = "REVIEW"
+        obj.save()
+
+        return JsonResponse({"success": True})
