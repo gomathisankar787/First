@@ -1,82 +1,84 @@
-<div class="flex-item button-container2 floating-total 
-    {% if csc.csc_status == 'Review' %}reviewed{% endif %}">
-
-    <div>
-        Total Estimated Cost :
-        <b>₹ {{ totals.total_cpa|default:0|floatformat:2 }}</b>
-    </div>
-
-    <div class="review-section mt-2">
-        {% if csc.csc_status == "WIP" %}
-            <a href="{% url 'move_to_review' part_no part_rev %}" 
-               class="move-review-link">
-               Move to Review?
-            </a>
-        {% elif csc.csc_status == "Review" %}
-            <span class="under-review-text">
-                Under Review
-            </span>
-        {% endif %}
-    </div>
-
+<div class="table table-card flex-container">
+<div class="flex-item button-container1">
+<ul class="nav nav-pills mb-3"  id="pills-tab" role="tablist">
+<li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
+    <button class="nav-link active" id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">BOM</button>
+</li>
+<li class="nav-item mr-2" role="presentation" style="margin-top: 30px;">
+    <button class="nav-link" id="pills-bomsummary-tab" data-toggle="pill" data-target="#pills-bomsummary" type="button" role="tab" aria-controls="pills-bomsummary" aria-selected="false">BOM SUMMARY</button>
+</li>
+<li class="nav-item" role="presentation" style="margin-top: 30px;">
+    <button class="nav-link" id="graphview-tab" data-toggle="tab" data-target="#graphview" type="button" role="tab" aria-controls="graphview" aria-selected="false">GRAPH VIEW</button>
+</li>
+</ul></div>
+<div class="flex-item button-container2 floating-total">
+    Total Estimated Cost : <b>₹ {{totals.total_cpa|default:0|floatformat:2}}</b>
+</div>
 </div>
 
 .floating-total {
-    background: #0d6efd;
-    color: #fff;
-    padding: 14px 22px;
-    border-radius: 12px;
-    font-size: 14px;
-    box-shadow: 0 6px 18px rgba(13,110,253,0.25);
-    transition: all 0.3s ease;
-}
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        background: #0d6efd;
+        color: white;
+        padding: 8px 18px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
 
-/* When moved to review */
-.floating-total.reviewed {
-    background: #198754;
-    box-shadow: 0 6px 18px rgba(25,135,84,0.25);
-}
+.flex-container {
+        height: 80px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        margin: 10px 0 5px 0 !important;
+    }
 
-/* Question link */
-.move-review-link {
-    font-size: 12px;
-    color: #fff;
-    opacity: 0.85;
-    text-decoration: underline;
-    cursor: pointer;
-}
+    .flex-item.title h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #005685;
+        margin: 0;
+    }
 
-.move-review-link:hover {
-    opacity: 1;
-    text-decoration: none;
-}
+    .flex-container header {
+        display: flex;
+        /* justify-content: space-between; */
+        flex-wrap: wrap; /* Allows items to wrap to next line */
+        gap: 10px; /* Space between items */
+        margin-bottom: 10px;
+    }
 
-/* Under Review text */
-.under-review-text {
-    font-size: 12px;
-    font-weight: 500;
-    opacity: 0.9;
-}
+    .flex-item section{
+        flex: 1 1 20%; /* Grow, shrink, and base width */
+        min-width: 150px; /* Prevent items from getting too small */
+    }
 
-path(
-    'move-to-review/<str:part_no>/<str:part_rev>/',
-    views.move_to_review,
-    name='move_to_review'
-),
+    .flex-item.title {
+        flex: 1; /* take available space */
+    }
 
-from django.shortcuts import redirect, get_object_or_404
-from .models import CRCSCTBL
+    .flex-item.button-container1 {
+        display: flex;
+        justify-content: space-between;
+        margin-right: 18px;
+    }
 
-def move_to_review(request, part_no, part_rev):
-    csc = get_object_or_404(
-        CRCSCTBL,
-        part_num=part_no,
-        rev=part_rev
-    )
+    .flex-item.button-container3 {
+        display: flex;
+        justify-content: space-between;
+        margin-right: 18px;
+    }
 
-    # Only update if currently WIP
-    if csc.csc_status == "WIP":
-        csc.csc_status = "Review"
-        csc.save()
+    .flex-item.button-container2 {
+        display: flex;
+        justify-content: flex-end;
+    }
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+set one small checkbox with move to review question below the total estimated cost if csc_status is WIP then show this. if user click it then show modal for confirmation for update status from WIP to review 
+if user confirm it call one api that update the status in csc and also in ui change the blue badge to green and checkbox change to tick and the question change to message like under review. do with the better ui for correct 
+position and dynamic changes.
