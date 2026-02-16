@@ -1,147 +1,139 @@
-<div class="flex-item button-container2">
-    
-    <!-- STATUS BADGE -->
-    <span id="cscStatusBadge"
-          class="badge px-3 py-2"
-          style="font-size:13px;
-                 background-color: {% if csc_status == 'WIP' %}#0d6efd{% else %}#198754{% endif %};
-                 color:white;
-                 border-radius:20px;">
-        {{ csc_status }}
-    </span>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f5f7;
+        overflow: hidden;
+    }
 
-    <!-- TOTAL -->
-    <div class="floating-total">
-        Total Estimated Cost :
-        <b>₹ {{ totals.total_cpa|default:0|floatformat:2 }}</b>
-    </div>
+    /* Top Navbar */
+    #nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        height: 64px;
+        background: linear-gradient(90deg, #005685, #003f63);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+    }
 
-    <!-- MOVE TO REVIEW SECTION -->
-    {% if csc_status == "WIP" %}
-    <div class="review-container mt-2 text-end" id="reviewSection">
-        <label class="move-review-label">
-            <input type="checkbox" id="moveToReviewCheckbox">
-            <span class="question-text">Move to Review?</span>
-        </label>
-    </div>
-    {% endif %}
+    /* Background section */
+    .hero-section {
+        background: url('/static/images/image.png') no-repeat center center/cover;
+        height: 100vh;
+        padding-top: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
 
-</div>
+    /* Dark overlay */
+    .hero-section::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+    }
 
-.button-container2 {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    position: relative;
-}
+    /* Card container */
+    .card-container {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+        margin-bottom: 230px;
+    }
 
-.review-container {
-    margin-top: 8px;
-    font-size: 13px;
-}
+    .card-container h1 {
+        font-weight: 700;
+        margin-bottom: 40px;
+    }
 
-.move-review-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #444;
-}
+    /* Navigation Cards */
+    .nav-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 30px 20px;
+        width: 220px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
 
-.move-review-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-<div class="modal fade" id="reviewConfirmModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirm Status Update</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        Are you sure you want to move this to <b>Review</b>?
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button class="btn btn-success" id="confirmReviewBtn">Yes, Move</button>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
+    .nav-card i {
+        font-size: 40px;
+        color: #005685;
+        margin-bottom: 15px;
+    }
 
-const checkbox = document.getElementById("moveToReviewCheckbox");
+    #approved{
+        color: #28a745;
+    }
 
-if (checkbox) {
+    .nav-card h5 {
+        font-weight: 600;
+        color: #333;
+    }
 
-    checkbox.addEventListener("change", function () {
+    .nav-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+    }
 
-        if (this.checked) {
-            $("#reviewConfirmModal").modal("show");
+    /* Responsive */
+    @media (max-width: 768px) {
+        .nav-card {
+            margin-bottom: 20px;
+            width: 100%;
         }
-    });
-}
+    }
+</style>
 
+</head>
 
-// Confirm Button Click
-document.getElementById("confirmReviewBtn")?.addEventListener("click", function () {
+<body>
+    <div class="hero-section">
 
-    fetch("/api/update-csc-status/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({
-            status: "REVIEW",
-            csc_id: "{{ csc_id }}"
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
+    <div class="card-container">
+        <h1>KMC – Clean Sheet Costing</h1>
 
-        if (data.success) {
+        <div class="d-flex justify-content-center flex-wrap gap-4">
 
-            // Change Badge Color
-            const badge = document.getElementById("cscStatusBadge");
-            badge.innerText = "UNDER REVIEW";
-            badge.style.backgroundColor = "#198754"; // green
+            <!-- Home Card -->
+            <div class="nav-card m-3" onclick="location.href='/home'">
+                <i class="bi bi-house-door-fill"></i>
+                <h5>Home</h5>
+                <p class="text-muted">Dashboard Overview</p>
+            </div>
 
-            // Change Question to Message
-            const questionText = document.querySelector(".question-text");
-            questionText.innerText = "Under Review";
+            <!-- CSC Card -->
+            <div class="nav-card m-3" onclick="location.href='/mycsc'">
+                <i class="bi bi-graph-up-arrow"></i>
+                <h5>My CSC</h5>
+                <p class="text-muted">Cost Sheet Calculator</p>
+            </div>
 
-            // Disable checkbox
-            checkbox.disabled = true;
+            <div class="nav-card m-3" onclick="location.href='/listcsc'">
+                <i class="bi bi-graph-up-arrow" id="approved"></i>
+                <h5>List CSC</h5>
+                <p class="text-muted">Approved Sheet Calculator</p>
+            </div>
 
-            // Hide modal
-            $("#reviewConfirmModal").modal("hide");
+            <!-- Admin Card -->
+            <div class="nav-card m-3" onclick="location.href='/admin'">
+                <i class="bi bi-gear-fill"></i>
+                <h5>Admin</h5>
+                <p class="text-muted">System Configuration</p>
+            </div>
 
-        } else {
-            alert("Something went wrong");
-            checkbox.checked = false;
-        }
+        </div>
+    </div>
 
-    })
-    .catch(() => {
-        alert("Error updating status");
-        checkbox.checked = false;
-    });
+    </div>
+</body>
 
-});
+</html>
 
-</script>
-@csrf_exempt
-def update_csc_status(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        csc_id = data.get("csc_id")
-
-        obj = CSC.objects.get(id=csc_id)
-        obj.csc_status = "REVIEW"
-        obj.save()
-
-        return JsonResponse({"success": True})
+if the screen size decrease the background image should be shrink but it's not happen for the laptop view the image didn't show full
