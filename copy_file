@@ -1,81 +1,70 @@
-path('csc_status_update/',views.CscStatusUpdateView.as_view())
+function updateCscStatus(unique_csc_id) {
 
-class statusUpdateSerializer(serializers.Serializer):
-    unique_csc_id = serializers.CharField()
+    const confirmBtn = document.getElementById("confirmReviewBtn");
+    confirmBtn.disabled = true;
 
-class CscStatusUpdateView(generics.GenericAPIView):
-    @swagger_auto_schema(request_body=statusUpdateSerializer)
-    def post(self,request):
-        try:
-            csc_object = CRCSCTBL.objects.filter(unique_csc_id=request.data.get('unique_csc_id')).first()
-            if not csc_object:
-                return Response({'message': str(e)},status=status.HTTP_400_BAD_REQUEST)
-            if csc_object.csc_status == "Review":
-                return Response({'message': "Can't Update the status from the current status"},status=status.HTTP_400_BAD_REQUEST)
-            csc_object.csc_status = "Review"
-            csc_object.save()
-            return Response({'success': True, 'message': 'Status Updated successfully'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'message': str(e)},status=status.HTTP_400_BAD_REQUEST)
+    fetch("/csc_status_update/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            unique_csc_id: unique_csc_id
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
 
-<div class="flex-item button-container2">
+        if (data.success) {
 
-                            <!-- TOTAL -->
-                            <div class="floating-total" style="background-color: {% if csc_values.csc_status == 'WIP' %}#0d6efd{% else %}#198754{% endif %};">
-                                Total Estimated Cost :
-                                <b>₹ {{ totals.total_cpa|default:0|floatformat:2 }}</b>
-                            </div>
+            toastr.success("Status moved to Review successfully");
 
-                            <!-- MOVE TO REVIEW SECTION -->
-                            {% if csc_values.csc_status == "WIP" %}
-                            <div class="review-container mt-2 text-end" id="reviewSection">
-                                <label class="move-review-label">
-                                    <input type="checkbox" id="moveToReviewCheckbox">
-                                    <span class="question-text">Move to Review?</span>
-                                </label>
-                            </div>
-                            {% elif csc_values.csc_status == "Review" %}
-                            <div class="review-container mt-2 text-end" id="reviewSection">
-                                <label class="under-review-label">
-                                    <i class="bi bi-patch-check"></i>
-                                    <span class="question-text">Under Review</span>
-                                </label>
-                            </div>
-                            {% endif %}
-                        </div>
+            // Close modal
+            $("#reviewConfirmModal").modal("hide");
 
-<div class="modal fade" id="reviewConfirmModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Status Update</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to move this to <b>Review</b>?
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success" id="confirmReviewBtn" onclick="updateCscStatus(csc_values.unique_csc_id)">Yes, Move</button>
-                </div>
-                </div>
-            </div>
-            </div>
+            // Change floating total color to green
+            const totalBox = document.getElementById("floatingTotal");
+            totalBox.style.backgroundColor = "#198754";
 
-const checkbox = document.getElementById("moveToReviewCheckbox");
+            // Change Review section content
+            const reviewSection = document.getElementById("reviewSection");
+            reviewSection.innerHTML = `
+                <label class="under-review-label">
+                    <i class="bi bi-patch-check"></i>
+                    <span class="question-text">Under Review</span>
+                </label>
+            `;
 
-            if (checkbox) {
+        } else {
+            toastr.error(data.message || "Failed to update status");
+        }
 
-                checkbox.addEventListener("change", function () {
+        confirmBtn.disabled = false;
 
-                    if (this.checked) {
-                        $("#reviewConfirmModal").modal("show");
-                    }
-                });
+    })
+    .catch(error => {
+        toastr.error("Something went wrong");
+        confirmBtn.disabled = false;
+    });
+}
+
+onclick="updateCscStatus('{{ csc_values.unique_csc_id }}')"
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
+        }
+    }
+    return cookieValue;
+}
 
-            function updateCscStatus(unique_csc_id){
-                
-            }
-
-give the function updatecscstatus code that do api call with toaster and also dynamically change text under review and color green because of status update wip to review.
+if not csc_object:
+    return Response({'message': "CSC not found"},status=status.HTTP_400_BAD_REQUEST)
