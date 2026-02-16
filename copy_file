@@ -1,134 +1,81 @@
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f4f5f7;
-}
+path('csc_status_update/',views.CscStatusUpdateView.as_view())
 
-/* Top Navbar */
-#nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 64px;
-    background: linear-gradient(90deg, #005685, #003f63);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    z-index: 1000;
-}
+class statusUpdateSerializer(serializers.Serializer):
+    unique_csc_id = serializers.CharField()
 
-/* Hero Section */
-.hero-section {
-    background: url('/static/images/image.png') no-repeat center center;
-    background-size: cover;
-    min-height: 100vh;
-    padding-top: 64px; /* navbar height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
+class CscStatusUpdateView(generics.GenericAPIView):
+    @swagger_auto_schema(request_body=statusUpdateSerializer)
+    def post(self,request):
+        try:
+            csc_object = CRCSCTBL.objects.filter(unique_csc_id=request.data.get('unique_csc_id')).first()
+            if not csc_object:
+                return Response({'message': str(e)},status=status.HTTP_400_BAD_REQUEST)
+            if csc_object.csc_status == "Review":
+                return Response({'message': "Can't Update the status from the current status"},status=status.HTTP_400_BAD_REQUEST)
+            csc_object.csc_status = "Review"
+            csc_object.save()
+            return Response({'success': True, 'message': 'Status Updated successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': str(e)},status=status.HTTP_400_BAD_REQUEST)
 
-/* Dark overlay */
-.hero-section::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-}
+<div class="flex-item button-container2">
 
-/* Card container */
-.card-container {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    color: white;
-    width: 100%;
-    max-width: 1100px;
-    padding: 20px;
-}
+                            <!-- TOTAL -->
+                            <div class="floating-total" style="background-color: {% if csc_values.csc_status == 'WIP' %}#0d6efd{% else %}#198754{% endif %};">
+                                Total Estimated Cost :
+                                <b>₹ {{ totals.total_cpa|default:0|floatformat:2 }}</b>
+                            </div>
 
-/* Title */
-.card-container h1 {
-    font-weight: 700;
-    margin-bottom: 50px;
-    font-size: clamp(24px, 3vw, 38px);
-}
+                            <!-- MOVE TO REVIEW SECTION -->
+                            {% if csc_values.csc_status == "WIP" %}
+                            <div class="review-container mt-2 text-end" id="reviewSection">
+                                <label class="move-review-label">
+                                    <input type="checkbox" id="moveToReviewCheckbox">
+                                    <span class="question-text">Move to Review?</span>
+                                </label>
+                            </div>
+                            {% elif csc_values.csc_status == "Review" %}
+                            <div class="review-container mt-2 text-end" id="reviewSection">
+                                <label class="under-review-label">
+                                    <i class="bi bi-patch-check"></i>
+                                    <span class="question-text">Under Review</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
 
-/* Card Wrapper */
-.card-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    flex-wrap: wrap;
-    gap: 30px;
-}
+<div class="modal fade" id="reviewConfirmModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Status Update</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to move this to <b>Review</b>?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" id="confirmReviewBtn" onclick="updateCscStatus(csc_values.unique_csc_id)">Yes, Move</button>
+                </div>
+                </div>
+            </div>
+            </div>
 
-/* Navigation Cards */
-.nav-card {
-    background: rgba(255, 255, 255, 0.97);
-    border-radius: 16px;
-    padding: 30px 20px;
-    width: 240px;
-    min-height: 200px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
+const checkbox = document.getElementById("moveToReviewCheckbox");
 
-.nav-card i {
-    font-size: 42px;
-    color: #005685;
-    margin-bottom: 15px;
-}
+            if (checkbox) {
 
-#approved {
-    color: #28a745;
-}
+                checkbox.addEventListener("change", function () {
 
-.nav-card h5 {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-}
+                    if (this.checked) {
+                        $("#reviewConfirmModal").modal("show");
+                    }
+                });
+            }
 
-.nav-card p {
-    font-size: 14px;
-}
+            function updateCscStatus(unique_csc_id){
+                
+            }
 
-.nav-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 18px 35px rgba(0,0,0,0.35);
-}
-
-/* Tablet */
-@media (max-width: 992px) {
-    .nav-card {
-        width: 220px;
-    }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .card-wrapper {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .nav-card {
-        width: 90%;
-    }
-}
-
-<div class="card-wrapper">
-
-.card-container {
-    animation: fadeIn 0.8s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+give the function updatecscstatus code that do api call with toaster and also dynamically change text under review and color green because of status update wip to review.
