@@ -1,139 +1,134 @@
-<style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: #f4f5f7;
-        overflow: hidden;
-    }
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f5f7;
+}
 
-    /* Top Navbar */
-    #nav {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        height: 64px;
-        background: linear-gradient(90deg, #005685, #003f63);
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        z-index: 1000;
-    }
+/* Top Navbar */
+#nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 64px;
+    background: linear-gradient(90deg, #005685, #003f63);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
 
-    /* Background section */
-    .hero-section {
-        background: url('/static/images/image.png') no-repeat center center/cover;
-        height: 100vh;
-        padding-top: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
+/* Hero Section */
+.hero-section {
+    background: url('/static/images/image.png') no-repeat center center;
+    background-size: cover;
+    min-height: 100vh;
+    padding-top: 64px; /* navbar height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
 
-    /* Dark overlay */
-    .hero-section::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-    }
+/* Dark overlay */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+}
 
-    /* Card container */
-    .card-container {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        color: white;
-        margin-bottom: 230px;
-    }
+/* Card container */
+.card-container {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    width: 100%;
+    max-width: 1100px;
+    padding: 20px;
+}
 
-    .card-container h1 {
-        font-weight: 700;
-        margin-bottom: 40px;
-    }
+/* Title */
+.card-container h1 {
+    font-weight: 700;
+    margin-bottom: 50px;
+    font-size: clamp(24px, 3vw, 38px);
+}
 
-    /* Navigation Cards */
+/* Card Wrapper */
+.card-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+/* Navigation Cards */
+.nav-card {
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 16px;
+    padding: 30px 20px;
+    width: 240px;
+    min-height: 200px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.nav-card i {
+    font-size: 42px;
+    color: #005685;
+    margin-bottom: 15px;
+}
+
+#approved {
+    color: #28a745;
+}
+
+.nav-card h5 {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.nav-card p {
+    font-size: 14px;
+}
+
+.nav-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 35px rgba(0,0,0,0.35);
+}
+
+/* Tablet */
+@media (max-width: 992px) {
     .nav-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        padding: 30px 20px;
         width: 220px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .card-wrapper {
+        flex-direction: column;
+        align-items: center;
     }
 
-    .nav-card i {
-        font-size: 40px;
-        color: #005685;
-        margin-bottom: 15px;
+    .nav-card {
+        width: 90%;
     }
+}
 
-    #approved{
-        color: #28a745;
-    }
+<div class="card-wrapper">
 
-    .nav-card h5 {
-        font-weight: 600;
-        color: #333;
-    }
+.card-container {
+    animation: fadeIn 0.8s ease-in-out;
+}
 
-    .nav-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.35);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .nav-card {
-            margin-bottom: 20px;
-            width: 100%;
-        }
-    }
-</style>
-
-</head>
-
-<body>
-    <div class="hero-section">
-
-    <div class="card-container">
-        <h1>KMC – Clean Sheet Costing</h1>
-
-        <div class="d-flex justify-content-center flex-wrap gap-4">
-
-            <!-- Home Card -->
-            <div class="nav-card m-3" onclick="location.href='/home'">
-                <i class="bi bi-house-door-fill"></i>
-                <h5>Home</h5>
-                <p class="text-muted">Dashboard Overview</p>
-            </div>
-
-            <!-- CSC Card -->
-            <div class="nav-card m-3" onclick="location.href='/mycsc'">
-                <i class="bi bi-graph-up-arrow"></i>
-                <h5>My CSC</h5>
-                <p class="text-muted">Cost Sheet Calculator</p>
-            </div>
-
-            <div class="nav-card m-3" onclick="location.href='/listcsc'">
-                <i class="bi bi-graph-up-arrow" id="approved"></i>
-                <h5>List CSC</h5>
-                <p class="text-muted">Approved Sheet Calculator</p>
-            </div>
-
-            <!-- Admin Card -->
-            <div class="nav-card m-3" onclick="location.href='/admin'">
-                <i class="bi bi-gear-fill"></i>
-                <h5>Admin</h5>
-                <p class="text-muted">System Configuration</p>
-            </div>
-
-        </div>
-    </div>
-
-    </div>
-</body>
-
-</html>
-
-if the screen size decrease the background image should be shrink but it's not happen for the laptop view the image didn't show full
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
