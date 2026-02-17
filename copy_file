@@ -1,260 +1,34 @@
-<div class="modal fade fullscreen-modal" id="updatecscModal" tabindex="-1" data-backdrop="static" data-keyboard="false" aria-labelledby="updatecscModalTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Update Bom Details</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-container">
-                            <div class="table flex-container">
-                                <div class="flex-item title">
-                                    <h5>SM MATERIAL</h5>
-                                </div>
-                                <div class="flex-item button-container">
-                                    <button type="button" class="btn btn-primary" onclick="save_material_data()">Update</button>
-                                </div>
-                            </div>
+function populateSMProcessTable(
+    processList,
+    selectprocesslist,
+    selectprocessdesclist,
+    machine_type,
+    surface_process_base_list,
+    scope,
+    method
+)
+if (scope === "BOSF" && method === "CSC") {
 
-                            <form id="sm_material_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-                                <div class="table" style="padding: 10px;">
-                                    <div class="row formula-inputs">
-                                        <div class="col-3">
-                                            <h6>LENGTH FORMULA: <span><input id="view_length_formula" name="length_formula"  type="text"></span></h6>
-                                        </div>
-                                        <div class="col-3">
-                                            <h6>WIDTH FORMULA: <span><input id="view_width_formula" name="width_formula" type="text"></span></h6>
-                                        </div>
-                                        <div class="col-3">
-                                            <h6>FINISH WEIGHT FORMULA: <span><input id="view_finish_weight_formula" name="finish_weight_formula" type="text"></span></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                        {% csrf_token %}
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Part No</th>
-                                                <th>Description</th>
-                                                <th>Estimation Method</th>
-                                                <th>Material Grade</th>
-                                                <th>Length (mm)</th>
-                                                <th>Width (mm)</th>
-                                                <th>Thick (mm)</th>
-                                                <th>Shearing/ Blanking/ Laser cutting</th>
-                                                <th>Finish weight (Kg)</th>
-                                                <th>RM Price / Kg (INR)</th>
-                                                <th>Sheet Length (mm)</th>
-                                                <th>Sheet Width (mm)</th>
-                                                <th>Sheet Weight (kg)</th>
-                                                <th>No of Blanks per sheet</th>
-                                                <th>Blank weight (Kg)</th>
-                                                <th>Input Weight (Kg)</th>
-                                                <th>Yield (%)</th>
-                                                <th>Surface Area / Part</th>
-                                                <th>Scrap wt (kg)</th>
-                                                <th>Scrap mat.Price</th>
-                                                <th>Recovery (%)</th>
-                                                <th>Price per unit (INR)</th>
-                                                <th>Direct RM Cost</th>
-                                                <th>Allowance cost</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+    $('#processTableBody').find('.process_type').each(function () {
 
-                                        {% if page_obj %}
-                                            <tr class="rowdata">
+        const currentValue = $(this).val() || "Inhouse";
 
-                                                <td>
-                                                    <input type="hidden" id="edit_id">
-                                                    <input type="text" id="editpartNumber"  name="part_num" style="width: 100px; background-color: #e9ecef;" readonly>
-                                                </td>
-                                                <td><input type="text" id="editdescription" name="description" readonly></td>
-                                                <td><input type="text" id="editmethod" name="estimation_method" readonly></td>
-                                                <td>
-                                                    <select id="viewmethod" name="material_grade" style="width: 100px;" onchange="getMaterialRates(this.value)" required>
-                                                        <option></option> <!-- This empty option is needed for the placeholder to work -->
-                                                        {% for grade in material_grades %}
-                                                        <option value="{{ grade }}" >{{ grade }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </td>
-                                                <td><input type="" id="viewlength" name="length" required min="0"></td>
-                                                <td><input type="" id="viewwidth" name="width" required min="0"></td>
-                                                <td><input type="" id="viewthickness" name="thickness" required min="0"></td>
-                                                <td>
-                                                    <select id="viewprocess" name="process" style="width: 100px;" required >
-                                                        <option value="" disabled selected>Select Process</option>
-                                                        <option value="shearing" {% if request.POST.process == "shearing" %}selected{% endif %}>Shearing</option>
-                                                        <option value="blanking" {% if request.POST.process == "blanking" %}selected{% endif %}>Blanking</option>
-                                                        <option value="laser cutting" {% if request.POST.process == "laser cutting" %}selected{% endif %}>Laser Cutting</option>
-                                                        <option value="plasma cutting" {% if request.POST.process == "plasma cutting" %}selected{% endif %}>Plasma Cutting</option>
-                                                    </select>
-                                                </td>
-                                                <td><input type="" name="finish_weight" id="viewfinishweight" value="{{ request.POST.finish_weight }}" required min="0"></td>
-                                                <td><input id="viewrmprice" name="rm_price" value="{{ rm_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input id="viewsheetlength" name="sheet_length" value="{{ sheet_length }}" style="background-color: rgb(215, 247, 247);"></td>
-                                                <td><input id="viewsheetwidth" name="sheet_width" value="{{ sheet_width }}" style="background-color: rgb(215, 247, 247);"></td>
-                                                <td><input id="viewsheetweight" type="" name="sheet_weight" value="{{ sheet_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewnoofblanks" type="text" name="no_of_blanks" value="{{ no_of_blanks }}"></td>
-                                                <td><input id="viewblanweight" type="" name="blank_weight" value="{{ blank_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewinputweight" type="" name="input_weight" value="{{ input_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewyield" type="" name="yield" value="{{ yield_value }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewsurfacearea" type="" name="surface_area" value="{{ surface_area_part }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewscrapweight" type="" name="scrap_weight" value="{{ scrap_weight }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewscrapprice" name="scrap_price" value="{{ scrap_price }}" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input id="viewrecovery" type="text" name="recovery" value="95" readonly style="background-color: #e9ecef;"></td>
-                                                <td><input id="viewpriceperunit" type="" name="price_per_unit" value="{{ price_per_unit }}" style="background-color: #e9ecef; width: 60px;" readonly></td>
-                                                <td><input id="viewdirectrmcost" type="" name="direct_rm_cost" value="{{ direct_rm_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewallowancecost" type="" name="allowance_cost" value="{{ allowance_cost }}" style="background-color: #e9ecef;" readonly></td>
-                                                <td><input id="viewremarks" type="text" name="remarks" style="width: 100px;"></td>
-                                            </tr>
-                                        {% else %}
-                                            <td colspan="16" style="text-align:center;">No data on this page.</td>
-                                        {% endif %}
+        $(this).replaceWith(`
+            <select class="process_type form-control" name="process_type_bof">
+                <option value="Inhouse" ${currentValue === "Inhouse" ? "selected" : ""}>Inhouse</option>
+                <option value="Outsourced" ${currentValue === "Outsourced" ? "selected" : ""}>Outsourced</option>
+            </select>
+        `);
 
-                                        </tbody>
-                                    </table></div>
+    });
 
-                                </form></div><br>
-                                <div class="form-container">
-                                <form id="sm_process_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-                                    <h5>SM PROCESS</h5>
-                                    <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                    <table class="table table-bordered" id="processTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Part No</th>
-                                                <th>Process Place</th>
-                                                <th>Part Description</th>
-                                                <th>Process Description</th>
-                                                <th>Mechnical/Hydrlic</th>
-                                                <th>Cutg Len Formula</th>
-                                                <th>Cutg/Frmg Len</th>
-                                                <th>Machine Type</th>
-                                                <th>No of Ope</th>
-                                                <th>Part per Cycle</th>
-                                                <th>Norms</th>
-                                                <th>Process Cost Unit</th>
-                                                <th>Remarks</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class = "smprocessdata" id="processTableBody">
-                                            <tr>
-                                                <td><input id="process_partnumber" style="width: 130px;"></td>
-                                                <td><input id="process_place" style="width: 130px"></td>
-                                                <td><input id="process_part_description" ></td>
-
-function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type, surface_process_base_list) {
-                const tbody = document.getElementById("processTableBody");
-                tbody.innerHTML = ""; // clear existing rows
-
-                (processList || []).forEach(element => {
-                if (element?.process_description !== 'Surface Protection') {
-                    const val = Number(element?.process_cost_unit);
-                    if (Number.isFinite(val)) overallprocess_cost_unit += val;
-                }
-                });
-
-
-                processList.forEach(proc => {
-                    const row = document.createElement("tr");
-                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting","Hole Spotting"]
-                    const shearing = ["Shearing"]
-                    const surface = ["Surface Protection"]
-                    const greenGroup = ["Dressing","Block Setting","Setting, Assembly & Handling"]
-
-                    // Build Process Description Dropdown
-                    let processDescOptions = `<option value="">Select</option>`;
-                    selectprocessdesclist.forEach(desc => {
-                        const selected = proc.process_description === desc ? "selected" : "";
-                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-                    });
-
-                    // Build Machine Type Dropdown
-                    let processTypeOptions = `<option value="">Select</option>`;
-                    selectprocesslist.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
-
-                    let surface_processTypeOptions = `<option value="">Select</option>`;
-                    surface_process_base_list.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        surface_processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
-
-                    let machineTypeOption = `<option value="">Select</option>`;
-                    machine_type.forEach(item => {
-                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
-                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
-                    })
-
-                    const isSurfaceProtection = (proc.process_description || "")
-                    .toLowerCase()
-                    .includes("surface protection");
-
-                    row.innerHTML = `
-                        <td><input value="${proc.part_no || ''}" readonly style="background-color:e6e6e6;width:110px"></td>
-                        <td><input class="process_type" name="process_type_bof" value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input value="${proc.part_description || ''}" readonly style="background-color:e6e6e6"></td>
-
-$('#updatecscModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var modal = $(this);
-
-            // Extract data attributes
-            partId = partId === null ? button.data('id') : partId;
-            partNo = partNo === '' ? button.data('partno') : partNo;
-            part_description = part_description === '' ? button.data('description') : part_description;
-            scope = scope === '' ? button.data('scope') : scope;
-            method = method === '' ? button.data('method') : method;
-            process_description = process_description === '' ? button.data('process_description') : process_description;
-            modal.find('#edit_id').val(partId);
-            // console.log('partno',partNo)
-            modal.find('#editpartNumber').val(partNo);
-            modal.find('#editdescription').val(part_description);
-            modal.find('#editmethod').val(method);
-            modal.find('#process_partnumber').val(partNo);
-            modal.find('#process_part_description').val(part_description)
-            modal.find('#process_place').val(scope)
-
-            const isNestingNeeded = button.data('is_nesting_needed')
-            const noOfBlanksInput = document.getElementById('no_of_blanks');
-            const viewNoOfBlanksInput = document.getElementById('viewnoofblanks');
-
-            if (isNestingNeeded === "Yes") {
-                viewNoOfBlanksInput.readOnly = false
-                viewNoOfBlanksInput.classList.remove('readonly');
-                viewNoOfBlanksInput.style.backgroundColor = "#faffff";
-
-            } else {
-                viewNoOfBlanksInput.readOnly = true;
-                viewNoOfBlanksInput.classList.add('readonly');
-                viewNoOfBlanksInput.style.backgroundColor = "#e9ecef";
-            }
-
-            const bomScope  = button.data('scope');
-            const bomMethod = button.data('method');
-
-            if (bomScope === "BOSF" && bomMethod === "CSC") {
-                console.log(modal.find('input[name="process_type_bof"]').val())
-                modal.find('#processTableBody .process_type').each(function () {
-
-                    const currentValue = $(this).val() || "Inhouse";
-
-                    $(this).replaceWith(`
-                        <select class="process_type form-control">
-                            <option value="Inhouse" ${currentValue === "Inhouse" ? "selected" : ""}>Inhouse</option>
-                            <option value="Outsourced" ${currentValue === "Outsourced" ? "selected" : ""}>Outsourced</option>
-                        </select>
-                    `);
-
-                });
-            }
-console.log value is undefined
+}
+populateSMProcessTable(
+    processList,
+    selectprocesslist,
+    selectprocessdesclist,
+    machine_type,
+    surface_process_base_list,
+    bomScope,
+    bomMethod
+);
