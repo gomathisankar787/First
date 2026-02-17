@@ -1,19 +1,5 @@
-if (scope === "BOSF" && method === "CSC") {
-
-                    $('#processTableBody').find('.process_type_bof').each(function () {
-
-                        const currentValue = $(this).val() || "Inhouse";
-
-                        $(this).replaceWith(`
-                            <select class="process_type_bof form-control" name="process_type_bof" style="width:150px">
-                                <option value="Inhouse" ${currentValue === "Inhouse" ? "selected" : ""}>Inhouse</option>
-                                <option value="Outsourced" ${currentValue === "Outsourced" ? "selected" : ""}>Outsourced</option>
-                            </select>
-                        `);
-
-                    });
-
+if (e.target.classList.contains("process_type_bof")){
+                    const rowId = $(this).data('id');
+                    console.log('rowid',rowId)
+                    idfind(rowId,e.target.value,"process_type")
                 }
-
-                        <td><input class="process_type_bof" name="process_type_bof" value="${proc.process_type || ''}" data-id="${proc.id}" readonly style="background-color:e6e6e6"></td>
-how to pass this id to the select
