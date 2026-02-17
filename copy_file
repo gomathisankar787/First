@@ -1,17 +1,109 @@
-const bomScope  = button.data('scope');
-const bomMethod = button.data('method');
+<tbody class = "smprocessdata" id="processTableBody">
+                                            <tr>
+                                                <td><input id="process_partnumber" style="width: 130px;"></td>
+                                                <td><input id="process_place" style="width: 130px"></td>
 
-if (bomScope === "BOSF" && bomMethod === "CSC") {
+function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type, surface_process_base_list) {
+                const tbody = document.getElementById("processTableBody");
+                tbody.innerHTML = ""; // clear existing rows
 
-    // Find process_type input inside the same row
-    const row = button.closest('tr');
-    const processInput = row.find('input[id="process_type"]');
+                (processList || []).forEach(element => {
+                if (element?.process_description !== 'Surface Protection') {
+                    const val = Number(element?.process_cost_unit);
+                    if (Number.isFinite(val)) overallprocess_cost_unit += val;
+                }
+                });
 
-    // Replace input with select
-    processInput.replaceWith(`
-        <select class="process_type form-control">
-            <option value="Inhouse" selected>Inhouse</option>
-            <option value="Outsourced">Outsourced</option>
-        </select>
-    `);
-}
+
+                processList.forEach(proc => {
+                    const row = document.createElement("tr");
+                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting","Hole Spotting"]
+                    const shearing = ["Shearing"]
+                    const surface = ["Surface Protection"]
+                    const greenGroup = ["Dressing","Block Setting","Setting, Assembly & Handling"]
+
+                    // Build Process Description Dropdown
+                    let processDescOptions = `<option value="">Select</option>`;
+                    selectprocessdesclist.forEach(desc => {
+                        const selected = proc.process_description === desc ? "selected" : "";
+                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+                    });
+
+                    // Build Machine Type Dropdown
+                    let processTypeOptions = `<option value="">Select</option>`;
+                    selectprocesslist.forEach(item => {
+                        const selected = proc.machinetype === item.process_description ? "selected" : "";
+                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
+                    });
+
+                    let surface_processTypeOptions = `<option value="">Select</option>`;
+                    surface_process_base_list.forEach(item => {
+                        const selected = proc.machinetype === item.process_description ? "selected" : "";
+                        surface_processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
+                    });
+
+                    let machineTypeOption = `<option value="">Select</option>`;
+                    machine_type.forEach(item => {
+                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
+                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
+                    })
+
+                    const isSurfaceProtection = (proc.process_description || "")
+                    .toLowerCase()
+                    .includes("surface protection");
+
+                    row.innerHTML = `
+                        <td><input value="${proc.part_no || ''}" readonly style="background-color:e6e6e6;width:110px"></td>
+                        <td><input class="process_type" value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
+
+$('#updatecscModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var modal = $(this);
+
+            // Extract data attributes
+            partId = partId === null ? button.data('id') : partId;
+            partNo = partNo === '' ? button.data('partno') : partNo;
+            part_description = part_description === '' ? button.data('description') : part_description;
+            scope = scope === '' ? button.data('scope') : scope;
+            method = method === '' ? button.data('method') : method;
+            process_description = process_description === '' ? button.data('process_description') : process_description;
+            modal.find('#edit_id').val(partId);
+            // console.log('partno',partNo)
+            modal.find('#editpartNumber').val(partNo);
+            modal.find('#editdescription').val(part_description);
+            modal.find('#editmethod').val(method);
+            modal.find('#process_partnumber').val(partNo);
+            modal.find('#process_part_description').val(part_description)
+            modal.find('#process_place').val(scope)
+
+            const isNestingNeeded = button.data('is_nesting_needed')
+            const noOfBlanksInput = document.getElementById('no_of_blanks');
+            const viewNoOfBlanksInput = document.getElementById('viewnoofblanks');
+
+            if (isNestingNeeded === "Yes") {
+                viewNoOfBlanksInput.readOnly = false
+                viewNoOfBlanksInput.classList.remove('readonly');
+                viewNoOfBlanksInput.style.backgroundColor = "#faffff";
+
+            } else {
+                viewNoOfBlanksInput.readOnly = true;
+                viewNoOfBlanksInput.classList.add('readonly');
+                viewNoOfBlanksInput.style.backgroundColor = "#e9ecef";
+            }
+
+            const bomScope  = button.data('scope');
+            const bomMethod = button.data('method');
+
+            if (bomScope === "BOSF" && bomMethod === "CSC"){
+                // Find process_type input inside the same row
+                const row = button.closest('tr');
+                const processInput = row.find('input[id="process_type"]');
+                console.log(processInput)
+                // Replace input with select
+                processInput.replaceWith(`
+                    <select class="process_type form-control">
+                        <option value="Inhouse" selected>Inhouse</option>
+                        <option value="Outsourced">Outsourced</option>
+                    </select>
+                `);
+            }
