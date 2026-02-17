@@ -1,10 +1,17 @@
 const bomScope  = button.data('scope');
-            const bomMethod = button.data('method');
-            const bomProcessType = document.getElementById("process_type")
+const bomMethod = button.data('method');
 
-            if (bomScope === "BOSF" && bomMethod === "CSC"){
-                
-            }
-<td><input id="process_type" value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
- in if condition chnage process type input to select with options Inhouse, outsourced. default value is inhouse
-process_type is multiple so do it every row same
+if (bomScope === "BOSF" && bomMethod === "CSC") {
+
+    // Find process_type input inside the same row
+    const row = button.closest('tr');
+    const processInput = row.find('input[id="process_type"]');
+
+    // Replace input with select
+    processInput.replaceWith(`
+        <select class="process_type form-control">
+            <option value="Inhouse" selected>Inhouse</option>
+            <option value="Outsourced">Outsourced</option>
+        </select>
+    `);
+}
