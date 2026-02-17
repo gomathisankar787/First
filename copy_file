@@ -1,70 +1,10 @@
-function updateCscStatus(unique_csc_id) {
+const bomScope  = button.data('scope');
+            const bomMethod = button.data('method');
+            const bomProcessType = document.getElementById("process_type")
 
-    const confirmBtn = document.getElementById("confirmReviewBtn");
-    confirmBtn.disabled = true;
-
-    fetch("/csc_status_update/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        body: JSON.stringify({
-            unique_csc_id: unique_csc_id
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-
-        if (data.success) {
-
-            toastr.success("Status moved to Review successfully");
-
-            // Close modal
-            $("#reviewConfirmModal").modal("hide");
-
-            // Change floating total color to green
-            const totalBox = document.getElementById("floatingTotal");
-            totalBox.style.backgroundColor = "#198754";
-
-            // Change Review section content
-            const reviewSection = document.getElementById("reviewSection");
-            reviewSection.innerHTML = `
-                <label class="under-review-label">
-                    <i class="bi bi-patch-check"></i>
-                    <span class="question-text">Under Review</span>
-                </label>
-            `;
-
-        } else {
-            toastr.error(data.message || "Failed to update status");
-        }
-
-        confirmBtn.disabled = false;
-
-    })
-    .catch(error => {
-        toastr.error("Something went wrong");
-        confirmBtn.disabled = false;
-    });
-}
-
-onclick="updateCscStatus('{{ csc_values.unique_csc_id }}')"
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+            if (bomScope === "BOSF" && bomMethod === "CSC"){
+                
             }
-        }
-    }
-    return cookieValue;
-}
-
-if not csc_object:
-    return Response({'message': "CSC not found"},status=status.HTTP_400_BAD_REQUEST)
+<td><input id="process_type" value="${proc.process_type || ''}" readonly style="background-color:e6e6e6"></td>
+ in if condition chnage process type input to select with options Inhouse, outsourced. default value is inhouse
+process_type is multiple so do it every row same
