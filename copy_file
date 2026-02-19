@@ -1,92 +1,100 @@
-<div id="pdfContent" style="padding:20px; background:white;">
-
-                <div id="cscCardDetails"></div>
-                <br>
-
-                <h2>BOM LIST</h2>
-                <div id="pdfBomTable"></div>
-                <br><br>
-
-                <h2>BOM SUMMARY</h2>
-                <div id="pdfBomSummary"></div>
-                <br><br>
-
-                <h2>GRAPH VIEW</h2>
-                <canvas id="pdfChartCanvas"></canvas>
-
-                <br><br>
-
-                <h2>SM MATERIAL / PROCESS / OH PROFIT DETAILS</h2>
-                <div id="pdfModalData"></div>
-
-            </div>
-
 async function downloadBOMPDF() {
 
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
 
-                // ✅ Force graph tab to render
-                document.getElementById("graphview-tab").click();
+    // Force graph tab render
+    document.getElementById("graphview-tab").click();
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-                // wait 800ms safely
-                await new Promise(resolve => setTimeout(resolve, 800));
+    // Create temporary container
+    const tempDiv = document.createElement("div");
+    tempDiv.style.padding = "20px";
+    tempDiv.style.background = "white";
+    tempDiv.style.width = "1000px";
 
-                // Clone Card Details
-                document.getElementById("cscCardDetails").innerHTML =
-                    document.querySelector("#card_details .card-body").outerHTML;
+    // ================================
+    // Clone Card Details
+    // ================================
+    const cardDetails = document.querySelector("#card_details .card-body");
+    if (cardDetails) {
+        tempDiv.innerHTML += "<h2>CSC DETAILS</h2>";
+        tempDiv.appendChild(cardDetails.cloneNode(true));
+    }
 
-                // Clone BOM table
-                document.getElementById("pdfBomTable").innerHTML =
-                    document.querySelector("#pills-home .custom-table").outerHTML;
+    // ================================
+    // Clone BOM Table
+    // ================================
+    const bomTable = document.querySelector("#pills-home .custom-table");
+    if (bomTable) {
+        tempDiv.innerHTML += "<h2>BOM LIST</h2>";
+        tempDiv.appendChild(bomTable.cloneNode(true));
+    }
 
-                // Clone BOM summary
-                document.getElementById("pdfBomSummary").innerHTML =
-                    document.querySelector("#pills-bomsummary .custom-table").outerHTML;
+    // ================================
+    // Clone BOM Summary
+    // ================================
+    const bomSummary = document.querySelector("#pills-bomsummary .custom-table");
+    if (bomSummary) {
+        tempDiv.innerHTML += "<h2>BOM SUMMARY</h2>";
+        tempDiv.appendChild(bomSummary.cloneNode(true));
+    }
 
-                // Clone Modal Details
-                document.getElementById("pdfModalData").innerHTML =
-                    document.querySelector("#updatecscModal .modal-body").outerHTML;
+    // ================================
+    // Capture Chart Image
+    // ================================
+    const chartCanvas = document.querySelector("#bomFloatingBarH");
 
-                // Capture chart safely
-                const originalChartCanvas = document.querySelector("#bomFloatingBarH");
+    if (chartCanvas && chartCanvas.width > 0) {
 
-                if (originalChartCanvas && originalChartCanvas.width > 0) {
+        const chartImage = chartCanvas.toDataURL("image/png");
 
-                    const chartImage = originalChartCanvas.toDataURL("image/png");
+        const img = document.createElement("img");
+        img.src = chartImage;
+        img.style.width = "100%";
 
-                    const img = document.createElement("img");
-                    img.src = chartImage;
-                    img.style.width = "100%";
+        tempDiv.innerHTML += "<h2>GRAPH VIEW</h2>";
+        tempDiv.appendChild(img);
+    }
 
-                    const chartContainer = document.getElementById("pdfChartCanvas");
-                    chartContainer.replaceWith(img);
-                }
+    // ================================
+    // Clone Modal Data Safely
+    // ================================
+    const modalBody = document.querySelector("#updatecscModal .modal-body");
 
-                const element = document.getElementById("pdfContent");
+    if (modalBody) {
+        tempDiv.innerHTML += "<h2>SM MATERIAL / PROCESS / OH PROFIT DETAILS</h2>";
+        tempDiv.appendChild(modalBody.cloneNode(true));
+    }
 
-                const canvas = await html2canvas(element, { scale: 2 });
+    // Hide temp container from screen
+    tempDiv.style.position = "absolute";
+    tempDiv.style.left = "-9999px";
+    document.body.appendChild(tempDiv);
 
-                const imgData = canvas.toDataURL("image/png");
+    // Convert to canvas
+    const canvas = await html2canvas(tempDiv, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
 
-                const imgWidth = 210;
-                const pageHeight = 295;
-                const imgHeight = canvas.height * imgWidth / canvas.width;
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
 
-                let heightLeft = imgHeight;
-                let position = 0;
+    let heightLeft = imgHeight;
+    let position = 0;
 
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
 
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
+    while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+    }
 
-                pdf.save("BOM_Report.pdf");
-            }
+    pdf.save("BOM_Report.pdf");
 
-if i click download time of process on rendering the actual screen component is breaking. modal values didn't show i need the individual bom modal components with their corresponded values.
+    // Remove temp container
+    document.body.removeChild(tempDiv);
+}
