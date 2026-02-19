@@ -1,100 +1,39 @@
-async function downloadBOMPDF() {
+{% if csc_values.csc_status != 'Approved' %}
+                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
+                                                {% if values.method != "CSC" and values.scope == "BOSF" or values.method != "CSC" and values.scope == "BOF" %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#OtherMethodModal"
+                                                data-id="{{values.id}}"
+                                                data-level="{{values.level}}"
+                                                data-rev="{{values.revision}}"
+                                                data-qty="{{values.qty}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.process_type}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
+                                                data-method="{{values.method}}" onclick="othermodelmethod({{values.id}})"></i>
+                                                {% elif values.process_type == "Assembly" %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#AssemblyModal"
+                                                data-id="{{values.id}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.cutting_process}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
+                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
+                                                {% else %}
+                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
+                                                data-id="{{values.id}}"
+                                                data-partno="{{values.part_no}}"
+                                                data-description="{{values.part_description}}"
+                                                data-scope="{{values.scope}}"
+                                                data-process_description="{{values.cutting_process}}"
+                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
+                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
+                                                {% endif %}
+                                                <!-- <i class="bi bi-grip-vertical drag-handle" title="Drag to reorder"></i> -->
+                                                <i class="bi bi-trash btn delete-bom" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" data-target="#deleteBomModal"></i>
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    // Force graph tab render
-    document.getElementById("graphview-tab").click();
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Create temporary container
-    const tempDiv = document.createElement("div");
-    tempDiv.style.padding = "20px";
-    tempDiv.style.background = "white";
-    tempDiv.style.width = "1000px";
-
-    // ================================
-    // Clone Card Details
-    // ================================
-    const cardDetails = document.querySelector("#card_details .card-body");
-    if (cardDetails) {
-        tempDiv.innerHTML += "<h2>CSC DETAILS</h2>";
-        tempDiv.appendChild(cardDetails.cloneNode(true));
-    }
-
-    // ================================
-    // Clone BOM Table
-    // ================================
-    const bomTable = document.querySelector("#pills-home .custom-table");
-    if (bomTable) {
-        tempDiv.innerHTML += "<h2>BOM LIST</h2>";
-        tempDiv.appendChild(bomTable.cloneNode(true));
-    }
-
-    // ================================
-    // Clone BOM Summary
-    // ================================
-    const bomSummary = document.querySelector("#pills-bomsummary .custom-table");
-    if (bomSummary) {
-        tempDiv.innerHTML += "<h2>BOM SUMMARY</h2>";
-        tempDiv.appendChild(bomSummary.cloneNode(true));
-    }
-
-    // ================================
-    // Capture Chart Image
-    // ================================
-    const chartCanvas = document.querySelector("#bomFloatingBarH");
-
-    if (chartCanvas && chartCanvas.width > 0) {
-
-        const chartImage = chartCanvas.toDataURL("image/png");
-
-        const img = document.createElement("img");
-        img.src = chartImage;
-        img.style.width = "100%";
-
-        tempDiv.innerHTML += "<h2>GRAPH VIEW</h2>";
-        tempDiv.appendChild(img);
-    }
-
-    // ================================
-    // Clone Modal Data Safely
-    // ================================
-    const modalBody = document.querySelector("#updatecscModal .modal-body");
-
-    if (modalBody) {
-        tempDiv.innerHTML += "<h2>SM MATERIAL / PROCESS / OH PROFIT DETAILS</h2>";
-        tempDiv.appendChild(modalBody.cloneNode(true));
-    }
-
-    // Hide temp container from screen
-    tempDiv.style.position = "absolute";
-    tempDiv.style.left = "-9999px";
-    document.body.appendChild(tempDiv);
-
-    // Convert to canvas
-    const canvas = await html2canvas(tempDiv, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const imgWidth = 210;
-    const pageHeight = 295;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-    }
-
-    pdf.save("BOM_Report.pdf");
-
-    // Remove temp container
-    document.body.removeChild(tempDiv);
-}
+if csc_status is not approved this is okay if is approved only show editcsc icon but for display bi-eye and center
