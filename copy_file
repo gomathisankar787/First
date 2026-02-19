@@ -1,74 +1,77 @@
-// Capture chart image safely
-const originalChartCanvas = document.querySelector("#bomFloatingBarH");
+Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules (at 46/:4981:13)Understand this error
+46/:901 Uncaught ReferenceError: downloadBOMPDF is not defined
+    at HTMLButtonElement.onclick (46/:901:101)
 
-if (originalChartCanvas && originalChartCanvas.width > 0) {
+<script>
 
-    const chartImage = originalChartCanvas.toDataURL("image/png");
+            let deleteRowRef = null;
+            let deleteProcId = null;
+            let deleteToast = null;
+            let partId = null
+            let partNo =""
+            let part_description = ""
+            let scope = ""
+            let process_description = ""
+            let method = ""
+            let overallprocess_cost_unit = 0.0;
+            let overallprocess_bosf_cost_unit = 0.0;
+            let overallprocess_cost_unit_inhouse = 0.0;
+            let overallprocess_cost_unit_outsource = 0.0;
 
-    const img = document.createElement("img");
-    img.src = chartImage;
-    img.style.width = "100%";
 
-    document.getElementById("pdfChartCanvas").replaceWith(img);
+            document.getElementById("graphview-tab").click();
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-} else {
-    console.warn("Chart not rendered yet.");
-}
+            async function downloadBOMPDF() {
 
-// Force graph tab to render chart before export
-document.getElementById("graphview-tab").click();
-await new Promise(resolve => setTimeout(resolve, 800));
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
 
-async function downloadBOMPDF() {
+                // Force graph tab to render
+                document.getElementById("graphview-tab").click();
+                await new Promise(resolve => setTimeout(resolve, 800));
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
+                // Clone BOM table
+                document.getElementById("pdfBomTable").innerHTML =
+                    document.querySelector("#pills-home .custom-table").outerHTML;
 
-    // Force graph tab to render
-    document.getElementById("graphview-tab").click();
-    await new Promise(resolve => setTimeout(resolve, 800));
+                // Clone BOM summary
+                document.getElementById("pdfBomSummary").innerHTML =
+                    document.querySelector("#pills-bomsummary .custom-table").outerHTML;
 
-    // Clone BOM table
-    document.getElementById("pdfBomTable").innerHTML =
-        document.querySelector("#pills-home .custom-table").outerHTML;
+                // Capture chart safely
+                const originalChartCanvas = document.querySelector("#bomFloatingBarH");
 
-    // Clone BOM summary
-    document.getElementById("pdfBomSummary").innerHTML =
-        document.querySelector("#pills-bomsummary .custom-table").outerHTML;
+                if (originalChartCanvas && originalChartCanvas.width > 0) {
+                    const chartImage = originalChartCanvas.toDataURL("image/png");
+                    const img = document.createElement("img");
+                    img.src = chartImage;
+                    img.style.width = "100%";
+                    document.getElementById("pdfChartCanvas").replaceWith(img);
+                }
 
-    // Capture chart safely
-    const originalChartCanvas = document.querySelector("#bomFloatingBarH");
+                const element = document.getElementById("pdfContent");
 
-    if (originalChartCanvas && originalChartCanvas.width > 0) {
-        const chartImage = originalChartCanvas.toDataURL("image/png");
-        const img = document.createElement("img");
-        img.src = chartImage;
-        img.style.width = "100%";
-        document.getElementById("pdfChartCanvas").replaceWith(img);
-    }
+                const canvas = await html2canvas(element, { scale: 2 });
 
-    const element = document.getElementById("pdfContent");
+                const imgData = canvas.toDataURL("image/png");
 
-    const canvas = await html2canvas(element, { scale: 2 });
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
 
-    const imgData = canvas.toDataURL("image/png");
+                let heightLeft = imgHeight;
+                let position = 0;
 
-    const imgWidth = 210;
-    const pageHeight = 295;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
 
-    let heightLeft = imgHeight;
-    let position = 0;
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-    }
-
-    pdf.save("BOM_Report.pdf");
-}
+                pdf.save("BOM_Report.pdf");
+            }
