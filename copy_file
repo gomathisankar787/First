@@ -1,3 +1,74 @@
-Uncaught (in promise) InvalidStateError: Failed to execute 'drawImage' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0.
-    at downloadBOMPDF (46/:5003:21)
-    at HTMLButtonElement.onclick (46/:901:101)
+// Capture chart image safely
+const originalChartCanvas = document.querySelector("#bomFloatingBarH");
+
+if (originalChartCanvas && originalChartCanvas.width > 0) {
+
+    const chartImage = originalChartCanvas.toDataURL("image/png");
+
+    const img = document.createElement("img");
+    img.src = chartImage;
+    img.style.width = "100%";
+
+    document.getElementById("pdfChartCanvas").replaceWith(img);
+
+} else {
+    console.warn("Chart not rendered yet.");
+}
+
+// Force graph tab to render chart before export
+document.getElementById("graphview-tab").click();
+await new Promise(resolve => setTimeout(resolve, 800));
+
+async function downloadBOMPDF() {
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    // Force graph tab to render
+    document.getElementById("graphview-tab").click();
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // Clone BOM table
+    document.getElementById("pdfBomTable").innerHTML =
+        document.querySelector("#pills-home .custom-table").outerHTML;
+
+    // Clone BOM summary
+    document.getElementById("pdfBomSummary").innerHTML =
+        document.querySelector("#pills-bomsummary .custom-table").outerHTML;
+
+    // Capture chart safely
+    const originalChartCanvas = document.querySelector("#bomFloatingBarH");
+
+    if (originalChartCanvas && originalChartCanvas.width > 0) {
+        const chartImage = originalChartCanvas.toDataURL("image/png");
+        const img = document.createElement("img");
+        img.src = chartImage;
+        img.style.width = "100%";
+        document.getElementById("pdfChartCanvas").replaceWith(img);
+    }
+
+    const element = document.getElementById("pdfContent");
+
+    const canvas = await html2canvas(element, { scale: 2 });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+    }
+
+    pdf.save("BOM_Report.pdf");
+}
