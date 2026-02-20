@@ -1,16 +1,41 @@
 <div id="card_details" class="card-body">
-                        <div class="row">
-                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
-                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
-                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
-                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
-                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2" style="margin-left: 154px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
-                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
-                        </div>
-                    </div>
+    <div class="row mb-2">
+        <div class="col-md-3">
+            CSC UNIQUE ID : <b>{{csc_values.unique_csc_id}}</b>
+        </div>
+        <div class="col-md-3">
+            PART NUMBER : <b>{{csc_values.part_num}}</b>
+        </div>
+        <div class="col-md-2">
+            REVISION : <b>{{csc_values.rev}}</b>
+        </div>
+        <div class="col-md-4">
+            DESCRIPTION : <b>{{csc_values.desc}}</b>
+        </div>
+    </div>
 
-when i reduce or increase like zoom in or zoom out screen it breaks the margin right i like the neat placing
+    <div class="row">
+        <div class="col-md-3">
+            ESTIMATED BY : <b>{{csc_values.updated_by}}</b>
+        </div>
+        <div class="col-md-3">
+            RM BASE : <b>{{csc_values.rm_base}}</b>
+        </div>
+        <div class="col-md-3">
+            PROCESS BASE : <b>{{csc_values.process_base}}</b>
+        </div>
+        <div class="col-md-3">
+            OH PROFIT BASE : <b>{{csc_values.oh_profit_base}}</b>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-3 d-flex">
+    <div style="min-width:150px;">RM BASE</div>
+    <div>: <b>{{csc_values.rm_base}}</b></div>
+</div>
+
+<div class="col-md-3 d-flex justify-content-between">
+    <span>RM BASE</span>
+    <span><b>{{csc_values.rm_base}}</b></span>
+</div>
