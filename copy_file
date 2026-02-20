@@ -1,220 +1,185 @@
-class ExcelUploadOhProfit(generics.GenericAPIView):
-    parser_classes = ([MultiPartParser,])
-    @swagger_auto_schema(request_body=OhprofitSerializer)
-    def post(self, request):
-        # print('req: ', request, datetime.now())
-        serializer = OhprofitSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            ar_autocomplete_data = serializer.save()
-        except Exception as e:
-            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response('Success', status=status.HTTP_200_OK)
-
-class OhprofitSerializer(serializers.Serializer):
-    input_excel = serializers.FileField()
-    sheet_name = serializers.CharField()
-    effective_from = serializers.DateField(required=False)
-    source = serializers.CharField(required=False)
-    base = serializers.CharField(required=False)
-    remarks = serializers.CharField(required=False)
-
-    def clean_value(self, value):
-        if value is None:
-            return 0.0
-        if isinstance(value, (int, float)):
-            return float(value)
-        val = str(value).strip()
-        if val.endswith("%"):
-            return float(val.rstrip("%")) / 100   # convert % to decimal
-        return float(val)
-    def clean_base_value(self,value,int_flag):
-        if value is None and int_flag is True:
-            return 0
-        if value is None and int_flag is False:
-            return None
-        if isinstance(value,str):
-            value = value.replace("\xa0","").strip()
-            if value == "" and int_flag is False:
-                return None
-            if value == "" and int_flag is True:
-                return 0
-            try:
-                return float(value)
-            except:
-                return value
-        if isinstance(value,(int,float)):
-            # print('val',value)
-            if value == None and int_flag is True:
-                return 0
-            return value
-        return value
+from rest_framework.views import APIView
+from django.http import HttpResponse
+from openpyxl import Workbook
+from datetime import datetime
 
 
-    def create(self, validated_data):
-        try:
-            excel_file = validated_data.pop("input_excel")
-            sheet_name = validated_data.pop("sheet_name")
+class DownloadOhProfitSample(APIView):
 
-            file_name = default_storage.save(excel_file.name, excel_file)
-            file_path = default_storage.path(file_name)
+    def get(self, request):
+        sheet_name = request.GET.get("sheet_name", "RM Base")
 
-            if file_path.lower().endswith(".csv"):
-                df = pd.read_csv(file_path)
-                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
-                df.to_excel(xlsx_path, index=False)
-                file_path = xlsx_path
+        wb = Workbook()
+        ws = wb.active
+        ws.title = sheet_name
 
-            book = load_workbook(file_path, data_only=True)
-            default_storage.delete(file_name)
-            # print('sheetname',book.sheetnames)
-            if sheet_name not in book.sheetnames:
-                raise serializers.ValidationError(
-                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
-                )
+        if sheet_name == "RM Base":
+            headers = [
+                "S.No",
+                "Type",
+                "Category",
+                "Material Grade",
+                "RM Rate",
+                "UOM",
+                "Source",
+                "Effective From",
+                "Updated On",
+                "Remarks",
+                "Scrap Rate"
+            ]
 
-            sheet = book[sheet_name]
-            rows = list(sheet.rows)
+            ws.append(headers)
 
-            if not rows or len(rows) < 2:
-                raise serializers.ValidationError("Excel sheet is empty")
-            final_data = []
-            if sheet_name == "OH,Profit & Other Base":
-                for row in rows[1:]:
-                    if all(cell.value is None for cell in row):
-                        break
+            ws.append([
+                1,
+                "Raw Material",
+                "Steel",
+                "EN8",
+                100,
+                "KG",
+                "Vendor",
+                "2026-01-01",
+                datetime.today().date(),
+                "Sample Data",
+                5
+            ])
 
-                    args = [cell.value for cell in row]
+        if sheet_name == "Process Base":
+            headers = [
+                "S.No",
+                "Type",
+                "Process Category",
+                "Process Description",
+                "Machine",
+                "Norms",
+                "UOM",
+                "Source",
+                "Effective From",
+                "Updated On"
+            ]
 
-                    temp = {
-                        "process_type": args[0],
-                        "icc_rm": self.clean_value(args[1]),
-                        "icc_conv": self.clean_value(args[2]),
-                        "icc_bof": self.clean_value(args[3]),
-                        "rej_rm": self.clean_value(args[4]),
-                        "rej_conv": self.clean_value(args[5]),
-                        "rej_bof": self.clean_value(args[6]),
-                        "inspection_rm": self.clean_value(args[7]),
-                        "inspection_conv": self.clean_value(args[8]),
-                        "inspection_bof": self.clean_value(args[9]),
-                        "tmc_rm": self.clean_value(args[10]),
-                        "tmc_conv": self.clean_value(args[11]),
-                        "tmc_bof": self.clean_value(args[12]),
-                        "design_cost_rm": self.clean_value(args[13]),
-                        "design_cost_conv": self.clean_value(args[14]),
-                        "design_cost_bof": self.clean_value(args[15]),
-                        "oh_rm": self.clean_value(args[16]),
-                        "oh_conv": self.clean_value(args[17]),
-                        "oh_bof": self.clean_value(args[18]),
-                        "profit_rm": self.clean_value(args[19]),
-                        "profit_conv": self.clean_value(args[20]),
-                        "profit_bof": self.clean_value(args[21]),
-                        "warranty_cost": self.clean_value(args[22]),
-                        "inbound_logistics": self.clean_value(args[23]),
-                        "effective_from": validated_data["effective_from"],
-                        "source": validated_data["source"],
-                        "base": validated_data["base"],
-                        "remarks": validated_data["remarks"],
-                        "updated_by": os.environ.get("USERNAME", "").lower(),
-                    }
+            ws.append(headers)
 
-                    final_data.append(temp)
+            ws.append([
+                1,
+                "Machining",
+                "Turning",
+                "CNC Turning",
+                "CNC-01",
+                2.5,
+                "Hrs",
+                "Internal",
+                "2026-01-01",
+                datetime.today().date()
+            ])
 
-                print("Parsed data:", final_data)
+        if sheet_name == "OH,Profit & Other Base":
+            headers = [
+                "Process Type",
+                "ICC RM %",
+                "ICC CONV %",
+                "ICC BOF %",
+                "REJ RM %",
+                "REJ CONV %",
+                "REJ BOF %",
+                "INSPECTION RM %",
+                "INSPECTION CONV %",
+                "INSPECTION BOF %",
+                "TMC RM %",
+                "TMC CONV %",
+                "TMC BOF %",
+                "DESIGN RM %",
+                "DESIGN CONV %",
+                "DESIGN BOF %",
+                "OH RM %",
+                "OH CONV %",
+                "OH BOF %",
+                "PROFIT RM %",
+                "PROFIT CONV %",
+                "PROFIT BOF %",
+                "Warranty %",
+                "Inbound Logistics %"
+            ]
 
-                with transaction.atomic():
-                    for item in final_data:
-                        OH_ProfitData.objects.create(**item)
+            ws.append(headers)
 
-            if sheet_name == "RM Base":
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
+            ws.append([
+                "Inhouse",
+                5,5,5,
+                2,2,2,
+                1,1,1,
+                3,3,3,
+                1,1,1,
+                10,10,10,
+                15,15,15,
+                2,
+                3
+            ])
 
-                    args = [cell.value for cell in row]
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{sheet_name}_Sample.xlsx"'
 
-                    temp ={
-                        "category": self.clean_base_value(args[2],False),
-                        "material_grade": self.clean_base_value(args[3],False),
-                        "rm_rate": self.clean_base_value(args[4],True),
-                        "scrap_rate": self.clean_base_value(args[10],True),
-                        "uom": self.clean_base_value(args[5],False),
-                        "updated_on":self.clean_base_value(args[8],False),
-                        "effective_from":self.clean_base_value(args[7],False),
-                        "source": self.clean_base_value(args[6],False),
-                        "remarks":self.clean_base_value(args[9],False),
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                print("Parsed data:", final_data)
+        wb.save(response)
+        return response
 
-                with transaction.atomic():
-                    for item in final_data:
-                        RMbase.objects.create(**item)
+path("download-ohprofit-sample/", DownloadOhProfitSample.as_view()),
 
-            if sheet_name == 'Process Base':
-                for row in rows[2:]:
-                    if all(cell.value is None for cell in row):
-                        break
+<div class="col-md-2 d-flex align-items-end">
+    <button type="button" class="btn btn-success w-100"
+        onclick="downloadSample('RM Base')">
+        Download Sample
+    </button>
+</div>
 
-                    args = [cell.value for cell in row]
+<script>
+function downloadSample(sheetName) {
+    const url = `/download-ohprofit-sample/?sheet_name=${encodeURIComponent(sheetName)}`;
 
-                    temp ={
-                        "process_category": self.clean_base_value(args[2],False),
-                        "process_description": self.clean_base_value(args[3],False),
-                        "norms": self.clean_base_value(args[5],True),
-                        "uom": self.clean_base_value(args[6],False),
-                        "updated_on":self.clean_base_value(args[9],False),
-                        "effective_from":self.clean_base_value(args[8],False),
-                        "source": self.clean_base_value(args[7],False),
-                        "remarks":validated_data["remarks"],
-                        "base":validated_data["base"],
-                        "updated_by": os.environ.get("USERNAME", "").lower()
-                    }
-                    final_data.append(temp)
-                # print("Parsed data:", final_data)
-
-                with transaction.atomic():
-                    for item in final_data:
-                        Processbase.objects.create(**item)
-
-            return {
-                "total_rows": len(final_data),
-                "parsed_data": final_data,
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Download failed");
             }
+            return response.blob();
+        })
+        .then(blob => {
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = sheetName + "_Sample.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        })
+        .catch(error => {
+            alert("Error downloading file");
+            console.error(error);
+        });
+}
+</script>
 
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+<div class="col-md-4">
+    <label>Upload File</label>
+    <input type="file" name="input_excel" class="form-control" accept=".xlsx,.csv">
+</div>
 
-<div class="tab-pane fade" id="rmbulkUpload">
-                            <div class="card p-3">
-                                <form id="rmBulkUploadForm" method="post" enctype="multipart/form-data">
-                                    <div class="row">
+<div class="col-md-3">
+    <label>Sheet Name</label>
+    <input type="text" name="sheet_name" class="form-control" value="RM Base">
+</div>
 
-                                        <div class="col-md-4">
-                                            <label>Upload File</label>
-                                            <input type="file" class="form-control" accept=".xlsx,.csv">
-                                        </div>
+<div class="col-md-3">
+    <label>Effective From</label>
+    <input type="date" name="effective_from" class="form-control">
+</div>
 
-                                        <div class="col-md-3">
-                                            <label>Sheet Name</label>
-                                            <input type="text" class="form-control" value="RM Base">
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <label>Effective From</label>
-                                            <input type="date" class="form-control">
-                                        </div>
-
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button class="btn btn-primary w-100">
-                                                Upload
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-give the api and ui and api integration code for sample excel file download for bulk upload
+<div class="col-md-2 d-flex flex-column justify-content-end">
+    <button type="button" class="btn btn-success mb-2"
+        onclick="downloadSample('RM Base')">
+        Download Sample
+    </button>
+    <button type="submit" class="btn btn-primary">
+        Upload
+    </button>
+</div>
