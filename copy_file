@@ -1,139 +1,16 @@
-<div class="modal-body">
-    <div class="form-container">
+<div id="card_details" class="card-body">
+                        <div class="row">
+                            <div class="col-3" id="uniquecscid">CSC UNIQUE ID :  <b>{{csc_values.unique_csc_id}}</b></div>
+                            <div class="col-3">PART NUMBER :  <b>{{csc_values.part_num}}</b></div>
+                            <div class="col-2">REVISION <span style="margin-left: 37px;">:</span> <b>{{csc_values.rev}}</b></div>
+                            <div class="col-4">DESCRIPTION <span style="margin-left: 20px;">:</span> <b>{{csc_values.desc}}</b></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">ESTIMATED BY <span style="margin-left: 2px;">:</span>  <b>{{csc_values.updated_by}}</b></div>
+                            <div class="col-2">RM BASE <span style="margin-left: 40px;">:</span> <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2" style="margin-left: 154px;">PROCESS BASE : <b>{{csc_values.rm_base}}</b></div>
+                            <div class="col-2">OH PROFIT BASE : <b>{{csc_values.rm_base}}</b></div>
+                        </div>
+                    </div>
 
-        <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">SM MATERIAL</h5>
-            {% if csc_values.csc_status != 'Approved' %}
-            <button type="button" class="btn btn-primary btn-sm" onclick="save_material_data()">
-                Update
-            </button>
-            {% endif %}
-        </div>
-
-        <!-- Form -->
-        <form id="sm_material_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-            <div class="row g-3">
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Length Formula</label>
-                    <input id="view_length_formula" name="length_formula"
-                           type="text" class="form-control form-control-sm">
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Width Formula</label>
-                    <input id="view_width_formula" name="width_formula"
-                           type="text" class="form-control form-control-sm">
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Finish Weight Formula</label>
-                    <input id="view_finish_weight_formula" name="finish_weight_formula"
-                           type="text" class="form-control form-control-sm">
-                </div>
-
-            </div>
-        </form>
-    </div>
-</div>
-
-function populateSMProcessTable(
-    processList,
-    selectprocesslist,
-    selectprocessdesclist,
-    machine_type,
-    surface_process_base_list,
-    scope,
-    method
-) {
-
-    const smTbody = document.getElementById("processTableBody");
-    const surfaceTbody = document.getElementById("surface_protection_processTableBody");
-
-    smTbody.innerHTML = "";
-    surfaceTbody.innerHTML = "";
-
-    processList.forEach(proc => {
-
-        const isSurfaceProtection =
-            (proc.process_description || "")
-            .toLowerCase()
-            .includes("surface protection");
-
-        const row = document.createElement("tr");
-
-        /* ---------------- Process Description Dropdown ---------------- */
-        let processDescOptions = `<option value="">Select</option>`;
-        selectprocessdesclist.forEach(desc => {
-            const selected = proc.process_description === desc ? "selected" : "";
-            processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-        });
-
-        /* ---------------- Machine Type Dropdown ---------------- */
-        let processTypeOptions = `<option value="">Select</option>`;
-        selectprocesslist.forEach(item => {
-            const selected = proc.machinetype === item.process_description ? "selected" : "";
-            processTypeOptions += `<option value="${item.process_description}" ${selected}>
-                                    ${item.process_description}
-                                  </option>`;
-        });
-
-        let surfaceProcessTypeOptions = `<option value="">Select</option>`;
-        surface_process_base_list.forEach(item => {
-            const selected = proc.machinetype === item.process_description ? "selected" : "";
-            surfaceProcessTypeOptions += `<option value="${item.process_description}" ${selected}>
-                                            ${item.process_description}
-                                          </option>`;
-        });
-
-        let machineTypeOption = `<option value="">Select</option>`;
-        machine_type.forEach(item => {
-            const selected = proc.mechanical_hydraulic === item ? "selected" : "";
-            machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
-        });
-
-        row.innerHTML = `
-            <td><input value="${proc.part_no || ''}" readonly class="form-control form-control-sm bg-light"></td>
-            <td><input value="${proc.process_type || ''}" readonly class="form-control form-control-sm bg-light"></td>
-            <td><input value="${proc.part_description || ''}" readonly class="form-control form-control-sm bg-light"></td>
-
-            <td>
-                <select class="form-select form-select-sm">
-                    ${processDescOptions}
-                </select>
-            </td>
-
-            <td>
-                <select class="form-select form-select-sm">
-                    ${machineTypeOption}
-                </select>
-            </td>
-
-            <td><input value="${proc.cutting_formula || ''}" class="form-control form-control-sm"></td>
-
-            <td><input value="${proc.cutting_forminglength || ''}" class="form-control form-control-sm"></td>
-
-            <td>
-                <select class="form-select form-select-sm">
-                    ${isSurfaceProtection ? surfaceProcessTypeOptions : processTypeOptions}
-                </select>
-            </td>
-
-            <td><input value="${proc.no_of_operations || ''}" class="form-control form-control-sm"></td>
-            <td><input value="${proc.parts_per_cycle || ''}" class="form-control form-control-sm"></td>
-
-            <td><input value="${proc.norms || ''}" readonly class="form-control form-control-sm bg-light"></td>
-            <td><input value="${proc.process_cost_unit || ''}" readonly class="form-control form-control-sm bg-light"></td>
-
-            <td><input value="${proc.remarks || ''}" class="form-control form-control-sm"></td>
-        `;
-
-        /* 🔥 Append to Correct Table */
-        if (isSurfaceProtection) {
-            surfaceTbody.appendChild(row);
-        } else {
-            smTbody.appendChild(row);
-        }
-    });
-}
+when i reduce or increase like zoom in or zoom out screen it breaks the margin right i like the neat placing
