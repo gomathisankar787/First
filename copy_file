@@ -1,185 +1,72 @@
-from rest_framework.views import APIView
-from django.http import HttpResponse
-from openpyxl import Workbook
-from datetime import datetime
+<div class="tab-pane fade" id="rmsingleUpload">
+                            <div class="card p-3">
+                                <form id="rmSingleForm">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label>Category</label>
+                                            <input type="text" name="category" class="form-control">
+                                        </div>
 
+                                        <div class="col-md-3">
+                                            <label>Material Grade</label>
+                                            <input type="text" name="material" class="form-control">
+                                        </div>
 
-class DownloadOhProfitSample(APIView):
+                                        <div class="col-md-2">
+                                            <label>RM Rate</label>
+                                            <input type="number" name="rm_rate" step="any" class="form-control">
+                                        </div>
 
-    def get(self, request):
-        sheet_name = request.GET.get("sheet_name", "RM Base")
+                                        <div class="col-md-2">
+                                            <label>Scrap Rate</label>
+                                            <input type="number" name="scrap_rate" step="any" class="form-control">
+                                        </div>
 
-        wb = Workbook()
-        ws = wb.active
-        ws.title = sheet_name
+                                        <div class="col-md-2">
+                                            <label>UOM</label>
+                                            <input type="text" name="uom" class="form-control">
+                                        </div>
 
-        if sheet_name == "RM Base":
-            headers = [
-                "S.No",
-                "Type",
-                "Category",
-                "Material Grade",
-                "RM Rate",
-                "UOM",
-                "Source",
-                "Effective From",
-                "Updated On",
-                "Remarks",
-                "Scrap Rate"
-            ]
+                                    </div>
 
-            ws.append(headers)
+                                    <div class="row mt-3">
 
-            ws.append([
-                1,
-                "Raw Material",
-                "Steel",
-                "EN8",
-                100,
-                "KG",
-                "Vendor",
-                "2026-01-01",
-                datetime.today().date(),
-                "Sample Data",
-                5
-            ])
+                                        <div class="col-md-3">
+                                            <label>Effective From</label>
+                                            <input type="date" name="effective_from" class="form-control">
+                                        </div>
 
-        if sheet_name == "Process Base":
-            headers = [
-                "S.No",
-                "Type",
-                "Process Category",
-                "Process Description",
-                "Machine",
-                "Norms",
-                "UOM",
-                "Source",
-                "Effective From",
-                "Updated On"
-            ]
+                                        <div class="col-md-3">
+                                            <label>Source</label>
+                                            <input type="text" name="source" class="form-control">
+                                        </div>
 
-            ws.append(headers)
+                                        <div class="col-md-4">
+                                            <label>Remarks</label>
+                                            <input type="text" name="remarks" class="form-control">
+                                        </div>
 
-            ws.append([
-                1,
-                "Machining",
-                "Turning",
-                "CNC Turning",
-                "CNC-01",
-                2.5,
-                "Hrs",
-                "Internal",
-                "2026-01-01",
-                datetime.today().date()
-            ])
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button class="btn btn-primary w-100" onclick="confirmAction('create')">
+                                                Save
+                                            </button>
+                                        </div>
 
-        if sheet_name == "OH,Profit & Other Base":
-            headers = [
-                "Process Type",
-                "ICC RM %",
-                "ICC CONV %",
-                "ICC BOF %",
-                "REJ RM %",
-                "REJ CONV %",
-                "REJ BOF %",
-                "INSPECTION RM %",
-                "INSPECTION CONV %",
-                "INSPECTION BOF %",
-                "TMC RM %",
-                "TMC CONV %",
-                "TMC BOF %",
-                "DESIGN RM %",
-                "DESIGN CONV %",
-                "DESIGN BOF %",
-                "OH RM %",
-                "OH CONV %",
-                "OH BOF %",
-                "PROFIT RM %",
-                "PROFIT CONV %",
-                "PROFIT BOF %",
-                "Warranty %",
-                "Inbound Logistics %"
-            ]
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
 
-            ws.append(headers)
+pendingCreatePayload = {
+            category: document.querySelector('[name="category"]').value,
+            material_grade: document.querySelector('[name="material"]').value,
+            rm_rate: document.querySelector('[name="rm_rate"]').value,
+            scrap_rate: document.querySelector('[name="scrap_rate"]').value,
+            uom: document.querySelector('[name="uom"]').value,
+            effective_from: document.querySelector('[name="effective_from"]').value,
+            source: document.querySelector('[name="source"]').value,
+            remarks: document.querySelector('[name="remarks"]').value,
+            base: "RM"
+        };
 
-            ws.append([
-                "Inhouse",
-                5,5,5,
-                2,2,2,
-                1,1,1,
-                3,3,3,
-                1,1,1,
-                10,10,10,
-                15,15,15,
-                2,
-                3
-            ])
-
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        response["Content-Disposition"] = f'attachment; filename="{sheet_name}_Sample.xlsx"'
-
-        wb.save(response)
-        return response
-
-path("download-ohprofit-sample/", DownloadOhProfitSample.as_view()),
-
-<div class="col-md-2 d-flex align-items-end">
-    <button type="button" class="btn btn-success w-100"
-        onclick="downloadSample('RM Base')">
-        Download Sample
-    </button>
-</div>
-
-<script>
-function downloadSample(sheetName) {
-    const url = `/download-ohprofit-sample/?sheet_name=${encodeURIComponent(sheetName)}`;
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Download failed");
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.download = sheetName + "_Sample.xlsx";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        })
-        .catch(error => {
-            alert("Error downloading file");
-            console.error(error);
-        });
-}
-</script>
-
-<div class="col-md-4">
-    <label>Upload File</label>
-    <input type="file" name="input_excel" class="form-control" accept=".xlsx,.csv">
-</div>
-
-<div class="col-md-3">
-    <label>Sheet Name</label>
-    <input type="text" name="sheet_name" class="form-control" value="RM Base">
-</div>
-
-<div class="col-md-3">
-    <label>Effective From</label>
-    <input type="date" name="effective_from" class="form-control">
-</div>
-
-<div class="col-md-2 d-flex flex-column justify-content-end">
-    <button type="button" class="btn btn-success mb-2"
-        onclick="downloadSample('RM Base')">
-        Download Sample
-    </button>
-    <button type="submit" class="btn btn-primary">
-        Upload
-    </button>
-</div>
+i need to add base input also in div input is like effective_from data input but pass the input payload like if user give 01-02-2026 then pass Feb-2026
