@@ -1,41 +1,220 @@
-<div id="card_details" class="card-body">
-    <div class="row mb-2">
-        <div class="col-md-3">
-            CSC UNIQUE ID : <b>{{csc_values.unique_csc_id}}</b>
-        </div>
-        <div class="col-md-3">
-            PART NUMBER : <b>{{csc_values.part_num}}</b>
-        </div>
-        <div class="col-md-2">
-            REVISION : <b>{{csc_values.rev}}</b>
-        </div>
-        <div class="col-md-4">
-            DESCRIPTION : <b>{{csc_values.desc}}</b>
-        </div>
-    </div>
+class ExcelUploadOhProfit(generics.GenericAPIView):
+    parser_classes = ([MultiPartParser,])
+    @swagger_auto_schema(request_body=OhprofitSerializer)
+    def post(self, request):
+        # print('req: ', request, datetime.now())
+        serializer = OhprofitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            ar_autocomplete_data = serializer.save()
+        except Exception as e:
+            return Response({'Invalid Request': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response('Success', status=status.HTTP_200_OK)
 
-    <div class="row">
-        <div class="col-md-3">
-            ESTIMATED BY : <b>{{csc_values.updated_by}}</b>
-        </div>
-        <div class="col-md-3">
-            RM BASE : <b>{{csc_values.rm_base}}</b>
-        </div>
-        <div class="col-md-3">
-            PROCESS BASE : <b>{{csc_values.process_base}}</b>
-        </div>
-        <div class="col-md-3">
-            OH PROFIT BASE : <b>{{csc_values.oh_profit_base}}</b>
-        </div>
-    </div>
-</div>
+class OhprofitSerializer(serializers.Serializer):
+    input_excel = serializers.FileField()
+    sheet_name = serializers.CharField()
+    effective_from = serializers.DateField(required=False)
+    source = serializers.CharField(required=False)
+    base = serializers.CharField(required=False)
+    remarks = serializers.CharField(required=False)
 
-<div class="col-md-3 d-flex">
-    <div style="min-width:150px;">RM BASE</div>
-    <div>: <b>{{csc_values.rm_base}}</b></div>
-</div>
+    def clean_value(self, value):
+        if value is None:
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
+        val = str(value).strip()
+        if val.endswith("%"):
+            return float(val.rstrip("%")) / 100   # convert % to decimal
+        return float(val)
+    def clean_base_value(self,value,int_flag):
+        if value is None and int_flag is True:
+            return 0
+        if value is None and int_flag is False:
+            return None
+        if isinstance(value,str):
+            value = value.replace("\xa0","").strip()
+            if value == "" and int_flag is False:
+                return None
+            if value == "" and int_flag is True:
+                return 0
+            try:
+                return float(value)
+            except:
+                return value
+        if isinstance(value,(int,float)):
+            # print('val',value)
+            if value == None and int_flag is True:
+                return 0
+            return value
+        return value
 
-<div class="col-md-3 d-flex justify-content-between">
-    <span>RM BASE</span>
-    <span><b>{{csc_values.rm_base}}</b></span>
-</div>
+
+    def create(self, validated_data):
+        try:
+            excel_file = validated_data.pop("input_excel")
+            sheet_name = validated_data.pop("sheet_name")
+
+            file_name = default_storage.save(excel_file.name, excel_file)
+            file_path = default_storage.path(file_name)
+
+            if file_path.lower().endswith(".csv"):
+                df = pd.read_csv(file_path)
+                xlsx_path = file_path.rsplit(".", 1)[0] + ".xlsx"
+                df.to_excel(xlsx_path, index=False)
+                file_path = xlsx_path
+
+            book = load_workbook(file_path, data_only=True)
+            default_storage.delete(file_name)
+            # print('sheetname',book.sheetnames)
+            if sheet_name not in book.sheetnames:
+                raise serializers.ValidationError(
+                    {"sheet_name": f"Sheet '{sheet_name}' not found"}
+                )
+
+            sheet = book[sheet_name]
+            rows = list(sheet.rows)
+
+            if not rows or len(rows) < 2:
+                raise serializers.ValidationError("Excel sheet is empty")
+            final_data = []
+            if sheet_name == "OH,Profit & Other Base":
+                for row in rows[1:]:
+                    if all(cell.value is None for cell in row):
+                        break
+
+                    args = [cell.value for cell in row]
+
+                    temp = {
+                        "process_type": args[0],
+                        "icc_rm": self.clean_value(args[1]),
+                        "icc_conv": self.clean_value(args[2]),
+                        "icc_bof": self.clean_value(args[3]),
+                        "rej_rm": self.clean_value(args[4]),
+                        "rej_conv": self.clean_value(args[5]),
+                        "rej_bof": self.clean_value(args[6]),
+                        "inspection_rm": self.clean_value(args[7]),
+                        "inspection_conv": self.clean_value(args[8]),
+                        "inspection_bof": self.clean_value(args[9]),
+                        "tmc_rm": self.clean_value(args[10]),
+                        "tmc_conv": self.clean_value(args[11]),
+                        "tmc_bof": self.clean_value(args[12]),
+                        "design_cost_rm": self.clean_value(args[13]),
+                        "design_cost_conv": self.clean_value(args[14]),
+                        "design_cost_bof": self.clean_value(args[15]),
+                        "oh_rm": self.clean_value(args[16]),
+                        "oh_conv": self.clean_value(args[17]),
+                        "oh_bof": self.clean_value(args[18]),
+                        "profit_rm": self.clean_value(args[19]),
+                        "profit_conv": self.clean_value(args[20]),
+                        "profit_bof": self.clean_value(args[21]),
+                        "warranty_cost": self.clean_value(args[22]),
+                        "inbound_logistics": self.clean_value(args[23]),
+                        "effective_from": validated_data["effective_from"],
+                        "source": validated_data["source"],
+                        "base": validated_data["base"],
+                        "remarks": validated_data["remarks"],
+                        "updated_by": os.environ.get("USERNAME", "").lower(),
+                    }
+
+                    final_data.append(temp)
+
+                print("Parsed data:", final_data)
+
+                with transaction.atomic():
+                    for item in final_data:
+                        OH_ProfitData.objects.create(**item)
+
+            if sheet_name == "RM Base":
+                for row in rows[2:]:
+                    if all(cell.value is None for cell in row):
+                        break
+
+                    args = [cell.value for cell in row]
+
+                    temp ={
+                        "category": self.clean_base_value(args[2],False),
+                        "material_grade": self.clean_base_value(args[3],False),
+                        "rm_rate": self.clean_base_value(args[4],True),
+                        "scrap_rate": self.clean_base_value(args[10],True),
+                        "uom": self.clean_base_value(args[5],False),
+                        "updated_on":self.clean_base_value(args[8],False),
+                        "effective_from":self.clean_base_value(args[7],False),
+                        "source": self.clean_base_value(args[6],False),
+                        "remarks":self.clean_base_value(args[9],False),
+                        "base":validated_data["base"],
+                        "updated_by": os.environ.get("USERNAME", "").lower()
+                    }
+                    final_data.append(temp)
+                print("Parsed data:", final_data)
+
+                with transaction.atomic():
+                    for item in final_data:
+                        RMbase.objects.create(**item)
+
+            if sheet_name == 'Process Base':
+                for row in rows[2:]:
+                    if all(cell.value is None for cell in row):
+                        break
+
+                    args = [cell.value for cell in row]
+
+                    temp ={
+                        "process_category": self.clean_base_value(args[2],False),
+                        "process_description": self.clean_base_value(args[3],False),
+                        "norms": self.clean_base_value(args[5],True),
+                        "uom": self.clean_base_value(args[6],False),
+                        "updated_on":self.clean_base_value(args[9],False),
+                        "effective_from":self.clean_base_value(args[8],False),
+                        "source": self.clean_base_value(args[7],False),
+                        "remarks":validated_data["remarks"],
+                        "base":validated_data["base"],
+                        "updated_by": os.environ.get("USERNAME", "").lower()
+                    }
+                    final_data.append(temp)
+                # print("Parsed data:", final_data)
+
+                with transaction.atomic():
+                    for item in final_data:
+                        Processbase.objects.create(**item)
+
+            return {
+                "total_rows": len(final_data),
+                "parsed_data": final_data,
+            }
+
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+<div class="tab-pane fade" id="rmbulkUpload">
+                            <div class="card p-3">
+                                <form id="rmBulkUploadForm" method="post" enctype="multipart/form-data">
+                                    <div class="row">
+
+                                        <div class="col-md-4">
+                                            <label>Upload File</label>
+                                            <input type="file" class="form-control" accept=".xlsx,.csv">
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <label>Sheet Name</label>
+                                            <input type="text" class="form-control" value="RM Base">
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <label>Effective From</label>
+                                            <input type="date" class="form-control">
+                                        </div>
+
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button class="btn btn-primary w-100">
+                                                Upload
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+give the api and ui and api integration code for sample excel file download for bulk upload
