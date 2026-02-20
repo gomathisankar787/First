@@ -1,294 +1,139 @@
 <div class="modal-body">
-                            <div class="form-container">
-                                <div class="table flex-container">
-                                    <div class="flex-item title">
-                                        <h5>SM MATERIAL</h5>
-                                    </div>
-                                    {% if csc_values.csc_status != 'Approved' %}
-                                    <div class="flex-item button-container">
-                                        <button type="button" class="btn btn-primary" onclick="save_material_data()">Update</button>
-                                    </div>
-                                    {% endif %}
-                                </div>
+    <div class="form-container">
 
-                                <form id="sm_material_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-                                    <div class="table" style="padding: 10px;">
-                                        <div class="row formula-inputs">
-                                            <div class="col-3">
-                                                <h6>LENGTH FORMULA: <span><input id="view_length_formula" name="length_formula"  type="text"></span></h6>
-                                            </div>
-                                            <div class="col-3">
-                                                <h6>WIDTH FORMULA: <span><input id="view_width_formula" name="width_formula" type="text"></span></h6>
-                                            </div>
-                                            <div class="col-3">
-                                                <h6>FINISH WEIGHT FORMULA: <span><input id="view_finish_weight_formula" name="finish_weight_formula" type="text"></span></h6>
-                                            </div>
-                                        </div>
-                                    </div>
-join this for avoid unnecessary spaces. do it professional and better look
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">SM MATERIAL</h5>
+            {% if csc_values.csc_status != 'Approved' %}
+            <button type="button" class="btn btn-primary btn-sm" onclick="save_material_data()">
+                Update
+            </button>
+            {% endif %}
+        </div>
 
-and 
-<div class="form-container">
-                            <form id="sm_process_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-                                <h5>SM PROCESS</h5>
-                                <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                <table class="table table-bordered" id="processTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Part No</th>
-                                            <th>Process Place</th>
-                                            <th>Part Description</th>
-                                            <th>Process Description</th>
-                                            <th>Mechnical/Hydrlic</th>
-                                            <th>Cutg Len Formula</th>
-                                            <th>Cutg/Frmg Len</th>
-                                            <th>Machine Type</th>
-                                            <th>No of Ope</th>
-                                            <th>Part per Cycle</th>
-                                            <th>Norms</th>
-                                            <th>Process Cost Unit</th>
-                                            <th>Remarks</th>
-                                            {% if csc_values.csc_status != 'Approved' %}
-                                            <th>Actions</th>
-                                            {% endif %}
-                                        </tr>
-                                    </thead>
-                                    <tbody class = "smprocessdata" id="processTableBody">
-                                        <tr>
-                                            <td><input id="process_partnumber" style="width: 130px;"></td>
-                                            <td><input id="process_place" style="width: 130px"></td>
-                                            <td><input id="process_part_description" ></td>
-                                            <td>
-                                                <select>
-                                                    <option>Shearing</option>
-                                                    <option>2nd Shearing</option>
-                                                    <option>Blanking</option>
-                                                    <option>Laser Cutting</option>
-                                                    <option selected>Hole Spotting</option>
-                                                    <option>Piercing</option>
-                                                    <option>Bending</option>
-                                                    <option>Forming</option>
-                                                    <option>Dressing</option>
-                                                    <option>Block_setting</option>
-                                                    <option>Setting_assy_handling</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <select>
-                                                    <option value="" disabled selected>Select Process</option>
-                                                    <option>Mechanical Press - Cutting</option>
-                                                    <option>Mechanical Press - Forming</option>
-                                                    <option>Hydraulic Press - Cutting</option>
-                                                    <option>Hydraulic Press - Forming</option>
-                                                </select>
-                                            </td>
-                                            <td><input></td>
-                                            <td>
-                                                <select style="width: 130px;" onchange="getMachineTypeNorms(this)">
-                                                    <option value="" disabled selected>Select Type</option>
-                                                    {% for m in process_base %}
-                                                        <option value="{{ m.process_description }}">{{ m.process_description }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-                                            <td><input></td>
-                                            <td><input></td>
-                                            <td><input name="norms"></td>
-                                            <td><input></td>
-                                            <td><input style="width: 130px;"></td>
-                                            {% if csc_values.csc_status != 'Approved' %}
-                                            <td>
-                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
-                                                <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
-                                            </td>
-                                            {% endif %}
-                                        </tr>
-                                    </tbody>
-                                </table></div>
-                            </form></div><br>
-                            <div class="form-container">
-                            <form id="sm_process_form" method="post" action="{% url 'bom_details' csc_values.id %}">
-                                <h5>SM PROCESS</h5>
-                                <div class="table-responsive-sm" style="overflow-x: auto; white-space: nowrap;">
-                                <table class="table table-bordered" id="processTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Part No</th>
-                                            <th>Process Place</th>
-                                            <th>Part Description</th>
-                                            <th>Process Description</th>
-                                            <th>Mechnical/Hydrlic</th>
-                                            <th>Cutg Len Formula</th>
-                                            <th>Cutg/Frmg Len</th>
-                                            <th>Machine Type</th>
-                                            <th>No of Ope</th>
-                                            <th>Part per Cycle</th>
-                                            <th>Norms</th>
-                                            <th>Process Cost Unit</th>
-                                            <th>Remarks</th>
-                                            {% if csc_values.csc_status != 'Approved' %}
-                                            <th>Actions</th>
-                                            {% endif %}
-                                        </tr>
-                                    </thead>
-                                    <tbody class = "smprocessdata" id="surface_protection_processTableBody">
-                                        <tr>
-                                            <td><input id="sp_process_partnumber" style="width: 130px;"></td>
-                                            <td><input id="sp_process_place" style="width: 130px"></td>
-                                            <td><input id="sp_process_part_description" ></td>
-                                            <td>
-                                                <select>
-                                                    <option>Shearing</option>
-                                                    <option>2nd Shearing</option>
-                                                    <option>Blanking</option>
-                                                    <option>Laser Cutting</option>
-                                                    <option selected>Hole Spotting</option>
-                                                    <option>Piercing</option>
-                                                    <option>Bending</option>
-                                                    <option>Forming</option>
-                                                    <option>Dressing</option>
-                                                    <option>Block_setting</option>
-                                                    <option>Setting_assy_handling</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <select>
-                                                    <option value="" disabled selected>Select Process</option>
-                                                    <option>Mechanical Press - Cutting</option>
-                                                    <option>Mechanical Press - Forming</option>
-                                                    <option>Hydraulic Press - Cutting</option>
-                                                    <option>Hydraulic Press - Forming</option>
-                                                </select>
-                                            </td>
-                                            <td><input></td>
-                                            <td>
-                                                <select style="width: 130px;" onchange="getMachineTypeNorms(this)">
-                                                    <option value="" disabled selected>Select Type</option>
-                                                    {% for m in process_base %}
-                                                        <option value="{{ m.process_description }}">{{ m.process_description }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-                                            <td><input></td>
-                                            <td><input></td>
-                                            <td><input name="norms"></td>
-                                            <td><input></td>
-                                            <td><input style="width: 130px;"></td>
-                                            <td><input style="width: 130px;"></td>
-                                            {% if csc_values.csc_status != 'Approved' %}
-                                            <td>
-                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
-                                                <i class="bi bi-trash btn" id="deletecsc" onclick="processdeleteRow(this)"></i>
-                                            </td>
-                                            {% endif %}
-                                        </tr>
-                                    </tbody>
-                                </table></div>
-                            </form></div><br>
+        <!-- Form -->
+        <form id="sm_material_form" method="post" action="{% url 'bom_details' csc_values.id %}">
+            <div class="row g-3">
 
- function populateSMProcessTable(processList, selectprocesslist, selectprocessdesclist,machine_type, surface_process_base_list, scope, method) {
-                const tbody = document.getElementById("processTableBody");
-                tbody.innerHTML = ""; // clear existing rows
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Length Formula</label>
+                    <input id="view_length_formula" name="length_formula"
+                           type="text" class="form-control form-control-sm">
+                </div>
 
-                (processList || []).forEach(element => {
-                if (element?.process_description !== 'Surface Protection') {
-                    const val = Number(element?.process_cost_unit);
-                    if (Number.isFinite(val)) overallprocess_cost_unit += val;
-                }
-                });
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Width Formula</label>
+                    <input id="view_width_formula" name="width_formula"
+                           type="text" class="form-control form-control-sm">
+                </div>
 
-                (processList || []).forEach(element => {
-                if (element?.process_type == 'InHouse' || element?.process_type == 'BOSF') {
-                    const val = Number(element?.process_cost_unit);
-                    if (Number.isFinite(val)) overallprocess_cost_unit_inhouse += val;
-                }
-                });
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Finish Weight Formula</label>
+                    <input id="view_finish_weight_formula" name="finish_weight_formula"
+                           type="text" class="form-control form-control-sm">
+                </div>
 
-                (processList || []).forEach(element => {
-                if (element?.process_type == 'Outsourced') {
-                    const val = Number(element?.process_cost_unit);
-                    if (Number.isFinite(val)) overallprocess_cost_unit_outsource += val;
-                }
-                });
+            </div>
+        </form>
+    </div>
+</div>
 
+function populateSMProcessTable(
+    processList,
+    selectprocesslist,
+    selectprocessdesclist,
+    machine_type,
+    surface_process_base_list,
+    scope,
+    method
+) {
 
-                processList.forEach(proc => {
-                    const row = document.createElement("tr");
-                    const greyGroup = ["Shearing", "2nd Shearing", "Laser Cutting","Hole Spotting"]
-                    const shearing = ["Shearing"]
-                    const surface = ["Surface Protection"]
-                    const greenGroup = ["Dressing","Block Setting","Setting, Assembly & Handling"]
+    const smTbody = document.getElementById("processTableBody");
+    const surfaceTbody = document.getElementById("surface_protection_processTableBody");
 
-                    // Build Process Description Dropdown
-                    let processDescOptions = `<option value="">Select</option>`;
-                    selectprocessdesclist.forEach(desc => {
-                        const selected = proc.process_description === desc ? "selected" : "";
-                        processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
-                    });
+    smTbody.innerHTML = "";
+    surfaceTbody.innerHTML = "";
 
-                    // Build Machine Type Dropdown
-                    let processTypeOptions = `<option value="">Select</option>`;
-                    selectprocesslist.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
+    processList.forEach(proc => {
 
-                    let surface_processTypeOptions = `<option value="">Select</option>`;
-                    surface_process_base_list.forEach(item => {
-                        const selected = proc.machinetype === item.process_description ? "selected" : "";
-                        surface_processTypeOptions += `<option value="${item.process_description}" ${selected}>${item.process_description}</option>`;
-                    });
+        const isSurfaceProtection =
+            (proc.process_description || "")
+            .toLowerCase()
+            .includes("surface protection");
 
-                    let machineTypeOption = `<option value="">Select</option>`;
-                    machine_type.forEach(item => {
-                        const selected = proc.mechanical_hydraulic === item ? "selected" : "";
-                        machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
-                    })
+        const row = document.createElement("tr");
 
-                    const isSurfaceProtection = (proc.process_description || "")
-                    .toLowerCase()
-                    .includes("surface protection");
+        /* ---------------- Process Description Dropdown ---------------- */
+        let processDescOptions = `<option value="">Select</option>`;
+        selectprocessdesclist.forEach(desc => {
+            const selected = proc.process_description === desc ? "selected" : "";
+            processDescOptions += `<option value="${desc}" ${selected}>${desc}</option>`;
+        });
 
-                    row.innerHTML = `
-                        <td><input value="${proc.part_no || ''}" readonly style="background-color:e6e6e6;width:110px"></td>
-                        <td><input class="process_type_bof" name="process_type_bof" value="${proc.process_type || ''}" data-id="${proc.id}" readonly style="background-color:e6e6e6;width:90px"></td>
-                        <td><input value="${proc.part_description || ''}" readonly style="background-color:e6e6e6"></td>
+        /* ---------------- Machine Type Dropdown ---------------- */
+        let processTypeOptions = `<option value="">Select</option>`;
+        selectprocesslist.forEach(item => {
+            const selected = proc.machinetype === item.process_description ? "selected" : "";
+            processTypeOptions += `<option value="${item.process_description}" ${selected}>
+                                    ${item.process_description}
+                                  </option>`;
+        });
 
-                        <!-- Process Description Dropdown -->
-                        <td>
-                            <select class="process_description" name="process_description" data-id="${proc.id}">
-                                ${processDescOptions}
-                            </select>
-                        </td>
+        let surfaceProcessTypeOptions = `<option value="">Select</option>`;
+        surface_process_base_list.forEach(item => {
+            const selected = proc.machinetype === item.process_description ? "selected" : "";
+            surfaceProcessTypeOptions += `<option value="${item.process_description}" ${selected}>
+                                            ${item.process_description}
+                                          </option>`;
+        });
 
-                        <td>
-                            <select class="process-desc" name="machine_type" data-id="${proc.id}" >
-                                ${machineTypeOption}
-                            </select>
-                        </td>
-                        <td class="process_numeric_input"><input type="text" class="cutting_len_formula process_numeric_input" name="cutting_len_formula" data-id="${proc.id}" value="${proc.cutting_formula || ''}" value=""></td>
-                        <td class="process_numeric_input"><input class="process-length process_numeric_input" name="cutting_length" data-id="${proc.id}" value="${proc.cutting_forminglength || ''}"></td>
+        let machineTypeOption = `<option value="">Select</option>`;
+        machine_type.forEach(item => {
+            const selected = proc.mechanical_hydraulic === item ? "selected" : "";
+            machineTypeOption += `<option value="${item}" ${selected}>${item}</option>`;
+        });
 
-                        <!-- Machine Type Dropdown -->
-                        <td>
-                            <select class="process-type-desc" data-id="${proc.id}">
-                            ${isSurfaceProtection ? surface_processTypeOptions : processTypeOptions}
-                            </select>
-                        </td>
+        row.innerHTML = `
+            <td><input value="${proc.part_no || ''}" readonly class="form-control form-control-sm bg-light"></td>
+            <td><input value="${proc.process_type || ''}" readonly class="form-control form-control-sm bg-light"></td>
+            <td><input value="${proc.part_description || ''}" readonly class="form-control form-control-sm bg-light"></td>
 
-                        <td class="process_numeric_input"><input class="process_no_of_operations process_numeric_input" name="no_of_operation" data-id="${proc.id}" value="${proc.no_of_operations ? parseFloat(proc.no_of_operations).toFixed(3) : ''}"></td>
-                        <td class="process_numeric_input"><input class="process_parts_per_cycle process_numeric_input" name="parts_per_cycle" data-id="${proc.id}" value="${proc.parts_per_cycle || ''}"></td>
-                        <td class="process_numeric_input"><input class="process_numeric_input" value="${proc.norms ? parseFloat(proc.norms).toFixed(2) : ''}" readonly style="background-color:e6e6e6"></td>
-                        <td class="process_numeric_input"><input class="process_numeric_input" value="${proc.process_cost_unit ? parseFloat(proc.process_cost_unit).toFixed(3) : ''}" readonly style="background-color:e6e6e6"></td>
-                        <td><input class="process_remarks" data-id="${proc.id}" value="${proc.remarks || ''}" style="width:160px"></td>
-                        {% if csc_values.csc_status != 'Approved' %}
-                        <td>
-                            <i class="bi bi-plus-circle btn" id="showcsc" onclick="processaddRow(this)"></i>
-                            <i class="bi bi-trash btn" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" onclick="openDeleteModal(this,${proc.id});"></i>
-                        </td>
-                        {% endif %}
-                    `;
+            <td>
+                <select class="form-select form-select-sm">
+                    ${processDescOptions}
+                </select>
+            </td>
 
-                    tbody.appendChild(row);
+            <td>
+                <select class="form-select form-select-sm">
+                    ${machineTypeOption}
+                </select>
+            </td>
 
-place the surface protection values to surface_protection_processbody i created form for that. don't show surface protection row in sm_process process body
+            <td><input value="${proc.cutting_formula || ''}" class="form-control form-control-sm"></td>
+
+            <td><input value="${proc.cutting_forminglength || ''}" class="form-control form-control-sm"></td>
+
+            <td>
+                <select class="form-select form-select-sm">
+                    ${isSurfaceProtection ? surfaceProcessTypeOptions : processTypeOptions}
+                </select>
+            </td>
+
+            <td><input value="${proc.no_of_operations || ''}" class="form-control form-control-sm"></td>
+            <td><input value="${proc.parts_per_cycle || ''}" class="form-control form-control-sm"></td>
+
+            <td><input value="${proc.norms || ''}" readonly class="form-control form-control-sm bg-light"></td>
+            <td><input value="${proc.process_cost_unit || ''}" readonly class="form-control form-control-sm bg-light"></td>
+
+            <td><input value="${proc.remarks || ''}" class="form-control form-control-sm"></td>
+        `;
+
+        /* 🔥 Append to Correct Table */
+        if (isSurfaceProtection) {
+            surfaceTbody.appendChild(row);
+        } else {
+            smTbody.appendChild(row);
+        }
+    });
+}
