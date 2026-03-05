@@ -1,90 +1,9 @@
-{% if csc_values.csc_status == 'WIP' and user_role not in 'Admin,Review' %}
-                                    <div class="flex-item button-container1">
-                                        <button type="button" class="btn btn-primary" onclick="updatebomdata({{csc_values.id}})">Update BOM Data</button>
-                                    </div>
-                                    <div class="flex-item button-container2">
-                                        <button type="button" class="btn btn-primary" onclick="savebomdata({{csc_values.id}})">Save BOM Data</button>
-                                    </div>
-                                    {% endif %}
+Requirements for deployment:
 
-<td>
-                                                {% if csc_values.csc_status|lower == "WIP" and user_role not in "Admin,Review" %}
-                                                    {% if values.method != "CSC" and values.scope == "BOSF" or values.method != "CSC" and values.scope == "BOF" %}
-                                                    <i class="bi bi-eye btn" id="Editcsc" data-toggle="modal" data-target="#OtherMethodModal"
-                                                    data-id="{{values.id}}"
-                                                    data-level="{{values.level}}"
-                                                    data-rev="{{values.revision}}"
-                                                    data-qty="{{values.qty}}"
-                                                    data-partno="{{values.part_no}}"
-                                                    data-description="{{values.part_description}}"
-                                                    data-scope="{{values.scope}}"
-                                                    data-process_description="{{values.process_type}}"
-                                                    data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                    data-unique_csc_id = "{{csc_values.unique_csc_id}}"
-                                                    data-method="{{values.method}}" onclick="othermodelmethod({{values.id}})"></i>
-                                                    {% elif values.process_type == "Assembly" %}
-                                                    <i class="bi bi-eye btn" id="Editcsc" data-toggle="modal" data-target="#AssemblyModal"
-                                                    data-id="{{values.id}}"
-                                                    data-partno="{{values.part_no}}"
-                                                    data-description="{{values.part_description}}"
-                                                    data-scope="{{values.scope}}"
-                                                    data-process_description="{{values.cutting_process}}"
-                                                    data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                    data-unique_csc_id = "{{csc_values.unique_csc_id}}"
-                                                    data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                    {% else %}
-                                                    <i class="bi bi-eye btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
-                                                    data-id="{{values.id}}"
-                                                    data-partno="{{values.part_no}}"
-                                                    data-description="{{values.part_description}}"
-                                                    data-scope="{{values.scope}}"
-                                                    data-process_description="{{values.cutting_process}}"
-                                                    data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                    data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                    {% endif %}
-                                                {% else %}
-                                                <i class="bi bi-plus-circle btn" id="showcsc" onclick="showInsertMenu(this)"></i>
-                                                {% if values.method != "CSC" and values.scope == "BOSF" or values.method != "CSC" and values.scope == "BOF" %}
-                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#OtherMethodModal"
-                                                data-id="{{values.id}}"
-                                                data-level="{{values.level}}"
-                                                data-rev="{{values.revision}}"
-                                                data-qty="{{values.qty}}"
-                                                data-partno="{{values.part_no}}"
-                                                data-description="{{values.part_description}}"
-                                                data-scope="{{values.scope}}"
-                                                data-process_description="{{values.process_type}}"
-                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
-                                                data-method="{{values.method}}" onclick="othermodelmethod({{values.id}})"></i>
-                                                {% elif values.process_type == "Assembly" %}
-                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#AssemblyModal"
-                                                data-id="{{values.id}}"
-                                                data-partno="{{values.part_no}}"
-                                                data-description="{{values.part_description}}"
-                                                data-scope="{{values.scope}}"
-                                                data-process_description="{{values.cutting_process}}"
-                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                data-unique_csc_id = "{{csc_values.unique_csc_id}}"
-                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                {% else %}
-                                                <i class="bi bi-pencil-square btn" id="Editcsc" data-toggle="modal" data-target="#updatecscModal"
-                                                data-id="{{values.id}}"
-                                                data-partno="{{values.part_no}}"
-                                                data-description="{{values.part_description}}"
-                                                data-scope="{{values.scope}}"
-                                                data-process_description="{{values.cutting_process}}"
-                                                data-is_nesting_needed = "{{values.is_nesting_needed}}"
-                                                data-method="{{values.method}}" onclick="sm_materialById({{values.id}})"></i>
-                                                {% endif %}
-                                                <!-- <i class="bi bi-grip-vertical drag-handle" title="Drag to reorder"></i> -->
-                                                <i class="bi bi-trash btn delete-bom" id="deletecsc" data-toggle="modal" data-id="{{values.id}}" data-target="#deleteBomModal"></i>
-                                                {% endif %}
-                                            </td>
+python => version (3.13.9)
 
-class User(AbstractUser):
-    access_level = models.JSONField(null=True, blank=True, default=list)
-user_role = User.objects.filter(username=system_user).first()
-    print('user',user_role.access_level)
+postgres => version (16)
 
-correct the template conditions
+pip install requirements.txt
+
+nginx download from ( https://nginx.org/en/download.html )
